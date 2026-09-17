@@ -311,12 +311,20 @@ function renderWeeklySchedule() {
     const spotsLeft = Math.max(0, Number(cls.capacidade || 8) - Number(cls.inscritos || 0));
     const isFull = spotsLeft <= 0 && !isStudentConfirmed;
 
+    const isPlanExpired = Boolean(agendaData.student?.plano_vencido);
+
     let actionButtonMarkup = '';
     if (isStudentConfirmed) {
       actionButtonMarkup = `
         <div class="weekly-class-action">
           <span class="confirmed-badge">✓ Confirmado</span>
           <button class="btn-unconfirm-slot" type="button" data-confirm-class="${escapeHTML(cls.id)}" data-confirm-value="remover">Desmarcar</button>
+        </div>
+      `;
+    } else if (isPlanExpired) {
+      actionButtonMarkup = `
+        <div class="weekly-class-action">
+          <a class="btn-confirm-slot is-blocked" href="#pixDemoCard" title="Seu plano está vencido. Regularize via PIX para confirmar presença.">Plano vencido</a>
         </div>
       `;
     } else if (isFull) {
@@ -365,12 +373,174 @@ function renderDashboard() {
   greeting.textContent = `Olá, ${firstName}! Seja bem-vindo(a).`;
   period.textContent = `Aulas de hoje até ${formatDateLong(agendaData.period_end)}.`;
   plan.textContent = student.plano_nome || 'Aluno ativo';
+
+  // Plan status badge (verde / vermelho)
+  const statusBadge = document.getElementById('studentPlanStatus');
+  const expiredBanner = document.getElementById('expiredPlanBanner');
+  const expiredTitle = document.getElementById('expiredBannerTitle');
+
+  const isExpired = Boolean(student.plano_vencido);
+  const formattedDueDate = formatDate(student.plano_vencimento);
+
+  if (statusBadge) {
+    if (isExpired) {
+      statusBadge.className = 'plan-status-badge bad';
+      statusBadge.textContent = '🔴 Plano vencido';
+    } else {
+      statusBadge.className = 'plan-status-badge ok';
+      statusBadge.textContent = `🟢 Plano até ${formattedDueDate || 'o vencimento'}`;
+    }
+  }
+
+  if (expiredBanner) {
+    if (isExpired) {
+      expiredBanner.style.display = 'flex';
+      if (expiredTitle) expiredTitle.textContent = `Seu plano venceu em ${formattedDueDate || 'dias anteriores'}`;
+    } else {
+      expiredBanner.style.display = 'none';
+    }
+  }
+
   renderUpcoming();
   renderWeeklyQuota();
   renderWeeklySchedule();
   setupAvailableFilters(true);
   renderCalendar();
+  initPixDemoArea(student, firstName);
   dashboard.hidden = false;
+}
+
+function generatePixCode(pixKey, merchantName, merchantCity, amount, txId) {
+  const f = (id, val) => `${id}${String(val.length).padStart(2, '0')}${val}`;
+  const key = String(pixKey || '').replace(/\D/g, '');
+  const name = String(merchantName || 'TEAM LUCAO').slice(0, 25).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const city = String(merchantCity || 'SOROCABA').slice(0, 15).toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const valFormatted = Number(amount || 0).toFixed(2);
+  const tx = String(txId || '***').slice(0, 25).toUpperCase().replace(/[^A-Z0-9]/g, '');
+
+  const gui = f('00', 'br.gov.bcb.pix');
+  const k = f('01', key);
+  const mai = f('26', gui + k);
+
+  const pfi = f('00', '01');
+  const mcc = f('52', '0000');
+  const curr = f('53', '986');
+  const amt = f('54', valFormatted);
+  const cc = f('58', 'BR');
+  const mn = f('59', name);
+  const mc = f('60', city);
+  const addData = f('62', f('05', tx));
+
+  const raw = pfi + mai + mcc + curr + amt + cc + mn + mc + addData + '6304';
+
+  let crc = 0xFFFF;
+  for (let i = 0; i < raw.length; i++) {
+    crc ^= (raw.charCodeAt(i) << 8);
+    for (let j = 0; j < 8; j++) {
+      if ((crc & 0x8000) !== 0) {
+        crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+      } else {
+        crc = (crc << 1) & 0xFFFF;
+      }
+    }
+  }
+  const crcHex = (crc & 0xFFFF).toString(16).toUpperCase().padStart(4, '0');
+  return raw + crcHex;
+}
+
+let pixInitialized = false;
+
+function initPixDemoArea(student, firstName) {
+  const select = document.getElementById('pixPlanSelect');
+  const displayAmount = document.getElementById('pixDisplayAmount');
+  const btnGenerate = document.getElementById('btnGeneratePix');
+  const resultBox = document.getElementById('pixResultBox');
+  const qrImg = document.getElementById('pixQrImage');
+  const copyInput = document.getElementById('pixCopyCode');
+  const btnCopy = document.getElementById('btnCopyPix');
+  const btnCopyText = document.getElementById('btnCopyPixText');
+  const btnSimulate = document.getElementById('btnSimulatePix');
+
+  if (!select || !btnGenerate) return;
+
+  if (student.mensalidade && student.mensalidade > 0) {
+    const matchingOption = Array.from(select.options).find((opt) => Number(opt.value) === Number(student.mensalidade));
+    if (matchingOption) select.value = matchingOption.value;
+  }
+
+  const updateDisplayPrice = () => {
+    const val = Number(select.value || 260);
+    if (displayAmount) displayAmount.textContent = `R$ ${val.toFixed(2).replace('.', ',')}`;
+  };
+  updateDisplayPrice();
+
+  if (!pixInitialized) {
+    pixInitialized = true;
+
+    select.addEventListener('change', () => {
+      updateDisplayPrice();
+      if (resultBox && resultBox.style.display !== 'none') {
+        renderCurrentPix();
+      }
+    });
+
+    const renderCurrentPix = () => {
+      const amount = select.value;
+      const cleanName = (firstName || 'ALUNO').toUpperCase().replace(/[^A-Z]/g, '');
+      const pixString = generatePixCode('15996744160', 'TEAM LUCAO', 'SOROCABA', amount, `TL${cleanName}`);
+      if (copyInput) copyInput.value = pixString;
+      if (qrImg) {
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=2&data=${encodeURIComponent(pixString)}`;
+      }
+      if (resultBox) resultBox.style.display = 'flex';
+    };
+
+    btnGenerate.addEventListener('click', () => {
+      renderCurrentPix();
+      resultBox?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+
+    if (btnCopy && copyInput) {
+      btnCopy.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(copyInput.value);
+          btnCopy.classList.add('copied');
+          if (btnCopyText) btnCopyText.textContent = '✓ Copiado com sucesso!';
+          setTimeout(() => {
+            btnCopy.classList.remove('copied');
+            if (btnCopyText) btnCopyText.textContent = '📋 Copiar código PIX';
+          }, 3000);
+        } catch {
+          copyInput.select();
+          document.execCommand('copy');
+          if (btnCopyText) btnCopyText.textContent = '✓ Copiado!';
+          setTimeout(() => {
+            if (btnCopyText) btnCopyText.textContent = '📋 Copiar código PIX';
+          }, 3000);
+        }
+      });
+    }
+
+    if (btnSimulate) {
+      btnSimulate.addEventListener('click', async () => {
+        setButtonLoading(btnSimulate, true, 'Confirmando pagamento...');
+        try {
+          const res = await fetch('/api/public/simulate-pix', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ telefone: currentPhone })
+          });
+          const data = await responseData(res, 'Não foi possível confirmar o pagamento simulado.');
+          setStatus(studentStatus, '🎉 Pagamento PIX aprovado com sucesso! Seu plano foi renovado e suas aulas foram liberadas.', 'success');
+          await loadAgenda();
+        } catch (err) {
+          setStatus(studentStatus, err.message, 'error');
+        } finally {
+          setButtonLoading(btnSimulate, false);
+        }
+      });
+    }
+  }
 }
 
 async function loadAgenda() {
@@ -632,11 +802,18 @@ async function submitGuestBooking(event) {
   }
   setButtonLoading(guestButton, true, 'Enviando pedido...');
   setStatus(guestStatus, 'Enviando sua solicitação...');
+  const referral = document.getElementById('guestReferral')?.value?.trim() || '';
   try {
     const response = await fetch('/api/public/bookings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome: name, telefone: phone, aula_id: classId, observacao: 'Aula experimental solicitada.' })
+      body: JSON.stringify({
+        nome: name,
+        telefone: phone,
+        aula_id: classId,
+        observacao: 'Aula experimental solicitada.',
+        indicado_por: referral
+      })
     });
     await responseData(response, 'Não foi possível solicitar a aula experimental.');
     guestClasses = guestClasses.filter((item) => String(item.id) !== String(classId));

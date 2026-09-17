@@ -9,8 +9,8 @@
     <script>try{document.documentElement.dataset.theme=String(localStorage.getItem('fv_theme')||'dark').toLowerCase().endsWith('light')?'light':'dark'}catch{}</script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="public.css?v=20260917-ds" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="public.css?v=20260914-v5" />
   </head>
   <body>
     <main class="fast-shell student-shell">
@@ -76,86 +76,190 @@
 
         <!-- Dashboard do Aluno (ativado após busca) -->
         <div class="student-dashboard" id="studentDashboard" hidden>
-          <section class="student-welcome" aria-label="Resumo da agenda">
-            <div>
-              <p class="eyebrow">agenda encontrada</p>
-              <h2 id="studentGreeting"></h2>
-              <p id="studentPeriod"></p>
-            </div>
-            <span class="plan-pill" id="studentPlan"></span>
-          </section>
-
-          <!-- Card de Quota Semanal -->
-          <div class="student-quota-card" id="studentQuotaCard">
-            <div class="quota-header">
-              <div class="quota-title-wrap">
-                <span class="quota-badge">Aulas na semana</span>
-                <span class="quota-counter" id="studentQuotaCounter">0 confirmadas</span>
-              </div>
-              <span class="quota-status-pill" id="studentQuotaStatusPill">Disponível</span>
-            </div>
-            <div class="quota-progress-track">
-              <div class="quota-progress-bar" id="studentQuotaProgressBar" style="width: 0%"></div>
-            </div>
-            <p class="quota-hint" id="studentQuotaHint"></p>
-          </div>
-
-          <!-- Grade da Semana -->
-          <section class="weekly-schedule-section" id="weeklyScheduleSection" aria-labelledby="weeklyScheduleTitle">
-            <div class="section-heading compact-heading">
-              <div class="section-bar">
+          <div class="student-dashboard-grid">
+            <!-- Coluna Esquerda: Perfil, Status, Cota e PIX (Fixa no Desktop) -->
+            <div class="student-col-left">
+              <section class="student-welcome" aria-label="Resumo da agenda">
                 <div>
-                  <p class="eyebrow" id="weeklyScheduleEyebrow">grade da semana</p>
-                  <h2 id="weeklyScheduleTitle">Aulas disponíveis na semana</h2>
+                  <p class="eyebrow">agenda encontrada</p>
+                  <h2 id="studentGreeting"></h2>
+                  <p id="studentPeriod"></p>
                 </div>
-                <span class="week-dates-badge" id="weeklyDatesBadge">Esta semana</span>
+                <div class="student-plan-wrap">
+                  <span class="plan-pill" id="studentPlan"></span>
+                  <span class="plan-status-badge" id="studentPlanStatus"></span>
+                </div>
+              </section>
+
+              <!-- Banner de Aviso de Plano Vencido -->
+              <div class="expired-plan-banner" id="expiredPlanBanner" style="display:none;">
+                <div class="expired-banner-icon">
+                  <svg class="alert-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                </div>
+                <div class="expired-banner-info">
+                  <strong id="expiredBannerTitle">Seu plano está vencido</strong>
+                  <p>A confirmação de presença está pausada. Regularize sua mensalidade via PIX para liberar suas aulas na hora.</p>
+                </div>
+                <a class="primary-button btn-go-pix" href="#pixDemoCard">Pagar via PIX</a>
               </div>
-              <p id="weeklyScheduleDescription">Escolha as aulas que deseja participar e confirme sua presença diretamente.</p>
+
+              <!-- Card de Quota Semanal -->
+              <div class="student-quota-card" id="studentQuotaCard">
+                <div class="quota-header">
+                  <div class="quota-title-wrap">
+                    <span class="quota-badge">Aulas na semana</span>
+                    <span class="quota-counter" id="studentQuotaCounter">0 confirmadas</span>
+                  </div>
+                  <span class="quota-status-pill" id="studentQuotaStatusPill">Disponível</span>
+                </div>
+                <div class="quota-progress-track">
+                  <div class="quota-progress-bar" id="studentQuotaProgressBar" style="width: 0%"></div>
+                </div>
+                <p class="quota-hint" id="studentQuotaHint"></p>
+              </div>
+
+              <!-- Card de Pagamento & Renovação PIX -->
+              <section class="pix-card" id="pixDemoCard">
+                <div class="pix-card-header">
+                  <div class="pix-header-left">
+                    <span class="pix-tag">Pagamento Instantâneo</span>
+                    <h3>Renovação via PIX</h3>
+                    <p class="pix-sub">Liberação automática de presenças e agendamentos.</p>
+                  </div>
+                  <div class="pix-header-right">
+                    <span class="pix-status-indicator">● Chave Oficial</span>
+                  </div>
+                </div>
+
+                <div class="pix-card-body">
+                  <div class="pix-form-grid">
+                    <div class="pix-field-group">
+                      <label for="pixPlanSelect">Selecione o plano:</label>
+                      <select id="pixPlanSelect" class="pix-select">
+                        <option value="260" data-name="2x semana" selected>2x por semana — R$ 260,00 / mês</option>
+                        <option value="180" data-name="1x semana">1x por semana — R$ 180,00 / mês</option>
+                        <option value="340" data-name="Livre">Livre (ilimitado) — R$ 340,00 / mês</option>
+                        <option value="70" data-name="Avulso">Aula Avulsa / Reposição — R$ 70,00</option>
+                      </select>
+                    </div>
+                    <div class="pix-amount-card">
+                      <span class="amount-label">Valor</span>
+                      <strong class="amount-val" id="pixDisplayAmount">R$ 260,00</strong>
+                    </div>
+                  </div>
+
+                  <button class="primary-button pix-cta-btn" id="btnGeneratePix" type="button">
+                    <span>Gerar QR Code e Chave PIX</span>
+                  </button>
+
+                  <!-- Área do QR Code & Copia e Cola gerado -->
+                  <div class="pix-result-box" id="pixResultBox" style="display:none;">
+                    <div class="pix-qr-container">
+                      <div class="pix-qr-img-frame">
+                        <img id="pixQrImage" src="" alt="QR Code PIX" />
+                      </div>
+                      <div class="pix-receiver-details">
+                        <div class="receiver-row">
+                          <span class="rec-label">Favorecido:</span>
+                          <strong class="rec-val">Lucas Fernandes (Team Lucão)</strong>
+                        </div>
+                        <div class="receiver-row">
+                          <span class="rec-label">Chave PIX:</span>
+                          <strong class="rec-val">(15) 99674-4160</strong>
+                        </div>
+                        <div class="receiver-row">
+                          <span class="rec-label">Banco:</span>
+                          <span class="rec-val">Conta Digital / Nubank</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="pix-copy-section">
+                      <label class="pix-copy-label" for="pixCopyCode">PIX Copia e Cola:</label>
+                      <div class="pix-copy-group">
+                        <input id="pixCopyCode" class="pix-copy-input" readonly value="" />
+                        <button class="pix-copy-button" id="btnCopyPix" type="button">
+                          <span id="btnCopyPixText">Copiar código PIX</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Painel de Demonstração / Teste para o Professor -->
+                    <div class="pix-simulation-card">
+                      <div class="sim-header">
+                        <span class="sim-badge">Área de Demonstração</span>
+                        <strong>Simulação para o Professor</strong>
+                      </div>
+                      <p>Clique abaixo para simular a confirmação do PIX em tempo real:</p>
+                      <button class="pix-sim-action-btn" id="btnSimulatePix" type="button">
+                        <span>✓ Simular Pagamento Confirmado</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </section>
             </div>
-            <div class="list weekly-class-list" id="studentWeeklyList" aria-live="polite"></div>
-          </section>
 
-          <!-- Layout da Agenda e Calendário -->
-          <div class="agenda-layout">
-            <section class="agenda-column" aria-labelledby="upcomingTitle">
-              <div class="section-heading compact-heading">
-                <p class="eyebrow">até o vencimento</p>
-                <h2 id="upcomingTitle">Próximas aulas confirmadas</h2>
-                <p>Você pode confirmar, informar que não vai ou remover sua resposta.</p>
-              </div>
-              <div class="list student-class-list" id="studentUpcomingList" aria-live="polite"></div>
-            </section>
+            <!-- Coluna Direita: Grade Semanal, Calendário e Aulas (Ampla no Desktop) -->
+            <div class="student-col-right">
+              <!-- Grade da Semana -->
+              <section class="weekly-schedule-section" id="weeklyScheduleSection" aria-labelledby="weeklyScheduleTitle">
+                <div class="section-heading compact-heading">
+                  <div class="section-bar">
+                    <div>
+                      <p class="eyebrow" id="weeklyScheduleEyebrow">grade da semana</p>
+                      <h2 id="weeklyScheduleTitle">Aulas disponíveis na semana</h2>
+                    </div>
+                    <span class="week-dates-badge" id="weeklyDatesBadge">Esta semana</span>
+                  </div>
+                  <p id="weeklyScheduleDescription">Escolha as aulas que deseja participar e confirme sua presença diretamente.</p>
+                </div>
+                <div class="list weekly-class-list" id="studentWeeklyList" aria-live="polite"></div>
+              </section>
 
-            <aside class="calendar-card" aria-labelledby="calendarTitle">
-              <div class="section-heading compact-heading">
-                <p class="eyebrow">visão do período</p>
-                <h2 id="calendarTitle">Calendário</h2>
+              <!-- Layout da Agenda e Calendário -->
+              <div class="agenda-layout">
+                <section class="agenda-column" aria-labelledby="upcomingTitle">
+                  <div class="section-heading compact-heading">
+                    <p class="eyebrow">até o vencimento</p>
+                    <h2 id="upcomingTitle">Próximas aulas confirmadas</h2>
+                    <p>Você pode confirmar, informar que não vai ou remover sua resposta.</p>
+                  </div>
+                  <div class="list student-class-list" id="studentUpcomingList" aria-live="polite"></div>
+                </section>
+
+                <aside class="calendar-card" aria-labelledby="calendarTitle">
+                  <div class="section-heading compact-heading">
+                    <p class="eyebrow">visão do período</p>
+                    <h2 id="calendarTitle">Calendário</h2>
+                  </div>
+                  <div class="calendar-legend" aria-label="Legenda do calendário">
+                    <span><i class="legend-dot scheduled"></i>Suas aulas</span>
+                    <span><i class="legend-dot available"></i>Com vaga</span>
+                  </div>
+                  <div class="student-calendar" id="studentCalendar"></div>
+                </aside>
               </div>
-              <div class="calendar-legend" aria-label="Legenda do calendário">
-                <span><i class="legend-dot scheduled"></i>Suas aulas</span>
-                <span><i class="legend-dot available"></i>Com vaga</span>
-              </div>
-              <div class="student-calendar" id="studentCalendar"></div>
-            </aside>
+
+              <!-- Aulas Disponíveis Regulares -->
+              <section class="available-section" aria-labelledby="availableTitle">
+                <div class="section-heading compact-heading">
+                  <p class="eyebrow">outras opções</p>
+                  <h2 id="availableTitle">Outras aulas disponíveis</h2>
+                  <p>Escolha uma data e depois um horário com vaga.</p>
+                </div>
+                <div class="filters" id="studentFastFilters">
+                  <label for="studentFastDate">Data
+                    <select id="studentFastDate"><option value="">Todas as datas</option></select>
+                  </label>
+                  <label for="studentFastTime">Horário
+                    <select id="studentFastTime"><option value="">Todos os horários</option></select>
+                  </label>
+                </div>
+                <div class="list available-list" id="studentAvailableList" aria-live="polite"></div>
+              </section>
+            </div>
           </div>
-
-          <!-- Aulas Disponíveis Regulares -->
-          <section class="available-section" aria-labelledby="availableTitle">
-            <div class="section-heading compact-heading">
-              <p class="eyebrow">outras opções</p>
-              <h2 id="availableTitle">Outras aulas disponíveis</h2>
-              <p>Escolha uma data e depois um horário com vaga.</p>
-            </div>
-            <div class="filters" id="studentFastFilters">
-              <label for="studentFastDate">Data
-                <select id="studentFastDate"><option value="">Todas as datas</option></select>
-              </label>
-              <label for="studentFastTime">Horário
-                <select id="studentFastTime"><option value="">Todos os horários</option></select>
-              </label>
-            </div>
-            <div class="list available-list" id="studentAvailableList" aria-live="polite"></div>
-          </section>
         </div>
       </section>
 
@@ -179,6 +283,9 @@
             </label>
             <label for="guestTime">Horário da aula
               <select id="guestTime" required disabled><option value="">Escolha primeiro a data</option></select>
+            </label>
+            <label for="guestReferral">Quem indicou você? (Opcional)
+              <input id="guestReferral" placeholder="Ex: Nome de quem te indicou" />
             </label>
           </div>
           <button class="primary-button" id="guestSubmitButton" type="submit">Solicitar aula experimental</button>

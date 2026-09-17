@@ -1088,3 +1088,443 @@ button.calendar-day:hover { border-color: var(--accent); background: var(--accen
     gap: 8px;
   }
 }
+
+/* ==========================================================================
+   Plan Status Badges & Expired Banner
+   ========================================================================== */
+.student-plan-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.plan-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+
+.plan-status-badge.ok {
+  background: color-mix(in srgb, var(--ok) 18%, transparent);
+  color: var(--ok);
+  border: 1px solid color-mix(in srgb, var(--ok) 35%, transparent);
+}
+
+.plan-status-badge.bad {
+  background: color-mix(in srgb, var(--bad) 18%, transparent);
+  color: var(--bad);
+  border: 1px solid color-mix(in srgb, var(--bad) 35%, transparent);
+}
+
+.expired-plan-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--bad) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--bad) 40%, transparent);
+  margin-bottom: 12px;
+}
+
+.expired-banner-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.expired-banner-info {
+  flex: 1;
+}
+
+.expired-banner-info strong {
+  display: block;
+  font-size: 14px;
+  color: var(--bad);
+  margin-bottom: 2px;
+}
+
+.expired-banner-info p {
+  font-size: 12px;
+  color: var(--text);
+  opacity: .88;
+  margin: 0;
+}
+
+.btn-go-pix {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  font-size: 13px;
+  min-height: 38px;
+}
+
+/* ==========================================================================
+   PIX Payment Card & Test Area
+   ========================================================================== */
+.pix-card {
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pix-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 12px;
+}
+
+.pix-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #0284c7;
+  margin-bottom: 2px;
+}
+
+.pix-card-header h3 {
+  font-size: 17px;
+  font-weight: 750;
+  margin: 0 0 2px;
+}
+
+.pix-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.pix-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ok) 15%, transparent);
+  color: var(--ok);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.pix-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pix-form-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.pix-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pix-field-group label {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--muted);
+}
+
+.pix-select {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pix-amount-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-2));
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  min-width: 140px;
+}
+
+.amount-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.amount-val {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.pix-cta-btn {
+  width: 100%;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.pix-result-box {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.pix-qr-container {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 12px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+
+.pix-qr-img-frame {
+  background: #ffffff;
+  padding: 8px;
+  border-radius: 10px;
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.pix-qr-img-frame img {
+  width: 150px;
+  height: 150px;
+  display: block;
+}
+
+.pix-receiver-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.receiver-row {
+  display: flex;
+  gap: 6px;
+}
+
+.rec-label {
+  color: var(--muted);
+}
+
+.rec-val {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.pix-copy-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pix-copy-label {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--muted);
+}
+
+.pix-copy-group {
+  display: flex;
+  gap: 8px;
+}
+
+.pix-copy-input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.pix-copy-button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .2s ease;
+}
+
+.pix-copy-button.copied {
+  background: var(--ok);
+  border-color: var(--ok);
+}
+
+.pix-simulation-card {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: color-mix(in srgb, #8b5cf6 10%, var(--surface-2));
+  border: 1px dashed color-mix(in srgb, #8b5cf6 40%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sim-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sim-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: #8b5cf6;
+  color: #fff;
+}
+
+.pix-simulation-card p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+}
+
+.pix-sim-action-btn {
+  align-self: flex-start;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #8b5cf6;
+  background: color-mix(in srgb, #8b5cf6 20%, transparent);
+  color: #8b5cf6;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.pix-sim-action-btn:hover {
+  background: #8b5cf6;
+  color: #fff;
+}
+
+.btn-confirm-slot.is-blocked {
+  background: color-mix(in srgb, var(--bad) 15%, transparent) !important;
+  color: var(--bad) !important;
+  border: 1px solid color-mix(in srgb, var(--bad) 35%, transparent) !important;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .pix-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .pix-amount-card {
+    align-items: flex-start;
+  }
+  .pix-qr-container {
+    flex-direction: column;
+    text-align: center;
+  }
+  .receiver-row {
+    justify-content: center;
+  }
+  .pix-copy-group {
+    flex-direction: column;
+  }
+}
+
+/* ==========================================================================
+   Desktop / PC Responsive 2-Column Layout (Sports Red + Zinc)
+   ========================================================================== */
+.student-shell {
+  width: min(100%, 1240px);
+  margin-inline: auto;
+  transition: width .2s ease;
+}
+
+.student-dashboard-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .student-shell {
+    padding: 24px 28px 48px;
+  }
+
+  .student-dashboard-grid {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+
+  .student-col-left {
+    position: sticky;
+    top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .student-col-right {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+  }
+
+  /* Cards mais elegantes no PC */
+  .student-welcome {
+    padding: 22px 24px;
+  }
+
+  .pix-card {
+    padding: 22px;
+  }
+
+  .weekly-schedule-section {
+    padding: 24px;
+    border-radius: 20px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+
+  .agenda-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 24px;
+  }
+}

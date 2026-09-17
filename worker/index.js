@@ -4,12 +4,12 @@ const DATA_TABLES = [
 ];
 
 const TABLE_COLUMNS = {
-  alunos: ['id', 'nome', 'telefone', 'email', 'plano_id', 'plano_nome', 'mensalidade', 'dia_vencimento', 'status', 'nivel', 'dia_fixo', 'horario_fixo', 'turma_fixa', 'agendas_fixas', 'observacao', 'pago_ate', 'data_cadastro'],
+  alunos: ['id', 'nome', 'telefone', 'email', 'plano_id', 'plano_nome', 'mensalidade', 'dia_vencimento', 'status', 'nivel', 'dia_fixo', 'horario_fixo', 'turma_fixa', 'agendas_fixas', 'observacao', 'pago_ate', 'data_cadastro', 'indicado_por'],
   planos: ['id', 'nome', 'preco', 'aulas_semana', 'descricao', 'ativo'],
   aulas: ['id', 'data', 'horario', 'turma', 'tipo', 'professor', 'plano_id', 'plano_nome', 'capacidade', 'status', 'valor_avulso', 'extras', 'observacao'],
   aula_alunos: ['id', 'aula_id', 'aluno_id', 'presente', 'confirmado', 'confirmado_em', 'confirmado_professor', 'confirmado_professor_em', 'observacao'],
   pagamentos: ['id', 'aluno_id', 'referencia', 'valor', 'vencimento', 'pago_em', 'status', 'forma_pagamento', 'observacao'],
-  agendamentos: ['id', 'nome', 'telefone', 'aula_id', 'status', 'observacao', 'criado_em', 'respondido_em'],
+  agendamentos: ['id', 'nome', 'telefone', 'aula_id', 'status', 'observacao', 'criado_em', 'respondido_em', 'indicado_por'],
   disponibilidade: ['dia', 'inicio', 'fim'],
   lista_espera: ['id', 'nome', 'telefone', 'aula_id', 'preferencia', 'status', 'observacao', 'data_cadastro'],
   logs: ['id', 'data_hora', 'ator', 'acao', 'detalhe']
@@ -197,7 +197,8 @@ function normalizeStudent(body = {}) {
     turma_fixa: primarySchedule.turma || '',
     agendas_fixas: JSON.stringify(schedules),
     observacao: String(body.observacao || body.note || ''),
-    pago_ate: String(body.pago_ate || body.paidUntil || '')
+    pago_ate: String(body.pago_ate || body.paidUntil || ''),
+    indicado_por: String(body.indicado_por || body.referredBy || body.indicacao || '').trim()
   };
 }
 
@@ -373,15 +374,28 @@ async function studentClasses(db, request) {
     ORDER BY a.data, a.horario
   `, [`%${phone.slice(-8)}`, start, periodEnd]) : [];
 
+  const todayDate = today();
+  let planDueDate = '';
+  if (student.pago_ate) {
+    planDueDate = student.pago_ate;
+  } else {
+    planDueDate = dueDateForMonth(student, currentMonth());
+  }
+  const isExpired = todayDate > planDueDate;
+
   return {
     ok: true,
     student: {
       id: student.id,
       nome: student.nome,
+      telefone: student.telefone,
       plano_id: student.plano_id,
       plano_nome: student.plano_nome,
+      mensalidade: student.mensalidade,
       dia_vencimento: student.dia_vencimento,
-      pago_ate: student.pago_ate
+      pago_ate: student.pago_ate,
+      plano_vencido: isExpired,
+      plano_vencimento: planDueDate
     },
     period_start: start,
     period_end: periodEnd,
@@ -414,7 +428,12 @@ async function stateSnapshot(db, includeLogs = true) {
 async function bootstrap(db) {
   const month = currentMonth();
   const [students, classRows, plans, waitlist, payments, bookings, logs] = await Promise.all([
-    all(db, 'SELECT * FROM alunos ORDER BY nome'),
+    all(db, `
+      SELECT a.*,
+        (SELECT COUNT(*) FROM alunos ind WHERE ind.indicado_por IS NOT NULL AND ind.indicado_por != '' AND LOWER(TRIM(ind.indicado_por)) = LOWER(TRIM(a.nome))) AS total_indicados
+      FROM alunos a
+      ORDER BY a.nome
+    `),
     all(db, 'SELECT * FROM aulas ORDER BY data, horario, turma'),
     all(db, 'SELECT * FROM planos ORDER BY ativo DESC, preco, nome'),
     all(db, `SELECT w.*, a.data AS aula_data, a.horario AS aula_horario, a.turma AS aula_turma, a.status AS aula_status FROM lista_espera w LEFT JOIN aulas a ON a.id=w.aula_id ORDER BY w.id DESC`),
@@ -519,7 +538,14 @@ async function apiHandler(request, env, body) {
     if (duplicate) throw new Error('Ja existe um pedido para esse WhatsApp nessa aula');
     const enrolled = await scalar(db, 'SELECT COUNT(*) AS total FROM aula_alunos WHERE aula_id=?', [classItem.id]);
     if (enrolled >= Number(classItem.capacidade || 8)) throw new Error('Aula lotada');
-    const result = await insertRow(db, 'agendamentos', { nome: String(body.nome).trim(), telefone: String(body.telefone || '').trim(), aula_id: Number(classItem.id), status: 'Pendente', observacao: String(body.observacao || '').trim() });
+    const result = await insertRow(db, 'agendamentos', {
+      nome: String(body.nome).trim(),
+      telefone: String(body.telefone || '').trim(),
+      aula_id: Number(classItem.id),
+      status: 'Pendente',
+      observacao: String(body.observacao || '').trim(),
+      indicado_por: String(body.indicado_por || body.referral || body.indicacao || '').trim()
+    });
     await logAction(db, 'Pedido de aula', `${String(body.nome).trim()} solicitou vaga na aula ${classItem.horario} - ${classItem.turma || 'Turma'} em ${classItem.data}.`, 'Aluno');
     return json({ ok: true, item: await first(db, 'SELECT * FROM agendamentos WHERE id=?', [result.id]) });
   }
@@ -540,6 +566,12 @@ async function apiHandler(request, env, body) {
     const link = await first(db, 'SELECT * FROM aula_alunos WHERE aula_id=? AND aluno_id=?', [classId, student.id]);
 
     if (value === 'sim') {
+      const todayDate = today();
+      const planDueDate = student.pago_ate || dueDateForMonth(student, currentMonth());
+      if (todayDate > planDueDate) {
+        throw new Error(`Seu plano está vencido (${planDueDate.slice(8, 10)}/${planDueDate.slice(5, 7)}/${planDueDate.slice(0, 4)}). Regularize sua mensalidade via PIX para confirmar presença nas aulas.`);
+      }
+
       const alreadyConfirmedThis = link && link.confirmado === 'sim';
       if (!alreadyConfirmedThis) {
         const enrolled = await scalar(db, 'SELECT COUNT(*) AS total FROM aula_alunos WHERE aula_id=?', [classId]);
@@ -557,11 +589,10 @@ async function apiHandler(request, env, body) {
           JOIN aulas a ON a.id=aa.aula_id
           WHERE aa.aluno_id=? AND aa.confirmado='sim' AND a.status != 'Cancelada'
             AND a.data BETWEEN ? AND ?
-            AND a.id != ?
-        `, [student.id, classWeek.inicio, classWeek.fim, classId])) || 0;
+        `, [student.id, classWeek.inicio, classWeek.fim])) || 0;
 
         if (currentConfirmedInWeek >= quota) {
-          throw new Error(`Limite do plano atingido: seu plano (${student.plano_nome || 'ativo'}) permite ${quota} ${quota === 1 ? 'aula' : 'aulas'} por semana. Voce ja confirmou ${currentConfirmedInWeek} aula(s) nesta semana. Desmarque uma aula para escolher este horario.`);
+          throw new Error(`Voce ja confirmou o limite de ${quota} aula(s) nessa semana pelo seu plano`);
         }
       }
     }
@@ -588,6 +619,16 @@ async function apiHandler(request, env, body) {
       : `${student.nome} respondeu ${value} na aula ${classItem.horario} - ${classItem.turma || 'Turma'} em ${classItem.data}.`, 'Aluno');
 
     return json({ ok: true, item: await first(db, 'SELECT * FROM aula_alunos WHERE aula_id=? AND aluno_id=?', [classId, student.id]) });
+  }
+  if (url.pathname === '/api/public/simulate-pix' && method === 'POST') {
+    const informedPhone = body.telefone || body.phone || '';
+    const student = await findStudent(db, informedPhone);
+    if (!student) throw new Error('Aluno não encontrado para esse WhatsApp');
+    const nextMonth = nextMonthKey(currentMonth());
+    const nextDueDate = dueDateForMonth(student, nextMonth);
+    await run(db, 'UPDATE alunos SET pago_ate=? WHERE id=?', [nextDueDate, student.id]);
+    await logAction(db, 'Pagamento PIX', `${student.nome} realizou pagamento simulado via PIX. Plano liberado até ${nextDueDate}.`, 'PIX');
+    return json({ ok: true, pago_ate: nextDueDate, student: { ...student, pago_ate: nextDueDate } });
   }
   if (url.pathname === '/api/public/waitlist' && method === 'POST') {
     const classId = Number(body.aula_id || body.class_id || 0);
@@ -653,8 +694,10 @@ async function apiHandler(request, env, body) {
   if (path[1] === 'students' && path.length === 2) {
     if (method === 'GET') {
       const search = String(url.searchParams.get('search') || '').trim();
-      const params = search ? Array(4).fill(`%${search}%`) : [];
-      const sql = search ? 'SELECT * FROM alunos WHERE nome LIKE ? OR telefone LIKE ? OR plano_nome LIKE ? OR nivel LIKE ? ORDER BY nome' : 'SELECT * FROM alunos ORDER BY nome';
+      const params = search ? Array(5).fill(`%${search}%`) : [];
+      const sql = search
+        ? `SELECT a.*, (SELECT COUNT(*) FROM alunos ind WHERE LOWER(TRIM(ind.indicado_por)) = LOWER(TRIM(a.nome))) AS total_indicados FROM alunos a WHERE a.nome LIKE ? OR a.telefone LIKE ? OR a.plano_nome LIKE ? OR a.nivel LIKE ? OR a.indicado_por LIKE ? ORDER BY a.nome`
+        : `SELECT a.*, (SELECT COUNT(*) FROM alunos ind WHERE LOWER(TRIM(ind.indicado_por)) = LOWER(TRIM(a.nome))) AS total_indicados FROM alunos a ORDER BY a.nome`;
       return json({ ok: true, items: await all(db, sql, params) });
     }
     if (method === 'POST') {
@@ -663,9 +706,58 @@ async function apiHandler(request, env, body) {
       await logAction(db, 'Aluno cadastrado', `${item.nome} foi cadastrado no painel.`, 'Professor'); return json({ ...result, item });
     }
   }
+  if (path[1] === 'students' && path.length === 3 && path[2] === 'batch-import' && method === 'POST') {
+    const items = Array.isArray(body.items) ? body.items : (Array.isArray(body.students) ? body.students : []);
+    const updateExisting = Boolean(body.update_existing);
+    let created = 0, updated = 0, ignored = 0;
+    for (const raw of items) {
+      const nome = String(raw.nome || raw.name || '').trim();
+      if (!nome) { ignored++; continue; }
+      const rawPhone = String(raw.telefone || raw.phone || '').trim();
+      let phone = digits(rawPhone);
+      if (phone.startsWith('55') && (phone.length === 12 || phone.length === 13)) phone = phone.slice(2);
+      if (phone.length === 8 || phone.length === 9) phone = '15' + phone;
+      let existing = null;
+      if (phone.length >= 8) {
+        existing = await first(db, `SELECT * FROM alunos WHERE ${sqlPhone()} LIKE ? LIMIT 1`, [`%${phone.slice(-8)}`]);
+      } else {
+        existing = await first(db, `SELECT * FROM alunos WHERE LOWER(TRIM(nome)) = ? LIMIT 1`, [nome.toLowerCase()]);
+      }
+      const payload = normalizeStudent({
+        ...raw,
+        nome,
+        telefone: rawPhone || (phone ? formatPhone(phone) : ''),
+        indicado_por: String(raw.indicado_por || raw.referral || '').trim()
+      });
+      if (existing) {
+        if (updateExisting) {
+          await updateRow(db, 'alunos', existing.id, {
+            ...payload,
+            plano_id: payload.plano_id || existing.plano_id,
+            plano_nome: payload.plano_nome || existing.plano_nome,
+            mensalidade: payload.mensalidade > 0 ? payload.mensalidade : existing.mensalidade,
+            indicado_por: payload.indicado_por || existing.indicado_por
+          });
+          updated++;
+        } else {
+          ignored++;
+        }
+      } else {
+        await insertRow(db, 'alunos', payload);
+        created++;
+      }
+    }
+    await logAction(db, 'Importação de alunos', `Importação: ${created} criados, ${updated} atualizados, ${ignored} ignorados.`, 'Professor');
+    return json({ ok: true, total: items.length, created, updated, ignored });
+  }
   if (path[1] === 'students' && path.length === 3 && path[2] !== 'pay') {
     const id = path[2];
-    if (method === 'GET') { const item = await first(db, 'SELECT * FROM alunos WHERE id=?', [id]); if (!item) return errorResponse(Object.assign(new Error('Aluno nao encontrado'), { status: 404 })); return json({ ok: true, item }); }
+    if (method === 'GET') {
+      const item = await first(db, `SELECT a.*, (SELECT COUNT(*) FROM alunos ind WHERE LOWER(TRIM(ind.indicado_por)) = LOWER(TRIM(a.nome))) AS total_indicados FROM alunos a WHERE a.id=?`, [id]);
+      if (!item) return errorResponse(Object.assign(new Error('Aluno nao encontrado'), { status: 404 }));
+      const indicados = await all(db, `SELECT id, nome, telefone, plano_nome, data_cadastro FROM alunos WHERE LOWER(TRIM(indicado_por)) = LOWER(TRIM(?)) ORDER BY nome`, [item.nome]);
+      return json({ ok: true, item, indicados });
+    }
     if (method === 'PUT') { const payload = normalizeStudent(body); if (!payload.nome) throw new Error('Informe o nome do aluno'); await updateRow(db, 'alunos', id, payload); const item = await first(db, 'SELECT * FROM alunos WHERE id=?', [id]); await logAction(db, 'Aluno atualizado', `${item?.nome || 'Aluno'} teve cadastro atualizado.`, 'Professor'); return json({ ok: true, item }); }
     if (method === 'DELETE') return json(await deleteRow(db, 'alunos', id));
   }
