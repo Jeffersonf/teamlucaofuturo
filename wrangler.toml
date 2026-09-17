@@ -1,0 +1,11 @@
+name = "teamlucao"
+pages_build_output_dir = ".cloudflare-public"
+compatibility_date = "2026-09-03"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "team-lucao-futevolei"
+database_id = "c05b81fb-a788-4c96-8b8b-233428e8f844"
+
+[vars]
+PAGES_MODE = "1"

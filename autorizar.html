@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f7fb" />
+    <title>Autorizar alunos</title>
+    <script>try{document.documentElement.dataset.theme=String(localStorage.getItem('fv_theme')||'').toLowerCase().endsWith('dark')?'dark':'light'}catch{}</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="public.css?v=20260908-ui2" />
+  </head>
+  <body>
+    <main class="fast-shell">
+      <nav class="fast-nav" aria-label="Navegação"><a class="back-link" href="/">← Painel principal</a><button class="theme-switch" type="button" data-theme-toggle aria-label="Usar modo escuro"></button></nav>
+      <header class="fast-hero"><span class="fast-logo"><img src="assets/team-lucao-logo.png" alt="" /></span><div><p class="eyebrow">acesso do professor</p><h1>Autorizar alunos</h1><p>Confirme rapidamente quem indicou presença sem abrir o painel completo.</p></div></header>
+      <p id="status" role="status" aria-live="polite"></p>
+      <section class="fast-panel" id="loginSection"><div class="section-heading"><p class="eyebrow">acesso protegido</p><h2>Entre com seu PIN</h2><p>Se você já entrou no painel neste dispositivo, o acesso será automático.</p></div><form id="quickLoginForm"><label>PIN do professor<input id="quickPin" type="password" inputmode="numeric" autocomplete="current-password" required /></label><button class="primary-button" type="submit">Entrar</button></form></section>
+      <section class="fast-panel" id="pendingSection" hidden><div class="section-bar"><div><p class="eyebrow">confirmações</p><h2>Indicações pendentes</h2><small id="updatedAt"></small></div><div class="section-actions"><button class="secondary-button" type="button" id="quickLogoutButton">Sair</button><button type="button" id="refreshButton">Atualizar</button></div></div><div class="list" id="pendingList"></div></section>
+      <footer class="fast-footer">Team Lucão</footer>
+    </main>
+  <script src="public-theme.js?v=20260908-ui2"></script>
+  <script src="authorize-fast.js?v=20260908-ui2"></script>
+  </body>
+</html>

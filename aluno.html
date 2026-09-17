@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d1017" />
+    <meta name="description" content="Consulte sua agenda, confirme presença ou agende uma aula experimental no Team Lucão." />
+    <title>Team Lucão | Área do Aluno</title>
+    <script>try{document.documentElement.dataset.theme=String(localStorage.getItem('fv_theme')||'dark').toLowerCase().endsWith('light')?'light':'dark'}catch{}</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="public.css?v=20260917-ds" />
+  </head>
+  <body>
+    <main class="fast-shell student-shell">
+      <!-- Barra de navegação superior limpa e responsiva -->
+      <nav class="fast-nav" aria-label="Navegação principal">
+        <a class="fast-nav-brand" href="/aluno">
+          <img src="assets/team-lucao-logo.png" alt="Logo Team Lucão" />
+          <span>Team Lucão</span>
+        </a>
+        <div class="fast-nav-actions">
+          <a class="nav-link-btn whatsapp-nav-btn" href="https://wa.me/5515996744160?text=Ol%C3%A1%2C%20gostaria%20de%20falar%20sobre%20as%20aulas!" target="_blank" rel="noopener" title="Falar no WhatsApp (15) 99674-4160">
+            <svg class="whatsapp-icon" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.12c-1.5 0-2.97-.4-4.24-1.16l-.3-.18-3.12.82.83-3.04-.2-.32a8.03 8.03 0 0 1-1.23-4.33c0-4.47 3.64-8.11 8.12-8.11 2.17 0 4.21.85 5.74 2.38 1.54 1.53 2.38 3.57 2.38 5.74 0 4.47-3.64 8.2-8.28 8.2zm4.49-6.13c-.25-.13-1.47-.72-1.7-.81-.23-.09-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.25-.75-.67-1.26-1.5-1.4-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.77 2.7 4.29 3.79.6.26 1.07.41 1.44.53.6.19 1.15.16 1.58.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.07-.11-.23-.17-.48-.3z"/></svg>
+            <span>WhatsApp</span>
+          </a>
+          <a class="nav-link-btn prof-nav-btn" href="/" title="Acessar o Painel do Professor">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <span>Professor</span>
+          </a>
+          <button class="theme-switch" type="button" data-theme-toggle aria-label="Alternar tema claro/escuro"></button>
+          <button id="guestModeButton" type="button" style="display:none;" aria-hidden="true"></button>
+        </div>
+      </nav>
+
+      <!-- Hero Header -->
+      <header class="fast-hero">
+        <span class="fast-logo"><img src="assets/team-lucao-logo.png" alt="Team Lucão" /></span>
+        <div>
+          <p class="eyebrow" id="heroEyebrow">futevôlei de alto nível</p>
+          <h1 id="heroTitle">Team Lucão</h1>
+          <p id="heroDescription">Consulte seus horários ou agende sua aula experimental.</p>
+        </div>
+      </header>
+
+      <!-- Seletor de Modo: Abas Grandes e Destacadas -->
+      <div class="portal-mode-selector" role="tablist" aria-label="Tipo de acesso">
+        <button class="portal-mode-tab active" id="tabStudentPortal" type="button" role="tab" aria-selected="true" aria-controls="studentPanel">
+          <span class="tab-title">Já sou aluno</span>
+          <span class="tab-desc">Ver minhas aulas e presenças</span>
+        </button>
+        <button class="portal-mode-tab guest-tab" id="tabGuestPortal" type="button" role="tab" aria-selected="false" aria-controls="guestPanel">
+          <span class="tab-title">⭐ Aula Experimental</span>
+          <span class="tab-desc">Não sou aluno (Primeira aula)</span>
+        </button>
+      </div>
+
+      <!-- Painel do Aluno -->
+      <section class="fast-panel" id="studentPanel" role="tabpanel" aria-labelledby="tabStudentPortal">
+        <div class="section-heading">
+          <p class="eyebrow">consulta rápida</p>
+          <h2>Encontre suas aulas</h2>
+          <p>Digite o WhatsApp usado no seu cadastro.</p>
+        </div>
+
+        <form id="studentFastForm">
+          <label for="studentFastPhone">Seu WhatsApp
+            <input id="studentFastPhone" inputmode="tel" autocomplete="tel" placeholder="(15) 99999-9999" maxlength="15" required />
+          </label>
+          <button class="primary-button" type="submit">Ver minhas aulas</button>
+          <small class="privacy-note">Usamos o número apenas para localizar sua agenda.</small>
+        </form>
+
+        <p id="studentFastStatus" role="status" aria-live="polite"></p>
+
+        <!-- Dashboard do Aluno (ativado após busca) -->
+        <div class="student-dashboard" id="studentDashboard" hidden>
+          <section class="student-welcome" aria-label="Resumo da agenda">
+            <div>
+              <p class="eyebrow">agenda encontrada</p>
+              <h2 id="studentGreeting"></h2>
+              <p id="studentPeriod"></p>
+            </div>
+            <span class="plan-pill" id="studentPlan"></span>
+          </section>
+
+          <!-- Card de Quota Semanal -->
+          <div class="student-quota-card" id="studentQuotaCard">
+            <div class="quota-header">
+              <div class="quota-title-wrap">
+                <span class="quota-badge">Aulas na semana</span>
+                <span class="quota-counter" id="studentQuotaCounter">0 confirmadas</span>
+              </div>
+              <span class="quota-status-pill" id="studentQuotaStatusPill">Disponível</span>
+            </div>
+            <div class="quota-progress-track">
+              <div class="quota-progress-bar" id="studentQuotaProgressBar" style="width: 0%"></div>
+            </div>
+            <p class="quota-hint" id="studentQuotaHint"></p>
+          </div>
+
+          <!-- Grade da Semana -->
+          <section class="weekly-schedule-section" id="weeklyScheduleSection" aria-labelledby="weeklyScheduleTitle">
+            <div class="section-heading compact-heading">
+              <div class="section-bar">
+                <div>
+                  <p class="eyebrow" id="weeklyScheduleEyebrow">grade da semana</p>
+                  <h2 id="weeklyScheduleTitle">Aulas disponíveis na semana</h2>
+                </div>
+                <span class="week-dates-badge" id="weeklyDatesBadge">Esta semana</span>
+              </div>
+              <p id="weeklyScheduleDescription">Escolha as aulas que deseja participar e confirme sua presença diretamente.</p>
+            </div>
+            <div class="list weekly-class-list" id="studentWeeklyList" aria-live="polite"></div>
+          </section>
+
+          <!-- Layout da Agenda e Calendário -->
+          <div class="agenda-layout">
+            <section class="agenda-column" aria-labelledby="upcomingTitle">
+              <div class="section-heading compact-heading">
+                <p class="eyebrow">até o vencimento</p>
+                <h2 id="upcomingTitle">Próximas aulas confirmadas</h2>
+                <p>Você pode confirmar, informar que não vai ou remover sua resposta.</p>
+              </div>
+              <div class="list student-class-list" id="studentUpcomingList" aria-live="polite"></div>
+            </section>
+
+            <aside class="calendar-card" aria-labelledby="calendarTitle">
+              <div class="section-heading compact-heading">
+                <p class="eyebrow">visão do período</p>
+                <h2 id="calendarTitle">Calendário</h2>
+              </div>
+              <div class="calendar-legend" aria-label="Legenda do calendário">
+                <span><i class="legend-dot scheduled"></i>Suas aulas</span>
+                <span><i class="legend-dot available"></i>Com vaga</span>
+              </div>
+              <div class="student-calendar" id="studentCalendar"></div>
+            </aside>
+          </div>
+
+          <!-- Aulas Disponíveis Regulares -->
+          <section class="available-section" aria-labelledby="availableTitle">
+            <div class="section-heading compact-heading">
+              <p class="eyebrow">outras opções</p>
+              <h2 id="availableTitle">Outras aulas disponíveis</h2>
+              <p>Escolha uma data e depois um horário com vaga.</p>
+            </div>
+            <div class="filters" id="studentFastFilters">
+              <label for="studentFastDate">Data
+                <select id="studentFastDate"><option value="">Todas as datas</option></select>
+              </label>
+              <label for="studentFastTime">Horário
+                <select id="studentFastTime"><option value="">Todos os horários</option></select>
+              </label>
+            </div>
+            <div class="list available-list" id="studentAvailableList" aria-live="polite"></div>
+          </section>
+        </div>
+      </section>
+
+      <!-- Painel de Aula Experimental (Não sou aluno) -->
+      <section class="fast-panel guest-panel" id="guestPanel" role="tabpanel" aria-labelledby="tabGuestPortal" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">primeira aula experimental</p>
+          <h2>Agendar aula experimental</h2>
+          <p>Informe seus dados e escolha uma aula disponível na grade. O professor confirmará pelo WhatsApp.</p>
+        </div>
+        <form id="guestBookingForm">
+          <div class="guest-fields">
+            <label for="guestName">Seu Nome
+              <input id="guestName" autocomplete="name" placeholder="Ex: Carlos Eduardo" required />
+            </label>
+            <label for="guestPhone">WhatsApp
+              <input id="guestPhone" inputmode="tel" autocomplete="tel" placeholder="(15) 99999-9999" maxlength="15" required />
+            </label>
+            <label for="guestDate">Data da aula
+              <select id="guestDate" required><option value="">Selecione a data</option></select>
+            </label>
+            <label for="guestTime">Horário da aula
+              <select id="guestTime" required disabled><option value="">Escolha primeiro a data</option></select>
+            </label>
+          </div>
+          <button class="primary-button" id="guestSubmitButton" type="submit">Solicitar aula experimental</button>
+          <small class="privacy-note">O pedido será enviado diretamente ao professor pelo WhatsApp.</small>
+        </form>
+        <p id="guestStatus" role="status" aria-live="polite"></p>
+
+        <section class="guest-schedule-section" id="guestScheduleSection">
+          <div class="section-heading compact-heading">
+            <p class="eyebrow">todas as turmas da semana</p>
+            <h3>Horários e vagas disponíveis</h3>
+            <p class="meta">Você pode clicar em qualquer horário com vaga livre abaixo para selecioná-lo automaticamente no formulário.</p>
+          </div>
+          <div class="list guest-classes-list" id="guestClassesList" aria-live="polite"></div>
+        </section>
+      </section>
+
+      <!-- Rodapé -->
+      <footer class="fast-footer">
+        <div class="footer-inner">
+          <span><strong>Team Lucão</strong></span>
+          <a class="footer-admin-link" href="/" title="Acessar o Painel de Gestão">Painel do Professor 🔒</a>
+        </div>
+      </footer>
+    </main>
+
+    <script src="public-theme.js?v=20260914-v5"></script>
+    <script src="student-fast.js?v=20260914-v5"></script>
+  </body>
+</html>

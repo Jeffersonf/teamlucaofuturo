@@ -1,0 +1,900 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#f4f7fb" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="TLF Gestão" />
+    <title data-config-text="brandName">Team Lucão</title>
+    <link rel="icon" type="image/png" href="assets/team-lucao-logo.png" />
+    <link rel="apple-touch-icon" href="assets/team-lucao-logo.png" />
+    <script>try{document.documentElement.dataset.theme=String(localStorage.getItem('fv_theme')||'').toLowerCase().endsWith('dark')?'dark':'light'}catch{}</script>
+    <link rel="manifest" href="manifest.webmanifest?v=20260908-ui2" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css?v=20260917-ds" />
+  </head>
+  <body>
+    <a class="skip-link" href="#mainContent">Pular para o conteúdo principal</a>
+    <div class="booking-wall" id="bookingWall" aria-hidden="true">
+      <section class="booking-shell">
+        <div class="booking-hero">
+          <span class="brand-mark booking-logo" aria-hidden="true">
+            <img src="assets/team-lucao-logo.png" alt="" />
+          </span>
+          <div>
+            <p class="eyebrow" data-config-text="publicEyebrow">agenda da escola</p>
+            <h1 data-config-text="publicTitle">Team Lucão</h1>
+            <p data-config-text="publicDescription">Aluno? Informe seu WhatsApp para confirmar presença. Ainda não é aluno? Solicite uma aula experimental.</p>
+          </div>
+        </div>
+        <div class="booking-tabs" role="tablist" aria-label="Agenda publica">
+          <button id="studentTab" class="active" type="button" role="tab" aria-selected="true" aria-controls="studentPane" data-public-tab="student">Sou aluno</button>
+          <button id="guestTab" type="button" role="tab" aria-selected="false" aria-controls="guestPane" data-public-tab="guest">Agendar experimental</button>
+        </div>
+        <div class="booking-layout">
+          <div id="guestPane" class="booking-pane" role="tabpanel" aria-labelledby="guestTab" aria-hidden="true" data-public-pane="guest">
+            <form class="booking-form" id="bookingForm">
+              <label>Nome<input id="bookingName" autocomplete="name" placeholder="Seu nome" required /></label>
+              <label>WhatsApp<input id="bookingPhone" inputmode="tel" autocomplete="tel" placeholder="(15) 99999-9999" required /></label>
+              <label>Horário da aula experimental<select id="bookingClass" required></select></label>
+              <label>Observação (opcional)<input id="bookingNote" placeholder="Nível, objetivo ou dúvida" /></label>
+              <button class="primary-btn" id="bookingSubmitButton" type="submit">Solicitar aula experimental</button>
+              <p class="booking-status" id="bookingStatus" role="status" aria-live="polite"></p>
+            </form>
+            <div class="booking-board">
+              <div class="panel-head compact-head">
+                <div>
+                  <span>primeira aula</span>
+                  <h2>Horários para experimental</h2>
+                </div>
+              </div>
+              <p class="meta">Escolha um horário para conhecer a Arena. A equipe confirma seu pedido pelo WhatsApp.</p>
+              <div class="booking-class-list" id="bookingClassList" aria-live="polite" aria-busy="true"></div>
+            </div>
+          </div>
+          <div id="studentPane" class="booking-pane student-pane active" role="tabpanel" aria-labelledby="studentTab" aria-hidden="false" data-public-pane="student">
+            <form class="booking-form student-confirm-form" id="studentLookupForm">
+              <label>Seu WhatsApp<input id="studentLookupPhone" inputmode="tel" autocomplete="tel" placeholder="(15) 99999-9999" required /></label>
+              <button class="primary-btn" type="submit">Ver minhas aulas</button>
+              <p class="booking-status" id="studentConfirmStatus" role="status" aria-live="polite"></p>
+            </form>
+            <div class="booking-board">
+              <div class="panel-head compact-head">
+                <div>
+                  <span>confirmação de presença</span>
+                  <h2>Minhas aulas</h2>
+                </div>
+              </div>
+              <div class="student-confirm-list" id="studentClassList"></div>
+            </div>
+            <div class="booking-board student-booking-board" hidden>
+              <div class="panel-head compact-head">
+                <div>
+                  <span>até o próximo vencimento</span>
+                  <h2>Horários regulares com vaga</h2>
+                </div>
+              </div>
+              <p class="meta">Se você não tiver aula agendada, escolha um horário regular nesta semana.</p>
+              <div class="student-slot-filters" id="studentSlotFilters" hidden>
+                <label>Data<select id="studentSlotDate" data-student-slot-filter><option value="">Todas as datas</option></select></label>
+                <label>Hora<select id="studentSlotTime" data-student-slot-filter><option value="">Todos os horários</option></select></label>
+              </div>
+              <div class="booking-class-list" id="studentBookingList" aria-live="polite"></div>
+            </div>
+          </div>
+        </div>
+        <button class="soft-btn admin-entry" id="adminAccessBtn" type="button">Acesso professor</button>
+      </section>
+    </div>
+    <div class="login-wall" id="loginWall" aria-hidden="true">
+      <form class="login-box" id="loginForm" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+        <span class="brand-mark login-logo" aria-hidden="true">
+          <img src="assets/team-lucao-logo.png" alt="" />
+        </span>
+        <div class="login-copy">
+          <p class="eyebrow" data-config-text="loginEyebrow">acesso restrito</p>
+          <h2 id="loginTitle" data-config-text="brandName">Team Lucão</h2>
+          <p data-config-text="loginDescription">Painel rápido para organizar alunos, aulas e cobranças.</p>
+        </div>
+        <label>PIN de acesso<input id="loginPin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="2222 (Admin) ou 1111 (Prof)" /></label>
+        <p style="font-size:11px; color:var(--muted, #64748b); margin:-4px 0 10px; line-height:1.4;">
+          👑 <strong>2222</strong>: Admin (Total) &bull; 👨‍🏫 <strong>1111</strong>: Professor (Aulas & Presença)
+        </p>
+        <button class="primary-btn" type="submit">Entrar</button>
+      </form>
+    </div>
+
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <img src="assets/team-lucao-logo.png" alt="" />
+        </span>
+        <div>
+          <strong data-config-text="brandName">Team Lucão</strong>
+          <small data-config-text="brandSubtitle">gestão da escola</small>
+        </div>
+      </div>
+      <nav class="nav" aria-label="Menu principal">
+        <span class="nav-label">Operação</span>
+        <button class="nav-item active" type="button" aria-current="page" data-page="dashboard"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" /></svg> Início</button>
+        <button class="nav-item secondary-nav" type="button" data-page="actions"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-8 11h6l-1 9 8-11h-6z" /></svg> Ações</button>
+        <button class="nav-item" type="button" data-page="bookings"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6" /></svg> Pedidos</button>
+        <button class="nav-item" type="button" data-page="students"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3" /><path d="M3 20a6 6 0 0 1 12 0M16 11a3 3 0 1 0 0-6M17 14a5 5 0 0 1 4 6" /></svg> Alunos</button>
+        <button class="nav-item" type="button" data-page="classes"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg> Aulas</button>
+        <button class="nav-item" type="button" data-page="payments"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 10h18M7 15h3" /></svg> Cobrar</button>
+        <button class="nav-item secondary-nav" type="button" data-page="waitlist"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12M6 21h12M8 4c0 4 8 4 8 8s-8 4-8 8M16 4c0 4-8 4-8 8s8 4 8 8" /></svg> Espera</button>
+        <span class="nav-label secondary-nav">Gestão</span>
+        <button class="nav-item secondary-nav" type="button" data-page="plans"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m20 13-7 7-9-9V4h7z" /><circle cx="7.5" cy="8.5" r="1" /></svg> Planos</button>
+        <button class="nav-item secondary-nav" type="button" data-page="reports"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V5M4 19h17" /><path d="m7 15 4-5 3 2 5-6" /></svg> Relatórios</button>
+        <button class="nav-item secondary-nav" type="button" data-page="settings"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /><circle cx="9" cy="6" r="2" /><circle cx="15" cy="12" r="2" /><circle cx="11" cy="18" r="2" /></svg> Config.</button>
+        <button class="nav-item mobile-only" type="button" data-page="more"><svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></svg> Mais</button>
+      </nav>
+      <button class="ghost-btn" id="logoutBtn" type="button">Sair</button>
+    </aside>
+    <button class="theme-float" id="themeBtn" type="button" aria-label="Usar tema escuro" aria-pressed="false" title="Usar tema escuro"><svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.5 6.5 0 0 0 21 12.8Z" /></svg></button>
+
+    <main class="app" id="mainContent">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="topbarEyebrow" data-config-text="dashboardEyebrow">operação de hoje</p>
+          <h1 id="topbarTitle" data-config-text="dashboardTitle">Painel do dia</h1>
+        </div>
+        <div class="mobile-top-brand">
+          <span class="brand-mark" aria-hidden="true">
+            <img src="assets/team-lucao-logo.png" alt="" />
+          </span>
+          <div>
+            <strong data-config-text="brandShort">Team Lucao</strong>
+            <small data-config-text="brandSubtitle">gestao da escola</small>
+          </div>
+        </div>
+        <div class="top-actions">
+          <div class="global-search">
+            <input id="globalSearch" aria-label="Busca rápida" aria-controls="globalResults" aria-expanded="false" aria-haspopup="listbox" placeholder="Busca rápida..." autocomplete="off" />
+            <div class="global-results" id="globalResults" role="listbox" aria-label="Resultados da busca"></div>
+          </div>
+          <span class="mode-chip" id="modeStatus">Carregando...</span>
+          <span id="userRoleBadge" class="pill" style="font-size:11px; padding:3px 10px; border-radius:12px; font-weight:600; background:#e0f2fe; color:#0369a1; white-space:nowrap;">👑 Administrador</span>
+          <button class="soft-btn" type="button" data-refresh>Atualizar</button>
+          <button class="primary-btn" type="button" data-open-student>+ Novo aluno</button>
+        </div>
+      </header>
+      <div class="system-notice" id="systemNotice"></div>
+
+      <section class="page active" id="page-dashboard">
+        <div class="focus-strip" id="focusStrip"></div>
+        <div class="kpi-grid" id="kpiGrid"></div>
+        <div class="quick-actions" id="quickActions"></div>
+        <div class="two-col">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <span>hoje</span>
+                <h2>Aulas do dia</h2>
+              </div>
+              <button class="soft-btn" type="button" data-open-class>+ Aula</button>
+            </div>
+            <div class="list" id="todayClasses"></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <span>atenção</span>
+                <h2>Pendências</h2>
+              </div>
+            </div>
+            <div class="list" id="pendingList"></div>
+          </section>
+        </div>
+        <section class="panel action-panel">
+          <div class="panel-head">
+            <div>
+              <span>histórico</span>
+              <h2>Últimas ações</h2>
+            </div>
+            <button class="soft-btn" type="button" data-action="actions">Ver central</button>
+          </div>
+          <div class="action-feed compact-feed" id="dashboardActions"></div>
+        </section>
+      </section>
+
+      <section class="page" id="page-actions">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <span>histórico</span>
+              <h2 data-config-page-title="actionsTitle">Central de ações</h2>
+            </div>
+          </div>
+          <div class="finance-summary" id="actionSummary"></div>
+          <div class="action-focus" id="actionFocus"></div>
+          <div class="filters action-filters">
+            <input id="actionSearch" aria-label="Buscar ações, alunos ou detalhes" placeholder="Buscar ação, aluno ou detalhe..." />
+            <select id="actionActorFilter" aria-label="Filtrar ações por origem">
+              <option value="">Todos</option>
+              <option value="Professor">Professor</option>
+              <option value="Aluno">Aluno</option>
+              <option value="Sistema">Sistema</option>
+            </select>
+            <select id="actionCategoryFilter" aria-label="Filtrar acoes por tipo">
+              <option value="">Todos os tipos</option>
+              <option value="Presenca">Presença</option>
+              <option value="Financeiro">Financeiro</option>
+              <option value="Agenda">Agenda</option>
+              <option value="Pedidos">Pedidos</option>
+              <option value="Aluno">Aluno</option>
+              <option value="Sistema">Sistema</option>
+              <option value="Operacao">Operação</option>
+            </select>
+          </div>
+          <div class="action-feed" id="actionList"></div>
+        </div>
+      </section>
+
+      <section class="page" id="page-students">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <span>cadastro</span>
+              <h2 data-config-page-title="studentsTitle">Alunos</h2>
+            </div>
+            <button class="soft-btn" type="button" data-open-student>+ Novo aluno</button>
+          </div>
+          <input class="search" id="studentSearch" aria-label="Buscar aluno, telefone ou plano" placeholder="Buscar aluno, telefone ou plano..." />
+          <div class="filters student-filters">
+            <select id="studentStatusFilter" aria-label="Filtrar por status">
+              <option value="">Status</option>
+              <option value="Ativo">Ativos</option>
+              <option value="Experimental">Experimentais</option>
+              <option value="Pausado">Pausados</option>
+            </select>
+            <select id="studentPaymentFilter" aria-label="Filtrar por pagamento">
+              <option value="">Pagamento</option>
+              <option value="paid">Em dia</option>
+              <option value="pending">Pendentes</option>
+            </select>
+          </div>
+          <div class="student-list" id="studentGrid"></div>
+        </div>
+      </section>
+
+      <section class="page" id="page-classes">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <span>agenda</span>
+              <h2 data-config-page-title="classesTitle">Aulas</h2>
+            </div>
+            <div class="actions class-head-actions">
+              <button class="soft-btn" type="button" data-open-class>+ Nova aula</button>
+              <button class="primary-btn" type="button" data-open-schedule>Grade padrao</button>
+            </div>
+          </div>
+          <div class="class-tools">
+            <div>
+              <span class="section-label">operacao</span>
+              <strong>Horarios padrao</strong>
+              <p class="meta">Seg a sex: 18:30, 19:30 e 20:30. Sabado: 09:00, 10:00, 14:00 e 15:00.</p>
+            </div>
+            <button class="soft-btn" type="button" data-open-group-message>Mensagens para grupo</button>
+          </div>
+          <div class="section-label">Hoje</div>
+          <div class="today-planner" id="classesTodayPlanner"></div>
+          <div class="section-label">Calendário previsto</div>
+          <div class="class-calendar" id="classCalendar"></div>
+          <div class="section-label">Aulas previstas</div>
+          <div class="filters">
+            <input id="classDateFilter" type="date" aria-label="Filtrar aulas por data" />
+            <select id="classTypeFilter" aria-label="Filtrar aulas por tipo">
+              <option value="">Todos os tipos</option>
+              <option value="Regular">Regular</option>
+              <option value="Experimental">Experimental</option>
+              <option value="Reposicao">Reposição</option>
+              <option value="Avulso">Avulso</option>
+              <option value="Evento">Evento</option>
+            </select>
+            <select id="classStatusFilter" aria-label="Filtrar aulas por status">
+              <option value="">Todos os status</option>
+              <option value="Marcada">Marcada</option>
+              <option value="Confirmada">Confirmada</option>
+              <option value="Finalizada">Finalizada</option>
+              <option value="Cancelada">Cancelada</option>
+            </select>
+            <button class="soft-btn" type="button" data-clear-class-filter>Ver todas</button>
+          </div>
+          <div class="finance-summary" id="classSummary"></div>
+          <div class="list" id="classList"></div>
+        </div>
+      </section>
+
+      <section class="page" id="page-bookings">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <span>alunos</span>
+              <h2 data-config-page-title="bookingsTitle">Pedidos de aula</h2>
+            </div>
+          </div>
+          <div class="finance-summary" id="bookingSummary"></div>
+          <div class="list" id="bookingList"></div>
+        </div>
+      </section>
+
+      <section class="page" id="page-payments">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <span>financeiro</span>
+              <h2 data-config-page-title="paymentsTitle">Mensalidades</h2>
+            </div>
+          </div>
+          <div class="finance-summary payment-summary" id="financeSummary"></div>
+          <div class="filters payment-filters">
+            <input id="paymentMonth" type="month" aria-label="Mês de referência" />
+            <input id="paymentSearch" aria-label="Buscar aluno ou telefone" placeholder="Buscar aluno ou telefone..." />
+            <select id="paymentStatusFilter" aria-label="Filtrar mensalidades">
+              <option value="">Todos</option>
+              <option value="pending">Pendentes</option>
+              <option value="paid">Em dia</option>
+            </select>
+            <button class="soft-btn" type="button" data-copy-pending>Copiar cobranças</button>
+          </div>
+          <div class="payment-priority" id="paymentPriority"></div>
+          <div class="list" id="paymentList"></div>
+        </div>
+      </section>
+
+      <section class="page" id="page-plans">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <span>oferta</span>
+              <h2 data-config-page-title="plansTitle">Planos e tipos de aula</h2>
+            </div>
+            <button class="soft-btn" type="button" data-open-plan>+ Plano</button>
+          </div>
+          <div class="student-grid" id="planGrid"></div>
+        </div>
+      </section>
+
+      <section class="page" id="page-waitlist">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <span>demanda</span>
+              <h2 data-config-page-title="waitlistTitle">Lista de espera</h2>
+            </div>
+            <button class="soft-btn" type="button" data-open-waitlist>+ Interessado</button>
+          </div>
+          <div class="filters">
+            <select id="waitStatusFilter" aria-label="Filtrar lista de espera por status">
+              <option value="">Todos os interessados</option>
+              <option value="Novo">Novos</option>
+              <option value="Contatado">Contatados</option>
+              <option value="Experimental marcado">Experimentais marcados</option>
+              <option value="Convertido">Convertidos</option>
+              <option value="Perdido">Perdidos</option>
+            </select>
+          </div>
+          <div class="list" id="waitlistList"></div>
+        </div>
+      </section>
+
+      <section class="page" id="page-reports">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <span>gestão</span>
+              <h2 data-config-page-title="reportsTitle">Relatórios rápidos</h2>
+            </div>
+          </div>
+          <div class="report-grid" id="reportGrid"></div>
+          <div class="operation-report" id="operationReport"></div>
+          <div class="two-col report-columns">
+            <section>
+              <div class="section-label">Frequência por aluno</div>
+              <div class="list" id="attendanceReport"></div>
+            </section>
+            <section>
+              <div class="section-label">Pontos de atenção</div>
+              <div class="list" id="attentionReport"></div>
+            </section>
+          </div>
+        </div>
+      </section>
+      <section class="page mobile-only-page" id="page-more">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <span>atalhos</span>
+              <h2>Mais</h2>
+            </div>
+          </div>
+          <div class="more-grid">
+            <button class="more-card" type="button" data-more-page="plans">
+              <span>oferta</span>
+              <strong>Planos</strong>
+              <small>Valores e aulas por semana.</small>
+            </button>
+            <button class="more-card" type="button" data-more-page="actions">
+              <span>historico</span>
+              <strong>Ações</strong>
+              <small>Aluno, professor e sistema.</small>
+            </button>
+            <button class="more-card" type="button" data-more-page="waitlist">
+              <span>demanda</span>
+              <strong>Espera</strong>
+              <small>Interessados e aulas experimentais.</small>
+            </button>
+            <button class="more-card" type="button" data-more-page="reports">
+              <span>gestao</span>
+              <strong>Relatórios</strong>
+              <small>Frequência, pendências e pontos de atenção.</small>
+            </button>
+            <button class="more-card" type="button" data-more-action="theme">
+              <span>tema</span>
+              <strong>Claro / escuro</strong>
+              <small>Alternar visual do painel.</small>
+            </button>
+            <button class="more-card" type="button" data-more-page="settings">
+              <span>administração</span>
+              <strong>Configuração</strong>
+              <small>Aparência, textos e identidade visual.</small>
+            </button>
+            <button class="more-card danger-more" type="button" data-more-action="logout">
+              <span>sessao</span>
+              <strong>Sair</strong>
+              <small>Voltar para a tela do PIN.</small>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="page-settings">
+        <div class="settings-layout">
+          <section class="panel settings-intro">
+            <div>
+              <span class="eyebrow">preferências do painel</span>
+              <h2>Configuração e aparência</h2>
+              <p>Escolha o modo de leitura e ajuste os textos exibidos para alunos e professores.</p>
+            </div>
+            <div class="settings-notice">
+              <strong>Salvo neste dispositivo</strong>
+              <span>Essas preferências visuais não alteram alunos, aulas ou pagamentos.</span>
+            </div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <span>aparência</span>
+                <h2>Modo de exibição</h2>
+              </div>
+              <button class="soft-btn" type="button" data-settings-default-theme>Usar modo claro</button>
+            </div>
+            <p class="meta settings-helper">O painel agora possui somente dois modos consistentes: claro e escuro.</p>
+            <div class="theme-picker" id="themePicker" role="listbox" aria-label="Escolher modo de exibição"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <span>identidade</span>
+                <h2>Textos e ajustes</h2>
+              </div>
+              <span class="settings-saved" id="settingsSavedState">salvo neste navegador</span>
+            </div>
+            <form class="settings-form" id="settingsForm">
+              <fieldset class="form-group">
+                <legend>Marca</legend>
+                <div class="form-row">
+                  <label>Nome completo<input id="settingsBrandName" data-settings-field="brandName" required /></label>
+                  <label>Nome curto<input id="settingsBrandShort" data-settings-field="brandShort" required /></label>
+                </div>
+                <label>Descrição curta<input id="settingsBrandSubtitle" data-settings-field="brandSubtitle" required /></label>
+              </fieldset>
+              <fieldset class="form-group">
+                <legend>Painel</legend>
+                <div class="form-row">
+                  <label>Chapéu do dashboard<input id="settingsDashboardEyebrow" data-settings-field="dashboardEyebrow" required /></label>
+                  <label>Título do dashboard<input id="settingsDashboardTitle" data-settings-field="dashboardTitle" required /></label>
+                </div>
+                <div class="form-row">
+                  <label>Estado online<input id="settingsOnlineModeLabel" data-settings-field="onlineModeLabel" required /></label>
+                  <label>Estado local<input id="settingsLocalModeLabel" data-settings-field="localModeLabel" required /></label>
+                </div>
+              </fieldset>
+              <fieldset class="form-group">
+                <legend>Áreas do painel</legend>
+                <div class="form-row">
+                  <label>Ações<input id="settingsActionsTitle" data-settings-field="actionsTitle" required /></label>
+                  <label>Pedidos<input id="settingsBookingsTitle" data-settings-field="bookingsTitle" required /></label>
+                </div>
+                <div class="form-row">
+                  <label>Alunos<input id="settingsStudentsTitle" data-settings-field="studentsTitle" required /></label>
+                  <label>Aulas<input id="settingsClassesTitle" data-settings-field="classesTitle" required /></label>
+                </div>
+                <div class="form-row">
+                  <label>Mensalidades<input id="settingsPaymentsTitle" data-settings-field="paymentsTitle" required /></label>
+                  <label>Lista de espera<input id="settingsWaitlistTitle" data-settings-field="waitlistTitle" required /></label>
+                </div>
+                <div class="form-row">
+                  <label>Planos<input id="settingsPlansTitle" data-settings-field="plansTitle" required /></label>
+                  <label>Relatórios<input id="settingsReportsTitle" data-settings-field="reportsTitle" required /></label>
+                </div>
+              </fieldset>
+              <fieldset class="form-group">
+                <legend>Entrada pública e login</legend>
+                <label>Chapéu público<input id="settingsPublicEyebrow" data-settings-field="publicEyebrow" required /></label>
+                <label>Título público<input id="settingsPublicTitle" data-settings-field="publicTitle" required /></label>
+                <label>Descrição pública<textarea id="settingsPublicDescription" data-settings-field="publicDescription" required></textarea></label>
+                <label>Chapéu do login<input id="settingsLoginEyebrow" data-settings-field="loginEyebrow" required /></label>
+                <label>Descrição do login<textarea id="settingsLoginDescription" data-settings-field="loginDescription" required></textarea></label>
+              </fieldset>
+              <fieldset class="form-group">
+                <legend>Avisos de operação</legend>
+                <div class="form-row">
+                  <label>Título online<input id="settingsOnlineNoticeTitle" data-settings-field="onlineNoticeTitle" required /></label>
+                  <label>Título local<input id="settingsLocalNoticeTitle" data-settings-field="localNoticeTitle" required /></label>
+                </div>
+                <label>Texto online<textarea id="settingsOnlineNoticeText" data-settings-field="onlineNoticeText" required></textarea></label>
+                <label>Texto local<textarea id="settingsLocalNoticeText" data-settings-field="localNoticeText" required></textarea></label>
+              </fieldset>
+              <div class="settings-actions">
+                <button class="soft-btn" type="button" data-settings-reset>Descartar alterações</button>
+                <button class="primary-btn" type="submit">Salvar ajustes</button>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel settings-preview">
+            <div class="panel-head">
+              <div>
+                <span>prévia ao vivo</span>
+                <h2>Prévia da identidade</h2>
+              </div>
+              <span class="pill ok">sem dados reais</span>
+            </div>
+            <div class="settings-preview-card">
+              <div class="settings-preview-head">
+                <div class="preview-avatar">TL</div>
+                <div>
+                  <strong data-preview-brand>Team Lucão</strong>
+                  <span data-preview-subtitle>gestão da escola</span>
+                </div>
+                <span class="preview-chevron">›</span>
+              </div>
+              <div class="settings-preview-balance">
+                <span>próxima aula</span>
+                <strong data-preview-title>Painel do dia</strong>
+                <p data-preview-description>Resumo visual para testar contraste, peso e respiro.</p>
+              </div>
+              <div class="settings-preview-stats">
+                <span><small>alunos ativos</small><strong>48</strong></span>
+                <span><small>pedidos</small><strong>02</strong></span>
+                <span><small>a receber</small><strong>R$ 9.420</strong></span>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel settings-danger-zone">
+            <div>
+              <span>restauração</span>
+              <h2>Voltar ao padrão</h2>
+              <p>Restaura o modo claro e todos os textos originais do painel.</p>
+            </div>
+            <button class="soft-btn danger-mini" type="button" data-settings-clear>Restaurar configurações</button>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <div class="modal-wrap" id="studentModal" role="dialog" aria-modal="true" aria-labelledby="studentModalTitle" aria-hidden="true">
+      <form class="modal" id="studentForm">
+        <button class="close" type="button" aria-label="Fechar aluno" data-close="studentModal">x</button>
+        <h2 id="studentModalTitle">Aluno</h2>
+        <input type="hidden" id="studentId" />
+        <fieldset class="form-group student-form-section student-identity-group">
+          <legend>Identificacao</legend>
+          <label>Nome<input id="studentName" required placeholder="Ex: Ana Souza" /></label>
+          <div class="form-row">
+            <label>Telefone<input id="studentPhone" placeholder="(15) 99999-9999" /></label>
+            <label>Email<input id="studentEmail" type="email" placeholder="aluno@email.com" /></label>
+          </div>
+        </fieldset>
+        <fieldset class="form-group schedule-group">
+          <legend>Agenda fixa</legend>
+          <div class="schedule-group-head">
+            <p>Informe todos os dias em que o aluno treina. Exemplo: terça e quinta em horários diferentes.</p>
+            <button class="soft-btn schedule-add-btn" type="button" id="addStudentFixedSchedule">+ Adicionar outro dia</button>
+          </div>
+          <div class="fixed-schedule-list" id="studentFixedSchedules"></div>
+          <div class="schedule-preview" id="studentSchedulePreview"></div>
+        </fieldset>
+        <fieldset class="form-group student-form-section">
+          <legend>Plano e operação</legend>
+        <div class="form-row">
+          <label>Plano
+            <select id="studentPlan"></select>
+          </label>
+          <label>Mensalidade<input id="studentFee" type="number" min="0" step="0.01" placeholder="180" /></label>
+        </div>
+        <label>Dia de vencimento<input id="studentDueDay" type="number" min="1" max="31" step="1" placeholder="10" /></label>
+        <label>Nível
+          <select id="studentLevel">
+            <option value="Iniciante">Iniciante</option>
+            <option value="Intermediário">Intermediário</option>
+            <option value="Avançado">Avançado</option>
+            <option value="Kids">Kids</option>
+          </select>
+        </label>
+        <label>Status
+          <select id="studentStatus">
+            <option value="Ativo">Ativo</option>
+            <option value="Experimental">Experimental</option>
+            <option value="Pausado">Pausado</option>
+          </select>
+        </label>
+        <label>Observação<input id="studentNote" placeholder="Restrições, objetivo, responsável..." /></label>
+        </fieldset>
+        <button class="primary-btn modal-save-btn" type="submit">Salvar aluno</button>
+      </form>
+    </div>
+
+    <div class="modal-wrap" id="studentReportModal" role="dialog" aria-modal="true" aria-labelledby="studentReportModalTitle" aria-hidden="true">
+      <section class="modal wide-modal">
+        <button class="close" type="button" aria-label="Fechar relatório do aluno" data-close="studentReportModal">x</button>
+        <h2 id="studentReportModalTitle" class="sr-only">Relatório do aluno</h2>
+        <div id="studentReport"></div>
+      </section>
+    </div>
+
+    <div class="modal-wrap" id="paymentModal" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle" aria-hidden="true">
+      <form class="modal" id="paymentForm">
+        <button class="close" type="button" aria-label="Fechar pagamento" data-close="paymentModal">x</button>
+        <h2 id="paymentModalTitle">Registrar pagamento</h2>
+        <input type="hidden" id="paymentStudentId" />
+        <p class="muted payment-modal-student" id="paymentStudentName"></p>
+        <div class="form-row">
+          <label>Referencia<input id="paymentReference" type="month" required /></label>
+          <label>Pago em<input id="paymentPaidAt" type="date" required /></label>
+        </div>
+        <div class="form-row">
+          <label>Valor<input id="paymentValue" type="number" min="0" step="0.01" required /></label>
+          <label>Forma
+            <select id="paymentMethod">
+              <option value="Pix">Pix</option>
+              <option value="Dinheiro">Dinheiro</option>
+              <option value="Cartao">Cartao</option>
+              <option value="Transferencia">Transferencia</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </label>
+        </div>
+        <label>Observação<input id="paymentNote" placeholder="Ex: pago antecipado, desconto, reposição..." /></label>
+        <button class="primary-btn" type="submit">Confirmar pagamento</button>
+        <button type="button" class="soft-btn pix-modal-btn" id="btnOpenPixFromPayment" style="background:#0d9488; color:#fff; margin-top:8px; width:100%; font-weight:600; padding:10px; border-radius:8px; display:block;">⚡ Gerar Cobrança Pix com QR Code</button>
+      </form>
+    </div>
+
+    <div class="modal-wrap" id="classModal" role="dialog" aria-modal="true" aria-labelledby="classModalTitle" aria-hidden="true">
+      <form class="modal" id="classForm">
+        <button class="close" type="button" aria-label="Fechar aula" data-close="classModal">x</button>
+        <h2 id="classModalTitle">Aula</h2>
+        <input type="hidden" id="classId" />
+        <div class="form-row">
+          <label>Data<input id="classDate" type="date" required /></label>
+          <label>Horário<input id="classTime" type="time" list="classTimeOptions" required /></label>
+        </div>
+        <datalist id="classTimeOptions">
+          <option value="18:30"></option><option value="19:30"></option><option value="20:30"></option>
+          <option value="09:00"></option><option value="10:00"></option><option value="14:00"></option><option value="15:00"></option>
+        </datalist>
+        <label>Turma<input id="classGroup" placeholder="Ex: Iniciantes, Intermediário, Kids" /></label>
+        <label>Professor<input id="classCoach" placeholder="Nome do professor" /></label>
+        <div class="form-row">
+          <label>Tipo
+            <select id="classType">
+              <option value="Regular">Regular</option>
+              <option value="Experimental">Experimental</option>
+              <option value="Reposicao">Reposição</option>
+              <option value="Avulso">Avulso</option>
+              <option value="Evento">Evento</option>
+            </select>
+          </label>
+          <label>Capacidade<input id="classCapacity" type="number" min="1" step="1" placeholder="8" /></label>
+        </div>
+        <div class="form-row">
+          <label>Status
+            <select id="classStatus">
+              <option value="Marcada">Marcada</option>
+              <option value="Confirmada">Confirmada</option>
+              <option value="Finalizada">Finalizada</option>
+              <option value="Cancelada">Cancelada</option>
+            </select>
+          </label>
+          <label>Recorrência
+            <select id="classRecurrence">
+              <option value="weekly">Semanal</option>
+              <option value="once">Uma vez</option>
+            </select>
+          </label>
+        </div>
+        <label class="native-class-select">Alunos da aula<select id="classStudents" multiple></select></label>
+        <div class="class-students-picker">
+          <div class="section-label">Alunos da aula</div>
+          <div class="class-picker-head">
+            <input id="classStudentSearch" aria-label="Buscar aluno para adicionar à aula" placeholder="Buscar aluno para adicionar..." autocomplete="off" />
+            <span id="classStudentCount">0 selecionados</span>
+          </div>
+          <div class="class-student-list" id="classStudentChecklist"></div>
+        </div>
+        <label>Semanas da recorrência<input id="classRepeatWeeks" type="number" min="1" max="12" step="1" value="4" /></label>
+        <label>Motivo ou aviso da aula<textarea id="classNotice" rows="2" placeholder="Use para cancelamento, troca de horario ou recado para o grupo."></textarea></label>
+        <button class="primary-btn" type="submit">Salvar aula</button>
+        <button type="button" class="soft-btn rain-cancel-btn" id="btnCancelRain" style="display:none; background:#0284c7; color:#fff; margin-top:8px; width:100%; font-weight:600; padding:10px; border-radius:8px;">🌧️ Cancelar Aula por Chuva (+1 Crédito p/ Alunos)</button>
+      </form>
+    </div>
+
+    <div class="modal-wrap" id="scheduleModal" role="dialog" aria-modal="true" aria-labelledby="scheduleModalTitle" aria-hidden="true">
+      <form class="modal wide-modal" id="scheduleForm">
+        <button class="close" type="button" aria-label="Fechar grade" data-close="scheduleModal">x</button>
+        <p class="eyebrow">grade recorrente</p>
+        <h2 id="scheduleModalTitle">Criar horarios padrao</h2>
+        <p class="meta">Crie varias semanas de uma vez. Os horarios ja vem marcados conforme a grade da Arena e podem ser ajustados antes de salvar.</p>
+        <div class="form-row">
+          <label>Segunda da primeira semana<input id="scheduleStart" type="date" required /></label>
+          <label>Repetir por semanas<input id="scheduleWeeks" type="number" min="1" max="12" step="1" value="4" required /></label>
+        </div>
+        <div class="form-row">
+          <label>Turma padrao<input id="scheduleGroup" value="Turma Arena" placeholder="Ex: Iniciantes" /></label>
+          <label>Professor<input id="scheduleCoach" value="Lucao" placeholder="Nome do professor" /></label>
+        </div>
+        <div class="form-row">
+          <label>Capacidade<input id="scheduleCapacity" type="number" min="1" max="30" value="8" required /></label>
+          <label>Tipo
+            <select id="scheduleType">
+              <option value="Regular">Regular</option>
+              <option value="Experimental">Experimental</option>
+              <option value="Avulso">Avulso</option>
+              <option value="Evento">Evento</option>
+            </select>
+          </label>
+        </div>
+        <fieldset class="schedule-slots-field">
+          <legend>Horarios que serao criados</legend>
+          <div class="schedule-slots" id="scheduleSlots"></div>
+        </fieldset>
+        <label class="check-control schedule-notify-control"><input id="scheduleNotify" type="checkbox" checked /> Preparar mensagem de aviso para o grupo ao terminar</label>
+        <button class="primary-btn" type="submit">Criar grade</button>
+      </form>
+    </div>
+
+    <div class="modal-wrap" id="groupMessageModal" role="dialog" aria-modal="true" aria-labelledby="groupMessageModalTitle" aria-hidden="true">
+      <form class="modal" id="groupMessageForm">
+        <button class="close" type="button" aria-label="Fechar mensagens" data-close="groupMessageModal">x</button>
+        <p class="eyebrow">comunicacao</p>
+        <h2 id="groupMessageModalTitle">Mensagem para o grupo</h2>
+        <p class="meta">Mensagem geral, sem mencionar um aluno especifico. Edite antes de copiar ou abrir o WhatsApp.</p>
+        <label>Aula<select id="groupMessageClass"></select></label>
+        <label>Modelo
+          <select id="groupMessageTemplate">
+            <option value="confirm">Confirmacao de aula</option>
+            <option value="reminder">Lembrete de horario</option>
+            <option value="cancel">Aviso de cancelamento</option>
+            <option value="change">Troca de horario</option>
+            <option value="week">Agenda da semana</option>
+          </select>
+        </label>
+        <label>Texto para revisar<textarea id="groupMessageText" rows="9"></textarea></label>
+        <div class="actions modal-actions">
+          <button class="soft-btn" type="button" data-copy-group-message>Copiar mensagem</button>
+          <a class="primary-btn" id="groupMessageWhatsapp" href="#" target="_blank" rel="noopener">Abrir WhatsApp</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-wrap" id="attendanceModal" role="dialog" aria-modal="true" aria-labelledby="attendanceModalTitle" aria-hidden="true">
+      <section class="modal">
+        <button class="close" type="button" aria-label="Fechar presenças" data-close="attendanceModal">x</button>
+        <h2 id="attendanceModalTitle">Presenças</h2>
+        <p class="muted" id="attendanceTitle"></p>
+        <div class="attendance-actions">
+          <button class="soft-btn attendance-primary" type="button" id="markAllPresent">Todos presentes</button>
+          <button class="soft-btn attendance-primary" type="button" id="finishAttendance">Finalizar aula</button>
+          <button class="soft-btn" type="button" id="copyAttendance">Copiar resumo</button>
+          <button class="soft-btn attendance-muted" type="button" id="clearAttendance">Limpar</button>
+        </div>
+        <form class="extra-attendance" id="extraAttendanceForm">
+          <input id="extraAttendanceName" placeholder="Nome de quem veio sem estar na aula" />
+          <select id="extraAttendanceType" aria-label="Tipo de avulso">
+            <option value="Avulso">Avulso</option>
+            <option value="Reposicao">Reposição</option>
+            <option value="Experimental">Experimental</option>
+            <option value="Visitante">Visitante</option>
+          </select>
+          <button class="soft-btn" type="submit">Adicionar avulso</button>
+        </form>
+        <div class="check-list" id="attendanceList"></div>
+        <div class="section-label">Avulsos / fora da lista</div>
+        <div class="list" id="extraAttendanceList"></div>
+      </section>
+    </div>
+
+    <div class="modal-wrap" id="planModal" role="dialog" aria-modal="true" aria-labelledby="planModalTitle" aria-hidden="true">
+      <form class="modal" id="planForm">
+        <button class="close" type="button" aria-label="Fechar plano" data-close="planModal">x</button>
+        <h2 id="planModalTitle">Plano</h2>
+        <input type="hidden" id="planId" />
+        <label>Nome<input id="planName" required placeholder="Ex: 2x semana" /></label>
+        <div class="form-row">
+          <label>Preço<input id="planPrice" type="number" min="0" step="0.01" placeholder="220" /></label>
+          <label>Aulas por semana<input id="planClasses" type="number" min="0" step="1" placeholder="2" /></label>
+        </div>
+        <label>Descrição<input id="planDescription" placeholder="O que inclui..." /></label>
+        <button class="primary-btn" type="submit">Salvar plano</button>
+      </form>
+    </div>
+
+    <div class="modal-wrap" id="waitlistModal" role="dialog" aria-modal="true" aria-labelledby="waitlistModalTitle" aria-hidden="true">
+      <form class="modal" id="waitlistForm">
+        <button class="close" type="button" aria-label="Fechar lista de espera" data-close="waitlistModal">x</button>
+        <h2 id="waitlistModalTitle">Lista de espera</h2>
+        <input type="hidden" id="waitId" />
+        <label>Nome<input id="waitName" required placeholder="Ex: Carla Mendes" /></label>
+        <label>Telefone<input id="waitPhone" placeholder="(15) 99999-9999" /></label>
+        <label>Preferência<input id="waitPreference" placeholder="Noite, kids, iniciante..." /></label>
+        <label>Status
+          <select id="waitStatus">
+            <option value="Novo">Novo</option>
+            <option value="Contatado">Contatado</option>
+            <option value="Experimental marcado">Experimental marcado</option>
+            <option value="Convertido">Convertido</option>
+            <option value="Perdido">Perdido</option>
+          </select>
+        </label>
+        <label>Observação<input id="waitNote" placeholder="Detalhes do contato" /></label>
+        <button class="primary-btn" type="submit">Salvar interessado</button>
+      </form>
+    </div>
+
+    <div class="modal-wrap" id="pixModal" role="dialog" aria-modal="true" aria-labelledby="pixModalTitle" aria-hidden="true">
+      <div class="modal" style="max-width:440px; text-align:center;">
+        <button class="close" type="button" aria-label="Fechar Pix" data-close="pixModal">x</button>
+        <div style="font-size:32px; margin-bottom:4px;">⚡</div>
+        <h2 id="pixModalTitle" style="margin-bottom:2px;">Cobrança Pix</h2>
+        <p class="muted" id="pixStudentInfo" style="font-size:13px; margin-bottom:14px;"></p>
+        
+        <div id="pixQrContainer" style="background:#fff; padding:16px; border-radius:12px; border:2px dashed #0d9488; display:inline-block; margin:0 auto 12px; width:100%; box-sizing:border-box;">
+          <div style="font-size:42px; margin-bottom:6px;">📱</div>
+          <span style="font-size:22px; font-weight:800; color:#0f172a; display:block;" id="pixValueDisplay">R$ 220,00</span>
+          <small style="font-size:11px; color:#0d9488; font-weight:600;">Chave Pix Oficial da Arena</small>
+        </div>
+
+        <div style="text-align:left; margin-bottom:12px;">
+          <label style="font-size:11px; font-weight:600; color:var(--muted, #64748b); text-transform:uppercase;">Código Pix Copia e Cola:</label>
+          <div style="display:flex; gap:6px; margin-top:4px;">
+            <input id="pixCopyInput" readonly style="font-size:11px; font-family:monospace; background:var(--surface-hover, #f1f5f9); border:1px solid var(--border, #cbd5e1); padding:8px; border-radius:6px; flex:1;" />
+            <button type="button" class="primary-btn" id="btnCopyPix" style="padding:0 14px; font-size:12px; white-space:nowrap;">Copiar</button>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:14px;">
+          <button type="button" class="soft-btn" id="btnSimulatePixWebhook" style="background:#10b981; color:#fff; font-weight:600; padding:10px; border-radius:8px;">
+            ✅ Simular Confirmação Bancária (Baixa Automática)
+          </button>
+          <button type="button" class="soft-btn" id="btnSharePixWhatsapp" style="background:#25d366; color:#fff; font-weight:600; padding:10px; border-radius:8px;">
+            📱 Enviar Pix no WhatsApp do Aluno
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+    <script type="module" src="app.js?v=20260916-futuro"></script>
+  </body>
+</html>

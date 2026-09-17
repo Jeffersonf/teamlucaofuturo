@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: team-lucao-futevolei
+    env: node
+    plan: starter
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    autoDeploy: true
+    disk:
+      name: team-lucao-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: 24
+      - key: DB_PATH
+        value: /data/arena.db
+      - key: BACKUPS_DIR
+        value: /data/backups
+      - key: AUTO_BACKUP_ON_START
+        value: true
+      - key: AUTO_BACKUP_INTERVAL_HOURS
+        value: 24
+      - key: BACKUP_RETENTION
+        value: 30
+      - key: ADMIN_PIN
+        sync: false

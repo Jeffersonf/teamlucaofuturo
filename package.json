@@ -1,0 +1,21 @@
+{
+  "name": "teamlucaofuturo",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Evolução SaaS modular para arenas e escolas de futevôlei com multi-tenancy, cobrança Pix e controle de chuvas",
+  "scripts": {
+    "start": "node --no-warnings server/index.js",
+    "dev": "node --no-warnings --watch server/index.js",
+    "live": "serve . -l 4285",
+    "static": "npx serve .",
+    "check": "node --check app.js && node --check modules/roles.js && node --check modules/rain.js && node --check modules/pix.js && node --check modules/arenas.js && node --check server/db.js && node --check server/pix.js && node --check server/index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "playwright": "^1.60.0",
+    "serve": "^14.2.4"
+  }
+}

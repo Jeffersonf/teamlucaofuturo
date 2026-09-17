@@ -1,0 +1,16 @@
+name = "teamlucao"
+main = "worker/index.js"
+compatibility_date = "2026-09-03"
+
+[assets]
+directory = ".cloudflare-worker-public"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "team-lucao-futevolei"
+database_id = "c05b81fb-a788-4c96-8b8b-233428e8f844"
+migrations_dir = "migrations"
+
+[vars]
+# ADMIN_PIN configured as remote secret via: npx wrangler secret put ADMIN_PIN

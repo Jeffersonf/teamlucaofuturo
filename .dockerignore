@@ -1,0 +1,9 @@
+node_modules
+backups
+arena.db
+arena.db-shm
+arena.db-wal
+.env
+.git
+.DS_Store
+Thumbs.db

@@ -1,0 +1,20 @@
+{
+  "name": "Team Lucão",
+  "short_name": "Team Lucão",
+  "description": "Painel de alunos, aulas, presencas e mensalidades do Team Lucão.",
+  "id": "/arena-futvolei/",
+  "start_url": "./?source=pwa",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#0a0a0a",
+  "icons": [
+    {
+      "src": "assets/team-lucao-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.cloudflare-public/
+.cloudflare-worker-public/
+.wrangler/
+.env
+arena.db
+arena.db-shm
+arena.db-wal
+backups/
+tmp-visual-check/
+tmp-*.db*
+.DS_Store
+Thumbs.db
