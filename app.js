@@ -12,11 +12,11 @@ const CONFIG_KEY = 'tlf_admin_config_v1';
 const ACTION_REFRESH_MS = 15000;
 const STANDARD_CLASS_SLOTS = Object.freeze([
   { day: 1, label: 'Segunda', times: ['18:30', '19:30', '20:30'] },
-  { day: 2, label: 'Terca', times: ['18:30', '19:30', '20:30'] },
+  { day: 2, label: 'Terça', times: ['18:30', '19:30', '20:30'] },
   { day: 3, label: 'Quarta', times: ['18:30', '19:30', '20:30'] },
   { day: 4, label: 'Quinta', times: ['18:30', '19:30', '20:30'] },
   { day: 5, label: 'Sexta', times: ['18:30', '19:30', '20:30'] },
-  { day: 6, label: 'Sabado', times: ['09:00', '10:00', '14:00', '15:00'] }
+  { day: 6, label: 'Sábado', times: ['09:00', '10:00', '14:00', '15:00'] }
 ]);
 const MOBILE_MORE_PAGES = ['bookings', 'actions', 'waitlist', 'plans', 'reports', 'settings'];
 const PAGE_TITLES = {
@@ -1736,8 +1736,9 @@ function renderPayments() {
       </div>
       <div class="actions">
         ${student.telefone ? `<a class="mini-btn" href="${whatsappUrl(student.telefone, studentChargeText(student, month))}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
+        ${!paid ? `<button class="mini-btn" style="color:#ef4444; border-color:rgba(220,38,38,0.3); background:rgba(220,38,38,0.08);" data-pix-charge="${student.id}">PIX</button>` : ''}
         <button class="mini-btn" data-copy-charge="${student.id}">Copiar cobrança</button>
-        <button class="mini-btn" data-pay="${student.id}">${paid ? 'Marcar nao pago' : 'Marcar pago'}</button>
+        <button class="mini-btn" data-pay="${student.id}">${paid ? 'Desmarcar' : 'Dar Baixa'}</button>
       </div>
     </article>
   `;
@@ -1945,12 +1946,13 @@ function studentCard(student) {
       </div>
       <div class="student-payment">
         <span class="pill ${paid ? 'ok' : 'bad'}">${paid ? 'em dia' : 'pendente'}</span>
-        <p class="meta">${paid ? `pago até ${formatDate(student.pago_ate)}` : 'sem registro do mes'}</p>
+        <p class="meta">${paid ? `pago até ${formatDate(student.pago_ate)}` : 'sem registro do mês'}</p>
       </div>
       <div class="actions student-actions">
         ${student.telefone ? `<a class="mini-btn" href="${whatsappUrl(student.telefone, message)}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
+        ${!paid ? `<button class="mini-btn" style="color:#ef4444; border-color:rgba(220,38,38,0.3); background:rgba(220,38,38,0.08);" data-pix-charge="${student.id}">PIX</button>` : ''}
         <button class="mini-btn" data-edit-student="${student.id}">Editar</button>
-        <button class="mini-btn" data-pay="${student.id}">${paid ? 'Não pago' : 'Pago'}</button>
+        <button class="mini-btn" data-pay="${student.id}">${paid ? 'Desmarcar' : 'Dar Baixa'}</button>
       </div>
     </article>
   `;
@@ -3704,6 +3706,22 @@ async function confirmStudentAttendance(classId, studentId, action = 'approve') 
   toast(action === 'approve' ? 'Indicacao confirmada' : 'Confirmacao removida');
 }
 
+function openDirectPix(studentId) {
+  const student = studentById(studentId);
+  if (!student) return;
+  const month = selectedPaymentMonth();
+  openPixModal({
+    studentId: student.id,
+    studentName: student.nome,
+    studentPhone: student.telefone,
+    amount: Number(student.mensalidade || 0),
+    reference: month,
+    getAdminPin: () => localStorage.getItem(PIN_KEY),
+    showToast: toast,
+    refreshCallback: () => loadData()
+  });
+}
+
 function openPayment(studentId) {
   const student = studentById(studentId);
   if (!student) return;
@@ -4098,7 +4116,7 @@ function bindEvents() {
     toggleClassStudent(target.value, target.checked);
   });
   document.body.addEventListener('click', (event) => {
-    const target = event.target.closest('[data-action],[data-report-student],[data-edit-student],[data-sync-student],[data-edit-class],[data-duplicate-class],[data-class-status],[data-cancel-class],[data-copy-class],[data-open-group-message],[data-copy-report],[data-edit-plan],[data-attendance],[data-toggle-attendance],[data-confirm-student],[data-pay],[data-copy-charge],[data-edit-wait],[data-wait-status],[data-convert-wait],[data-remove-extra],[data-class-day],[data-more-page],[data-more-action],[data-booking-action]');
+    const target = event.target.closest('[data-action],[data-report-student],[data-edit-student],[data-sync-student],[data-edit-class],[data-duplicate-class],[data-class-status],[data-cancel-class],[data-copy-class],[data-open-group-message],[data-copy-report],[data-edit-plan],[data-attendance],[data-toggle-attendance],[data-confirm-student],[data-pay],[data-pix-charge],[data-copy-charge],[data-edit-wait],[data-wait-status],[data-convert-wait],[data-remove-extra],[data-class-day],[data-more-page],[data-more-action],[data-booking-action]');
     if (!target) return;
     if (target.dataset.action && !target.closest('#quickActions')) handleQuickAction(target.dataset.action);
     if (target.dataset.morePage) setPage(target.dataset.morePage);
@@ -4136,6 +4154,7 @@ function bindEvents() {
       renderClasses();
     }
     if (target.dataset.pay) markPaid(target.dataset.pay).catch((err) => toast(err.message));
+    if (target.dataset.pixCharge) openDirectPix(target.dataset.pixCharge);
     if (target.dataset.copyCharge) copyStudentCharge(target.dataset.copyCharge).catch((err) => toast(err.message));
     if (target.dataset.editWait) openWaitItem(target.dataset.editWait);
     if (target.dataset.waitStatus) {

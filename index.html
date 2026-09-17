@@ -234,14 +234,14 @@
             </div>
             <div class="actions class-head-actions">
               <button class="soft-btn" type="button" data-open-class>+ Nova aula</button>
-              <button class="primary-btn" type="button" data-open-schedule>Grade padrao</button>
+              <button class="primary-btn" type="button" data-open-schedule>Grade padrão</button>
             </div>
           </div>
           <div class="class-tools">
             <div>
-              <span class="section-label">operacao</span>
-              <strong>Horarios padrao</strong>
-              <p class="meta">Seg a sex: 18:30, 19:30 e 20:30. Sabado: 09:00, 10:00, 14:00 e 15:00.</p>
+              <span class="section-label">operação</span>
+              <strong>Horários padrão</strong>
+              <p class="meta">Seg a sex: 18:30, 19:30 e 20:30. Sábado: 09:00, 10:00, 14:00 e 15:00.</p>
             </div>
             <button class="soft-btn" type="button" data-open-group-message>Mensagens para grupo</button>
           </div>
@@ -384,7 +384,7 @@
               <small>Valores e aulas por semana.</small>
             </button>
             <button class="more-card" type="button" data-more-page="actions">
-              <span>historico</span>
+              <span>histórico</span>
               <strong>Ações</strong>
               <small>Aluno, professor e sistema.</small>
             </button>
@@ -394,14 +394,9 @@
               <small>Interessados e aulas experimentais.</small>
             </button>
             <button class="more-card" type="button" data-more-page="reports">
-              <span>gestao</span>
+              <span>gestão</span>
               <strong>Relatórios</strong>
               <small>Frequência, pendências e pontos de atenção.</small>
-            </button>
-            <button class="more-card" type="button" data-more-action="theme">
-              <span>tema</span>
-              <strong>Claro / escuro</strong>
-              <small>Alternar visual do painel.</small>
             </button>
             <button class="more-card" type="button" data-more-page="settings">
               <span>administração</span>
@@ -623,7 +618,7 @@
         <input type="hidden" id="paymentStudentId" />
         <p class="muted payment-modal-student" id="paymentStudentName"></p>
         <div class="form-row">
-          <label>Referencia<input id="paymentReference" type="month" required /></label>
+          <label>Referência<input id="paymentReference" type="month" required /></label>
           <label>Pago em<input id="paymentPaidAt" type="date" required /></label>
         </div>
         <div class="form-row">
@@ -632,8 +627,8 @@
             <select id="paymentMethod">
               <option value="Pix">Pix</option>
               <option value="Dinheiro">Dinheiro</option>
-              <option value="Cartao">Cartao</option>
-              <option value="Transferencia">Transferencia</option>
+              <option value="Cartao">Cartão</option>
+              <option value="Transferencia">Transferência</option>
               <option value="Outro">Outro</option>
             </select>
           </label>
@@ -713,15 +708,15 @@
       <form class="modal wide-modal" id="scheduleForm">
         <button class="close" type="button" aria-label="Fechar grade" data-close="scheduleModal">x</button>
         <p class="eyebrow">grade recorrente</p>
-        <h2 id="scheduleModalTitle">Criar horarios padrao</h2>
-        <p class="meta">Crie varias semanas de uma vez. Os horarios ja vem marcados conforme a grade da Arena e podem ser ajustados antes de salvar.</p>
+        <h2 id="scheduleModalTitle">Criar horários padrão</h2>
+        <p class="meta">Crie várias semanas de uma vez. Os horários já vêm marcados conforme a grade da Arena e podem ser ajustados antes de salvar.</p>
         <div class="form-row">
           <label>Segunda da primeira semana<input id="scheduleStart" type="date" required /></label>
           <label>Repetir por semanas<input id="scheduleWeeks" type="number" min="1" max="12" step="1" value="4" required /></label>
         </div>
         <div class="form-row">
-          <label>Turma padrao<input id="scheduleGroup" value="Turma Arena" placeholder="Ex: Iniciantes" /></label>
-          <label>Professor<input id="scheduleCoach" value="Lucao" placeholder="Nome do professor" /></label>
+          <label>Turma padrão<input id="scheduleGroup" value="Turma Arena" placeholder="Ex: Iniciantes" /></label>
+          <label>Professor<input id="scheduleCoach" value="Lucão" placeholder="Nome do professor" /></label>
         </div>
         <div class="form-row">
           <label>Capacidade<input id="scheduleCapacity" type="number" min="1" max="30" value="8" required /></label>
@@ -735,7 +730,7 @@
           </label>
         </div>
         <fieldset class="schedule-slots-field">
-          <legend>Horarios que serao criados</legend>
+          <legend>Horários que serão criados</legend>
           <div class="schedule-slots" id="scheduleSlots"></div>
         </fieldset>
         <label class="check-control schedule-notify-control"><input id="scheduleNotify" type="checkbox" checked /> Preparar mensagem de aviso para o grupo ao terminar</label>
@@ -746,16 +741,16 @@
     <div class="modal-wrap" id="groupMessageModal" role="dialog" aria-modal="true" aria-labelledby="groupMessageModalTitle" aria-hidden="true">
       <form class="modal" id="groupMessageForm">
         <button class="close" type="button" aria-label="Fechar mensagens" data-close="groupMessageModal">x</button>
-        <p class="eyebrow">comunicacao</p>
+        <p class="eyebrow">comunicação</p>
         <h2 id="groupMessageModalTitle">Mensagem para o grupo</h2>
-        <p class="meta">Mensagem geral, sem mencionar um aluno especifico. Edite antes de copiar ou abrir o WhatsApp.</p>
+        <p class="meta">Mensagem geral, sem mencionar um aluno específico. Edite antes de copiar ou abrir o WhatsApp.</p>
         <label>Aula<select id="groupMessageClass"></select></label>
         <label>Modelo
           <select id="groupMessageTemplate">
-            <option value="confirm">Confirmacao de aula</option>
-            <option value="reminder">Lembrete de horario</option>
+            <option value="confirm">Confirmação de aula</option>
+            <option value="reminder">Lembrete de horário</option>
             <option value="cancel">Aviso de cancelamento</option>
-            <option value="change">Troca de horario</option>
+            <option value="change">Troca de horário</option>
             <option value="week">Agenda da semana</option>
           </select>
         </label>
