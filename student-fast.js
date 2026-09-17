@@ -385,10 +385,10 @@ function renderDashboard() {
   if (statusBadge) {
     if (isExpired) {
       statusBadge.className = 'plan-status-badge bad';
-      statusBadge.textContent = '🔴 Plano vencido';
+      statusBadge.innerHTML = '<span class="status-dot bad"></span><span>Plano vencido</span>';
     } else {
       statusBadge.className = 'plan-status-badge ok';
-      statusBadge.textContent = `🟢 Plano até ${formattedDueDate || 'o vencimento'}`;
+      statusBadge.innerHTML = `<span class="status-dot ok"></span><span>Plano até ${formattedDueDate || 'o vencimento'}</span>`;
     }
   }
 

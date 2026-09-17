@@ -209,91 +209,103 @@ select:focus-visible {
 .fast-hero,
 .fast-panel {
   border: 1px solid var(--line);
-  border-radius: 22px;
-  background: color-mix(in srgb, var(--surface) 96%, transparent);
+  border-radius: 20px;
+  background: var(--surface);
   box-shadow: var(--shadow-soft);
 }
 
 .fast-hero {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 16px;
+  display: flex;
   align-items: center;
-  padding: 22px;
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--accent-soft) 62%, var(--surface)), var(--surface) 64%);
+  gap: 16px;
+  padding: 24px;
+  background: var(--surface);
 }
 
 .fast-logo {
-  display: grid;
-  place-items: center;
-  width: 64px;
-  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 16px;
   background: #fff;
+  flex-shrink: 0;
 }
 
 .fast-logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
-.eyebrow { color: var(--accent); font-size: 10px; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
+.eyebrow { color: var(--accent); font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
 
 .fast-hero h1 {
-  margin-top: 4px;
-  font-size: clamp(25px, 6vw, 38px);
-  font-weight: 780;
-  line-height: 1.04;
-  letter-spacing: -.045em;
+  margin-top: 2px;
+  font-size: clamp(22px, 5vw, 32px);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -.03em;
+  color: var(--text);
 }
 
 .fast-hero p:not(.eyebrow),
 .section-heading p,
 .helper,
 small { color: var(--muted); }
-.fast-hero p:not(.eyebrow) { margin-top: 6px; }
+.fast-hero p:not(.eyebrow) { margin-top: 4px; font-size: 13px; }
 
-.fast-panel { display: grid; gap: 18px; padding: 22px; }
-.section-heading { display: grid; gap: 5px; }
-.section-heading h2 { font-size: 20px; font-weight: 750; letter-spacing: -.025em; }
+.fast-panel { display: grid; gap: 18px; padding: 24px; }
+.section-heading { display: grid; gap: 4px; }
+.section-heading h2 { font-size: 18px; font-weight: 700; letter-spacing: -.02em; color: var(--text); }
 
-form { display: grid; gap: 11px; }
-label { display: grid; gap: 6px; color: var(--text); font-size: 12px; font-weight: 700; }
+form { display: grid; gap: 12px; }
+label { display: grid; gap: 6px; color: var(--text); font-size: 12px; font-weight: 600; }
 
 input,
 select {
   width: 100%;
-  min-height: 48px;
-  border: 1px solid var(--line-strong);
+  min-height: 44px;
+  border: 1px solid var(--line);
   border-radius: 12px;
   outline: none;
-  padding: 0 13px;
-  background: var(--surface);
+  padding: 0 14px;
+  background: var(--surface-2);
   color: var(--text);
-  font-size: 16px;
+  font-size: 15px;
+  font-family: inherit;
+  transition: all .15s ease;
 }
 
 input:focus,
 select:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
 }
 
 .primary-button,
-article button,
 #refreshButton {
-  min-height: 46px;
-  border: 1px solid var(--button-bg);
+  min-height: 44px;
+  border: none;
   border-radius: 12px;
-  padding: 0 16px;
+  padding: 0 18px;
   background: var(--button-bg);
   color: #fff;
-  font-weight: 750;
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--accent) 22%, transparent);
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(220, 38, 38, 0.25);
+  cursor: pointer;
+  transition: all .15s ease;
 }
 
 .primary-button:hover,
-article button:hover,
-#refreshButton:hover { border-color: var(--button-hover); background: var(--button-hover); }
+#refreshButton:hover {
+  background: var(--button-hover);
+  transform: translateY(-1px);
+}
+
+.primary-button:active,
+#refreshButton:active {
+  transform: scale(0.98);
+}
 
 .privacy-note { color: var(--muted); font-size: 11px; line-height: 1.4; }
 
@@ -552,63 +564,78 @@ button.calendar-day:hover { border-color: var(--accent); background: var(--accen
 }
 
 .weekly-class-card {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 14px;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 14px;
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 14px 16px;
+  border-radius: 18px;
+  padding: 14px 18px;
   background: var(--surface);
   transition: all .15s ease;
 }
 
+.weekly-class-card:hover {
+  border-color: var(--line-strong);
+}
+
 .weekly-class-card.is-confirmed {
-  border-color: color-mix(in srgb, var(--ok) 55%, var(--line));
-  background: color-mix(in srgb, var(--ok-bg) 35%, var(--surface));
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.05);
 }
 
 .weekly-class-card.is-full:not(.is-confirmed) {
-  opacity: .65;
+  opacity: .6;
 }
 
 .weekly-timebox {
-  display: grid;
-  place-items: center;
-  min-width: 68px;
-  min-height: 60px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 4px 6px;
-  background: var(--surface-2);
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
   text-align: center;
+  border: none;
+  background: transparent;
+  padding: 0;
+  border-right: 1px solid var(--line);
+  padding-right: 14px;
+}
+
+.weekly-timebox span {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: 0.05em;
 }
 
 .weekly-timebox strong {
-  font-size: 17px;
+  font-size: 16px;
+  font-weight: 800;
   color: var(--text);
-  line-height: 1.15;
+  line-height: 1.2;
 }
 
 .weekly-class-info {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 3px;
+  flex: 1;
   min-width: 0;
 }
 
 .weekly-class-info strong {
-  font-size: 15px;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text);
 }
 
 .weekly-class-meta {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-size: 12px;
+  gap: 6px;
+  align-items: center;
+  font-size: 11px;
   color: var(--muted);
 }
 
@@ -620,82 +647,99 @@ button.calendar-day:hover { border-color: var(--accent); background: var(--accen
 }
 
 .btn-confirm-slot {
-  min-height: 42px;
-  min-width: 140px;
-  border: 1px solid var(--button-bg);
+  min-height: 38px;
   border-radius: 12px;
-  padding: 0 14px;
-  background: var(--button-bg);
+  padding: 0 16px;
+  background: var(--accent);
   color: #fff;
-  font-size: 13px;
-  font-weight: 750;
+  font-size: 12px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
+  border: none;
   cursor: pointer;
   transition: all .15s ease;
 }
 
 .btn-confirm-slot:hover:not(:disabled) {
   background: var(--button-hover);
-  border-color: var(--button-hover);
+  transform: translateY(-1px);
+}
+
+.btn-confirm-slot:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .btn-confirm-slot:disabled {
-  opacity: .55;
+  opacity: .5;
   cursor: not-allowed;
-  border-color: var(--line-strong);
+  border: 1px solid var(--line);
   background: var(--surface-2);
   color: var(--muted);
   box-shadow: none;
 }
 
+.btn-confirm-slot.is-blocked {
+  background: var(--surface-2) !important;
+  color: var(--muted) !important;
+  border: 1px solid var(--line) !important;
+  cursor: not-allowed;
+  box-shadow: none !important;
+}
+
 .btn-unconfirm-slot {
-  min-height: 40px;
-  border: 1px solid var(--line-strong);
-  border-radius: 11px;
-  padding: 0 12px;
-  background: var(--surface);
-  color: var(--bad);
-  font-size: 12px;
-  font-weight: 700;
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0 10px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all .15s ease;
 }
 
 .btn-unconfirm-slot:hover {
   background: var(--bad-bg);
-  border-color: var(--bad);
+  color: var(--bad);
+  border-color: rgba(239, 68, 68, 0.3);
 }
 
 .confirmed-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  border-radius: 999px;
+  gap: 6px;
+  border-radius: 12px;
   padding: 6px 12px;
-  background: var(--ok-bg);
+  background: rgba(16, 185, 129, 0.12);
   color: var(--ok);
+  border: 1px solid rgba(16, 185, 129, 0.25);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 @media (max-width: 600px) {
   .weekly-class-card {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    align-items: stretch;
-  }
-  .weekly-timebox {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    min-height: auto;
-  }
-  .weekly-class-action {
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
+  }
+  .weekly-timebox {
+    flex-direction: row;
+    justify-content: space-between;
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+    padding-right: 0;
+    padding-bottom: 8px;
+    width: 100%;
+  }
+  .weekly-class-action {
+    width: 100%;
   }
   .btn-confirm-slot,
   .btn-unconfirm-slot {
     width: 100%;
+    justify-content: center;
   }
 }
 
@@ -1090,7 +1134,7 @@ button.calendar-day:hover { border-color: var(--accent); background: var(--accen
 }
 
 /* ==========================================================================
-   Plan Status Badges & Expired Banner
+   Plan Status Badges & Expired Banner (Design System Moderno)
    ========================================================================== */
 .student-plan-wrap {
   display: flex;
@@ -1103,38 +1147,57 @@ button.calendar-day:hover { border-color: var(--accent); background: var(--accen
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
+  padding: 4px 10px;
   border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: -.01em;
 }
 
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.status-dot.ok { background: var(--ok); }
+.status-dot.bad { background: var(--bad); }
+
 .plan-status-badge.ok {
-  background: color-mix(in srgb, var(--ok) 18%, transparent);
+  background: rgba(16, 185, 129, 0.12);
   color: var(--ok);
-  border: 1px solid color-mix(in srgb, var(--ok) 35%, transparent);
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .plan-status-badge.bad {
-  background: color-mix(in srgb, var(--bad) 18%, transparent);
+  background: rgba(239, 68, 68, 0.12);
   color: var(--bad);
-  border: 1px solid color-mix(in srgb, var(--bad) 35%, transparent);
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 .expired-plan-banner {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  align-items: flex-start;
+  gap: 12px;
   padding: 14px 16px;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--bad) 12%, var(--surface));
-  border: 1px solid color-mix(in srgb, var(--bad) 40%, transparent);
-  margin-bottom: 12px;
+  border-radius: 16px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.22);
+  color: var(--text);
+  margin-bottom: 4px;
 }
 
 .expired-banner-icon {
-  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--bad);
   flex-shrink: 0;
 }
 
@@ -1144,35 +1207,36 @@ button.calendar-day:hover { border-color: var(--accent); background: var(--accen
 
 .expired-banner-info strong {
   display: block;
-  font-size: 14px;
-  color: var(--bad);
+  font-size: 13px;
+  font-weight: 700;
+  color: #f87171;
   margin-bottom: 2px;
 }
 
 .expired-banner-info p {
-  font-size: 12px;
-  color: var(--text);
-  opacity: .88;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
   margin: 0;
 }
 
 .btn-go-pix {
   flex-shrink: 0;
-  padding: 8px 16px;
-  font-size: 13px;
-  min-height: 38px;
+  padding: 6px 14px;
+  font-size: 12px;
+  min-height: 34px;
+  border-radius: 10px;
 }
 
 /* ==========================================================================
-   PIX Payment Card & Test Area
+   PIX Payment Card & Test Area (Design System Sports Red)
    ========================================================================== */
 .pix-card {
-  border: 1px solid var(--line-strong);
-  border-radius: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
   background: var(--surface);
   box-shadow: var(--shadow-soft);
-  padding: 18px 20px;
-  margin-bottom: 14px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1189,22 +1253,23 @@ button.calendar-day:hover { border-color: var(--accent); background: var(--accen
 
 .pix-tag {
   display: inline-block;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: .04em;
-  color: #0284c7;
+  letter-spacing: .05em;
+  color: var(--accent);
   margin-bottom: 2px;
 }
 
 .pix-card-header h3 {
-  font-size: 17px;
-  font-weight: 750;
+  font-size: 15px;
+  font-weight: 700;
   margin: 0 0 2px;
+  color: var(--text);
 }
 
 .pix-sub {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--muted);
   margin: 0;
 }
@@ -1213,12 +1278,12 @@ button.calendar-day:hover { border-color: var(--accent); background: var(--accen
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  padding: 3px 8px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--ok) 15%, transparent);
+  background: rgba(16, 185, 129, 0.12);
   color: var(--ok);
-  font-size: 11px;
-  font-weight: 650;
+  font-size: 10px;
+  font-weight: 700;
 }
 
 .pix-card-body {
@@ -1241,19 +1306,20 @@ button.calendar-day:hover { border-color: var(--accent); background: var(--accen
 }
 
 .pix-field-group label {
-  font-size: 12px;
-  font-weight: 650;
+  font-size: 11px;
+  font-weight: 600;
   color: var(--muted);
 }
 
 .pix-select {
-  padding: 10px 12px;
+  height: 40px;
   border-radius: 10px;
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--line);
   background: var(--surface-2);
   color: var(--text);
-  font-size: 14px;
-  font-weight: 600;
+  padding: 0 10px;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .pix-amount-card {
@@ -1261,30 +1327,43 @@ button.calendar-day:hover { border-color: var(--accent); background: var(--accen
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
-  padding: 8px 16px;
+  padding: 6px 14px;
   border-radius: 10px;
-  background: color-mix(in srgb, var(--accent) 12%, var(--surface-2));
-  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
-  min-width: 140px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  min-width: 120px;
 }
 
 .amount-label {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--muted);
   text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .amount-val {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--accent);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .pix-cta-btn {
   width: 100%;
-  min-height: 44px;
-  font-size: 14px;
-  font-weight: 700;
+  min-height: 42px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 12px;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.25);
+  border: none;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.pix-cta-btn:hover {
+  background: var(--button-hover);
 }
 
 .pix-result-box {
@@ -1297,17 +1376,17 @@ button.calendar-day:hover { border-color: var(--accent); background: var(--accen
 
 .pix-qr-container {
   display: flex;
-  gap: 18px;
+  gap: 16px;
   align-items: center;
   padding: 14px;
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--surface-2);
   border: 1px solid var(--line);
 }
 
 .pix-qr-img-frame {
   background: #ffffff;
-  padding: 8px;
+  padding: 6px;
   border-radius: 10px;
   box-shadow: var(--shadow-soft);
   display: grid;
@@ -1316,16 +1395,16 @@ button.calendar-day:hover { border-color: var(--accent); background: var(--accen
 }
 
 .pix-qr-img-frame img {
-  width: 150px;
-  height: 150px;
+  width: 130px;
+  height: 130px;
   display: block;
 }
 
 .pix-receiver-details {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 13px;
+  gap: 5px;
+  font-size: 12px;
 }
 
 .receiver-row {
@@ -1349,8 +1428,8 @@ button.calendar-day:hover { border-color: var(--accent); background: var(--accen
 }
 
 .pix-copy-label {
-  font-size: 12px;
-  font-weight: 650;
+  font-size: 11px;
+  font-weight: 600;
   color: var(--muted);
 }
 
@@ -1361,19 +1440,17 @@ button.calendar-day:hover { border-color: var(--accent); background: var(--accen
 
 .pix-copy-input {
   flex: 1;
-  padding: 8px 12px;
-  border-radius: 8px;
+  height: 38px;
+  border-radius: 10px;
   border: 1px solid var(--line);
   background: var(--surface-2);
   color: var(--text);
-  font-family: monospace;
-  font-size: 12px;
+  padding: 0 10px;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: 11px;
 }
 
 .pix-copy-button {
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px solid var(--accent);
   background: var(--accent);
   color: #fff;
   font-size: 13px;
