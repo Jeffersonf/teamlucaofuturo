@@ -20,75 +20,38 @@
   <body>
     <a class="skip-link" href="#mainContent">Pular para o conteúdo principal</a>
     <div class="booking-wall" id="bookingWall" aria-hidden="true">
-      <section class="booking-shell">
-        <div class="booking-hero">
-          <span class="brand-mark booking-logo" aria-hidden="true">
-            <img src="assets/team-lucao-logo.png" alt="" />
-          </span>
-          <div>
-            <p class="eyebrow" data-config-text="publicEyebrow">agenda da escola</p>
-            <h1 data-config-text="publicTitle">Team Lucão</h1>
-            <p data-config-text="publicDescription">Aluno? Informe seu WhatsApp para confirmar presença. Ainda não é aluno? Solicite uma aula experimental.</p>
+      <section class="booking-shell" style="max-width: 440px; margin: 48px auto; text-align: center;">
+        <div style="background: #18181b; border: 1px solid rgba(255,255,255,0.08); border-radius: 28px; padding: 36px 28px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6);">
+          <div style="width: 52px; height: 52px; border-radius: 16px; background: linear-gradient(135deg, #dc2626, #b91c1c); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: #fff; margin: 0 auto 16px; box-shadow: 0 8px 20px rgba(220,38,38,0.25);">
+            TL
+          </div>
+          <h1 style="font-size: 20px; font-weight: 700; color: #f4f4f5; margin-bottom: 6px; letter-spacing: -0.02em;">Team Lucão</h1>
+          <p style="font-size: 12px; color: #a1a1aa; margin-bottom: 24px;">Arena Futevôlei • Centro de Treinamento</p>
+
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <a href="/aluno" class="primary-btn" style="width: 100%; height: 46px; border-radius: 14px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <span>Área do Aluno (Presenças & Aulas)</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </a>
+            <button class="soft-btn" id="adminAccessBtn" type="button" style="width: 100%; height: 46px; border-radius: 14px; font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <span>Acesso ao Painel (PIN)</span>
+            </button>
           </div>
         </div>
-        <div class="booking-tabs" role="tablist" aria-label="Agenda publica">
-          <button id="studentTab" class="active" type="button" role="tab" aria-selected="true" aria-controls="studentPane" data-public-tab="student">Sou aluno</button>
-          <button id="guestTab" type="button" role="tab" aria-selected="false" aria-controls="guestPane" data-public-tab="guest">Agendar experimental</button>
-        </div>
-        <div class="booking-layout">
-          <div id="guestPane" class="booking-pane" role="tabpanel" aria-labelledby="guestTab" aria-hidden="true" data-public-pane="guest">
-            <form class="booking-form" id="bookingForm">
-              <label>Nome<input id="bookingName" autocomplete="name" placeholder="Seu nome" required /></label>
-              <label>WhatsApp<input id="bookingPhone" inputmode="tel" autocomplete="tel" placeholder="(15) 99999-9999" required /></label>
-              <label>Horário da aula experimental<select id="bookingClass" required></select></label>
-              <label>Observação (opcional)<input id="bookingNote" placeholder="Nível, objetivo ou dúvida" /></label>
-              <button class="primary-btn" id="bookingSubmitButton" type="submit">Solicitar aula experimental</button>
-              <p class="booking-status" id="bookingStatus" role="status" aria-live="polite"></p>
-            </form>
-            <div class="booking-board">
-              <div class="panel-head compact-head">
-                <div>
-                  <span>primeira aula</span>
-                  <h2>Horários para experimental</h2>
-                </div>
-              </div>
-              <p class="meta">Escolha um horário para conhecer a Arena. A equipe confirma seu pedido pelo WhatsApp.</p>
-              <div class="booking-class-list" id="bookingClassList" aria-live="polite" aria-busy="true"></div>
-            </div>
-          </div>
-          <div id="studentPane" class="booking-pane student-pane active" role="tabpanel" aria-labelledby="studentTab" aria-hidden="false" data-public-pane="student">
-            <form class="booking-form student-confirm-form" id="studentLookupForm">
-              <label>Seu WhatsApp<input id="studentLookupPhone" inputmode="tel" autocomplete="tel" placeholder="(15) 99999-9999" required /></label>
-              <button class="primary-btn" type="submit">Ver minhas aulas</button>
-              <p class="booking-status" id="studentConfirmStatus" role="status" aria-live="polite"></p>
-            </form>
-            <div class="booking-board">
-              <div class="panel-head compact-head">
-                <div>
-                  <span>confirmação de presença</span>
-                  <h2>Minhas aulas</h2>
-                </div>
-              </div>
-              <div class="student-confirm-list" id="studentClassList"></div>
-            </div>
-            <div class="booking-board student-booking-board" hidden>
-              <div class="panel-head compact-head">
-                <div>
-                  <span>até o próximo vencimento</span>
-                  <h2>Horários regulares com vaga</h2>
-                </div>
-              </div>
-              <p class="meta">Se você não tiver aula agendada, escolha um horário regular nesta semana.</p>
-              <div class="student-slot-filters" id="studentSlotFilters" hidden>
-                <label>Data<select id="studentSlotDate" data-student-slot-filter><option value="">Todas as datas</option></select></label>
-                <label>Hora<select id="studentSlotTime" data-student-slot-filter><option value="">Todos os horários</option></select></label>
-              </div>
-              <div class="booking-class-list" id="studentBookingList" aria-live="polite"></div>
-            </div>
-          </div>
-        </div>
-        <button class="soft-btn admin-entry" id="adminAccessBtn" type="button">Acesso professor</button>
       </section>
+      <!-- Hidden legacy elements for JS compatibility -->
+      <div style="display:none;" aria-hidden="true">
+        <button id="studentTab"></button><button id="guestTab"></button>
+        <div id="studentPane">
+          <form id="studentLookupForm"><input id="studentLookupPhone" /></form>
+          <div id="studentClassList"></div><div id="studentBookingList"></div>
+          <div id="studentSlotFilters"><select id="studentSlotDate"></select><select id="studentSlotTime"></select></div>
+        </div>
+        <div id="guestPane">
+          <form id="bookingForm"><input id="bookingName" /><input id="bookingPhone" /><select id="bookingClass"></select><input id="bookingNote" /><button id="bookingSubmitButton"></button></form>
+          <div id="bookingClassList"></div>
+        </div>
+      </div>
     </div>
     <div class="login-wall" id="loginWall" aria-hidden="true">
       <form class="login-box" id="loginForm" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
@@ -96,13 +59,13 @@
           <img src="assets/team-lucao-logo.png" alt="" />
         </span>
         <div class="login-copy">
-          <p class="eyebrow" data-config-text="loginEyebrow">painel do professor</p>
+          <p class="eyebrow" data-config-text="loginEyebrow">acesso ao painel</p>
           <h2 id="loginTitle" data-config-text="brandName">Team Lucão</h2>
           <p data-config-text="loginDescription">Digite seu PIN de acesso para continuar.</p>
         </div>
         <label>PIN de acesso<input id="loginPin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="PIN de acesso" /></label>
         <p style="font-size:11px; color:var(--muted); margin:-4px 0 12px; text-align:center;">
-          PIN <strong>1111</strong> (Professor) ou <strong>2222</strong> (Admin)
+          Acesso unificado com todas as funções liberadas
         </p>
         <button class="primary-btn" type="submit">Entrar no Painel</button>
       </form>
@@ -158,7 +121,7 @@
             <div class="global-results" id="globalResults" role="listbox" aria-label="Resultados da busca"></div>
           </div>
           <span class="mode-chip" id="modeStatus">Carregando...</span>
-          <span id="userRoleBadge" class="pill" style="font-size:11px; padding:3px 10px; border-radius:12px; font-weight:600; background:#e0f2fe; color:#0369a1; white-space:nowrap;">👑 Administrador</span>
+          <span id="userRoleBadge" class="pill" style="font-size:11px; padding:3px 10px; border-radius:12px; font-weight:600; background:rgba(220,38,38,0.15); color:#ef4444; border:1px solid rgba(220,38,38,0.25); white-space:nowrap;">Admin</span>
           <button class="soft-btn" type="button" data-refresh>Atualizar</button>
           <button class="primary-btn" type="button" data-open-student>+ Novo aluno</button>
         </div>

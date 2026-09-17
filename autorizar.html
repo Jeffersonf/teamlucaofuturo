@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#09090b">
-  <title>Team Lucão | Acesso do Professor</title>
+  <title>Team Lucão | Autorização de Presenças</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -45,7 +45,7 @@
         </div>
         <div>
           <span class="text-sm font-bold text-zinc-100 tracking-tight">Team Lucão</span>
-          <span class="text-[10px] uppercase font-semibold text-red-500 ml-1.5">• Acesso Professor</span>
+          <span class="text-[10px] uppercase font-semibold text-red-500 ml-1.5">• Confirmações</span>
         </div>
       </div>
 
@@ -71,7 +71,7 @@
 
       <form id="quickLoginForm" class="space-y-4">
         <div>
-          <label for="quickPin" class="block text-xs font-medium text-zinc-300 mb-1.5 text-center">PIN do Professor</label>
+          <label for="quickPin" class="block text-xs font-medium text-zinc-300 mb-1.5 text-center">PIN de Acesso</label>
           <input id="quickPin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="••••" required class="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-100 font-mono text-center text-lg tracking-widest placeholder:text-zinc-600 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all">
         </div>
         <button type="submit" class="w-full py-3 px-4 bg-red-600 hover:bg-red-500 text-white font-semibold text-xs rounded-xl transition-all shadow-md shadow-red-600/25 active:scale-95 flex items-center justify-center gap-1.5">
@@ -79,7 +79,7 @@
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </button>
       </form>
-      <p class="text-[10px] text-zinc-500 text-center mt-4">PIN 1111 (Professor) ou 2222 (Admin)</p>
+      <p class="text-[10px] text-zinc-500 text-center mt-4">Acesso unificado da escola</p>
     </section>
 
     <!-- Seção de Confirmações Pendentes (Ativa após login) -->
@@ -91,6 +91,9 @@
           <small id="updatedAt" class="text-[11px] text-zinc-500"></small>
         </div>
         <div class="flex items-center gap-2">
+          <a href="/" class="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold shadow-sm transition-all flex items-center gap-1">
+            Painel Completo →
+          </a>
           <button id="refreshButton" type="button" class="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-750 border border-zinc-700 text-zinc-200 text-xs font-medium transition-all flex items-center gap-1.5">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             Atualizar

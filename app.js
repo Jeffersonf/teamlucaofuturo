@@ -437,16 +437,11 @@ async function unlockApp(pin) {
   const cleanPin = String(pin || '').trim();
   if (!cleanPin) throw new Error('Informe o PIN');
   const hasServer = await detectServer();
-  let userRole = 'admin';
+  const userRole = 'admin'; // Unificado: 1 login com acesso a tudo
   if (hasServer) {
-    const loginRes = await api('/api/login', { method: 'POST', body: JSON.stringify({ pin: cleanPin }), headers: { 'X-Admin-Pin': cleanPin } });
-    if (loginRes?.role) userRole = loginRes.role;
-  } else if (cleanPin === '1111') {
-    userRole = 'teacher';
-  } else if (cleanPin === '2222' || cleanPin === '1209') {
-    userRole = 'admin';
-  } else {
-    throw new Error('PIN invalido');
+    await api('/api/login', { method: 'POST', body: JSON.stringify({ pin: cleanPin }), headers: { 'X-Admin-Pin': cleanPin } });
+  } else if (!['1209', '2222', '1111'].includes(cleanPin)) {
+    throw new Error('PIN inválido');
   }
   localStorage.setItem(PIN_KEY, cleanPin);
   setStoredRole(userRole);

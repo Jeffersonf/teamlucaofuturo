@@ -16,6 +16,9 @@ function copyPublicFiles(target) {
   fs.mkdirSync(target, { recursive: true });
   for (const file of files) fs.copyFileSync(path.join(root, file), path.join(target, file));
   fs.cpSync(path.join(root, 'assets'), path.join(target, 'assets'), { recursive: true });
+  if (fs.existsSync(path.join(root, 'modules'))) {
+    fs.cpSync(path.join(root, 'modules'), path.join(target, 'modules'), { recursive: true });
+  }
   fs.mkdirSync(path.join(target, 'aluno'), { recursive: true });
   fs.copyFileSync(path.join(root, 'aluno.html'), path.join(target, 'aluno', 'index.html'));
   fs.mkdirSync(path.join(target, 'autorizar'), { recursive: true });
