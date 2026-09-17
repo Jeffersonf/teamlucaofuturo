@@ -59,8 +59,7 @@ const DEFAULT_APP_CONFIG = Object.freeze({
   localNoticeText: 'Dados neste navegador. Para uso diário no iPhone, publique o servidor.'
 });
 const THEME_OPTIONS = Object.freeze([
-  { id: 'light', label: 'Modo claro', description: 'Fundo leve e leitura nítida durante o dia.', swatches: ['#e11d48', '#ffffff', '#f8fafc'] },
-  { id: 'dark', label: 'Modo escuro', description: 'Menos brilho e contraste confortável à noite.', swatches: ['#e11d48', '#ffffff', '#0d1017'] }
+  { id: 'dark', label: 'Sports Red (Oficial)', description: 'Dark Zinc Grafite com destaque Vermelho Esportivo.', swatches: ['#dc2626', '#18181b', '#09090b'] }
 ]);
 
 function loadAppConfig() {
@@ -1002,14 +1001,14 @@ function applyAppConfig() {
 }
 
 function normalizeTheme(theme) {
-  return String(theme || '').toLowerCase().endsWith('dark') ? 'dark' : 'light';
+  return 'dark';
 }
 
 function setTheme(theme, { persist = true } = {}) {
-  const next = normalizeTheme(theme);
+  const next = 'dark';
   document.documentElement.dataset.theme = next;
   if (persist) localStorage.setItem('fv_theme', next);
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', next === 'dark' ? '#0b1220' : '#f4f7fb');
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#09090b');
   updateThemeButton();
   if (document.getElementById('themePicker')) renderSettings({ syncForm: false });
 }

@@ -98,7 +98,7 @@
       </nav>
       <button class="ghost-btn" id="logoutBtn" type="button">Sair</button>
     </aside>
-    <button class="theme-float" id="themeBtn" type="button" aria-label="Usar tema escuro" aria-pressed="false" title="Usar tema escuro"><svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.5 6.5 0 0 0 21 12.8Z" /></svg></button>
+    <button class="theme-float" id="themeBtn" type="button" aria-label="Usar tema escuro" aria-pressed="false" title="Usar tema escuro" style="display:none;"><svg class="theme-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.5 6.5 0 0 0 21 12.8Z" /></svg></button>
 
     <main class="app" id="mainContent">
       <header class="topbar">
@@ -640,7 +640,10 @@
         </div>
         <label>Observação<input id="paymentNote" placeholder="Ex: pago antecipado, desconto, reposição..." /></label>
         <button class="primary-btn" type="submit">Confirmar pagamento</button>
-        <button type="button" class="soft-btn pix-modal-btn" id="btnOpenPixFromPayment" style="background:#0d9488; color:#fff; margin-top:8px; width:100%; font-weight:600; padding:10px; border-radius:8px; display:block;">⚡ Gerar Cobrança Pix com QR Code</button>
+        <button type="button" class="soft-btn pix-modal-btn" id="btnOpenPixFromPayment" style="margin-top:8px; width:100%; font-weight:600; padding:11px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:8px; background:rgba(220,38,38,0.12); border:1px solid rgba(220,38,38,0.25); color:#ef4444;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 7v7M16 7v7M12 11h4M7 11h1"/></svg>
+          <span>Gerar Cobrança PIX com QR Code</span>
+        </button>
       </form>
     </div>
 
@@ -699,7 +702,10 @@
         <label>Semanas da recorrência<input id="classRepeatWeeks" type="number" min="1" max="12" step="1" value="4" /></label>
         <label>Motivo ou aviso da aula<textarea id="classNotice" rows="2" placeholder="Use para cancelamento, troca de horario ou recado para o grupo."></textarea></label>
         <button class="primary-btn" type="submit">Salvar aula</button>
-        <button type="button" class="soft-btn rain-cancel-btn" id="btnCancelRain" style="display:none; background:#0284c7; color:#fff; margin-top:8px; width:100%; font-weight:600; padding:10px; border-radius:8px;">🌧️ Cancelar Aula por Chuva (+1 Crédito p/ Alunos)</button>
+        <button type="button" class="soft-btn rain-cancel-btn" id="btnCancelRain" style="display:none; margin-top:8px; width:100%; font-weight:600; padding:11px; border-radius:12px; background:rgba(59,130,246,0.12); border:1px solid rgba(59,130,246,0.25); color:#60a5fa; align-items:center; justify-content:center; gap:8px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242M16 14v6M8 14v6M12 16v6"/></svg>
+          <span>Cancelar Aula por Chuva (+1 Crédito p/ Alunos)</span>
+        </button>
       </form>
     </div>
 
@@ -826,32 +832,33 @@
     </div>
 
     <div class="modal-wrap" id="pixModal" role="dialog" aria-modal="true" aria-labelledby="pixModalTitle" aria-hidden="true">
-      <div class="modal" style="max-width:440px; text-align:center;">
+      <div class="modal" style="max-width:440px; text-align:center; background:#18181b; border:1px solid rgba(255,255,255,0.08); border-radius:24px; padding:28px 24px;">
         <button class="close" type="button" aria-label="Fechar Pix" data-close="pixModal">x</button>
-        <div style="font-size:32px; margin-bottom:4px;">⚡</div>
-        <h2 id="pixModalTitle" style="margin-bottom:2px;">Cobrança Pix</h2>
-        <p class="muted" id="pixStudentInfo" style="font-size:13px; margin-bottom:14px;"></p>
+        <div style="width:44px; height:44px; border-radius:14px; background:rgba(220,38,38,0.12); border:1px solid rgba(220,38,38,0.25); display:flex; align-items:center; justify-content:center; margin:0 auto 12px; color:#ef4444;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 7v7M16 7v7M12 11h4M7 11h1"/></svg>
+        </div>
+        <h2 id="pixModalTitle" style="font-size:18px; font-weight:700; color:#f4f4f5; margin-bottom:4px;">Cobrança PIX</h2>
+        <p class="muted" id="pixStudentInfo" style="font-size:12px; color:#a1a1aa; margin-bottom:16px;"></p>
         
-        <div id="pixQrContainer" style="background:#fff; padding:16px; border-radius:12px; border:2px dashed #0d9488; display:inline-block; margin:0 auto 12px; width:100%; box-sizing:border-box;">
-          <div style="font-size:42px; margin-bottom:6px;">📱</div>
-          <span style="font-size:22px; font-weight:800; color:#0f172a; display:block;" id="pixValueDisplay">R$ 220,00</span>
-          <small style="font-size:11px; color:#0d9488; font-weight:600;">Chave Pix Oficial da Arena</small>
+        <div id="pixQrContainer" style="background:#09090b; padding:18px; border-radius:18px; border:1px solid rgba(255,255,255,0.08); display:flex; flex-direction:column; align-items:center; gap:6px; margin:0 auto 16px; width:100%; box-sizing:border-box;">
+          <span style="font-size:26px; font-weight:800; color:#f4f4f5; letter-spacing:-0.02em;" id="pixValueDisplay">R$ 220,00</span>
+          <small style="font-size:11px; color:#a1a1aa; font-weight:500;">Chave PIX Oficial da Arena</small>
         </div>
 
-        <div style="text-align:left; margin-bottom:12px;">
-          <label style="font-size:11px; font-weight:600; color:var(--muted, #64748b); text-transform:uppercase;">Código Pix Copia e Cola:</label>
-          <div style="display:flex; gap:6px; margin-top:4px;">
-            <input id="pixCopyInput" readonly style="font-size:11px; font-family:monospace; background:var(--surface-hover, #f1f5f9); border:1px solid var(--border, #cbd5e1); padding:8px; border-radius:6px; flex:1;" />
-            <button type="button" class="primary-btn" id="btnCopyPix" style="padding:0 14px; font-size:12px; white-space:nowrap;">Copiar</button>
+        <div style="text-align:left; margin-bottom:16px;">
+          <label style="font-size:10px; font-weight:600; color:#71717a; text-transform:uppercase; letter-spacing:0.05em; display:block; margin-bottom:6px;">Código PIX Copia e Cola:</label>
+          <div style="display:flex; gap:8px;">
+            <input id="pixCopyInput" readonly style="font-size:11px; font-family:monospace; background:#09090b; border:1px solid rgba(255,255,255,0.1); color:#e4e4e7; padding:9px 12px; border-radius:12px; flex:1;" />
+            <button type="button" class="primary-btn" id="btnCopyPix" style="padding:0 16px; font-size:12px; border-radius:12px; white-space:nowrap; font-weight:600;">Copiar</button>
           </div>
         </div>
 
-        <div style="display:flex; flex-direction:column; gap:8px; margin-top:14px;">
-          <button type="button" class="soft-btn" id="btnSimulatePixWebhook" style="background:#10b981; color:#fff; font-weight:600; padding:10px; border-radius:8px;">
-            ✅ Simular Confirmação Bancária (Baixa Automática)
+        <div style="display:flex; flex-direction:column; gap:8px;">
+          <button type="button" id="btnSimulatePixWebhook" style="width:100%; background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.25); color:#34d399; font-weight:600; font-size:12px; padding:12px; border-radius:12px; cursor:pointer; transition:all 0.15s ease;">
+            Simular Confirmação Bancária (Baixa Automática)
           </button>
-          <button type="button" class="soft-btn" id="btnSharePixWhatsapp" style="background:#25d366; color:#fff; font-weight:600; padding:10px; border-radius:8px;">
-            📱 Enviar Pix no WhatsApp do Aluno
+          <button type="button" id="btnSharePixWhatsapp" style="width:100%; background:#27272a; border:1px solid rgba(255,255,255,0.08); color:#f4f4f5; font-weight:600; font-size:12px; padding:12px; border-radius:12px; cursor:pointer; transition:all 0.15s ease;">
+            Enviar PIX no WhatsApp do Aluno
           </button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-﻿// modules/pix.js - Gestão e Cobrança com Pix Dinâmico e QR Code
+// modules/pix.js - Gestão e Cobrança com Pix Dinâmico e QR Code
 
 function crc16(str) {
   let crc = 0xFFFF;
@@ -83,7 +83,7 @@ export async function openPixModal({ studentId, studentName, studentPhone, amoun
     const btnCopy = document.getElementById('btnCopyPix');
     btnCopy.onclick = () => {
       navigator.clipboard.writeText(data.pix_code);
-      btnCopy.textContent = 'Copiado! ✅';
+      btnCopy.textContent = 'Copiado!';
       setTimeout(() => { btnCopy.textContent = 'Copiar'; }, 2500);
       if (typeof showToast === 'function') showToast('Código Pix copiado!');
     };
@@ -146,7 +146,7 @@ export async function openPixModal({ studentId, studentName, studentPhone, amoun
         alert("Erro na simulação: " + err.message);
       } finally {
         btnSimulate.disabled = false;
-        btnSimulate.textContent = '✅ Simular Confirmação Bancária (Baixa Automática)';
+        btnSimulate.textContent = 'Simular Confirmação Bancária (Baixa Automática)';
       }
     };
 
