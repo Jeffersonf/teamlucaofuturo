@@ -1,26 +1,116 @@
-<!doctype html>
-<html lang="pt-BR" data-theme="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#f4f7fb" />
-    <title>Autorizar alunos</title>
-    <script>try{document.documentElement.dataset.theme=String(localStorage.getItem('fv_theme')||'').toLowerCase().endsWith('dark')?'dark':'light'}catch{}</script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="public.css?v=20260908-ui2" />
-  </head>
-  <body>
-    <main class="fast-shell">
-      <nav class="fast-nav" aria-label="Navegação"><a class="back-link" href="/">← Painel principal</a><button class="theme-switch" type="button" data-theme-toggle aria-label="Usar modo escuro"></button></nav>
-      <header class="fast-hero"><span class="fast-logo"><img src="assets/team-lucao-logo.png" alt="" /></span><div><p class="eyebrow">acesso do professor</p><h1>Autorizar alunos</h1><p>Confirme rapidamente quem indicou presença sem abrir o painel completo.</p></div></header>
-      <p id="status" role="status" aria-live="polite"></p>
-      <section class="fast-panel" id="loginSection"><div class="section-heading"><p class="eyebrow">acesso protegido</p><h2>Entre com seu PIN</h2><p>Se você já entrou no painel neste dispositivo, o acesso será automático.</p></div><form id="quickLoginForm"><label>PIN do professor<input id="quickPin" type="password" inputmode="numeric" autocomplete="current-password" required /></label><button class="primary-button" type="submit">Entrar</button></form></section>
-      <section class="fast-panel" id="pendingSection" hidden><div class="section-bar"><div><p class="eyebrow">confirmações</p><h2>Indicações pendentes</h2><small id="updatedAt"></small></div><div class="section-actions"><button class="secondary-button" type="button" id="quickLogoutButton">Sair</button><button type="button" id="refreshButton">Atualizar</button></div></div><div class="list" id="pendingList"></div></section>
-      <footer class="fast-footer">Team Lucão</footer>
-    </main>
-  <script src="public-theme.js?v=20260908-ui2"></script>
-  <script src="authorize-fast.js?v=20260908-ui2"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#09090b">
+  <title>Team Lucão | Acesso do Professor</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              500: '#ef4444',
+              600: '#dc2626',
+              700: '#b91c1c',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 antialiased min-h-screen selection:bg-red-600 selection:text-white flex flex-col items-center justify-start pb-12">
+
+  <!-- Top Navbar -->
+  <header class="w-full border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur-xl sticky top-0 z-40">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center font-bold text-xs tracking-tight text-white shadow-md shadow-red-600/20">
+          TL
+        </div>
+        <div>
+          <span class="text-sm font-bold text-zinc-100 tracking-tight">Team Lucão</span>
+          <span class="text-[10px] uppercase font-semibold text-red-500 ml-1.5">• Acesso Professor</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <a href="/aluno" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-zinc-200 text-xs font-medium transition-all">
+          ← Área do Aluno
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 flex-1 flex flex-col items-center">
+    
+    <p id="status" role="status" aria-live="polite" class="w-full max-w-md hidden mb-4"></p>
+
+    <!-- Seção de Login com PIN -->
+    <section id="loginSection" class="w-full max-w-sm bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-6 sm:p-7 shadow-2xl backdrop-blur-xl mt-4">
+      <div class="text-center mb-5">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-red-500">Área Restrita</span>
+        <h1 class="text-lg font-bold text-white mt-1">Autorização de Alunos</h1>
+        <p class="text-xs text-zinc-400 mt-1">Digite seu PIN de acesso para continuar.</p>
+      </div>
+
+      <form id="quickLoginForm" class="space-y-4">
+        <div>
+          <label for="quickPin" class="block text-xs font-medium text-zinc-300 mb-1.5 text-center">PIN do Professor</label>
+          <input id="quickPin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="••••" required class="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-100 font-mono text-center text-lg tracking-widest placeholder:text-zinc-600 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all">
+        </div>
+        <button type="submit" class="w-full py-3 px-4 bg-red-600 hover:bg-red-500 text-white font-semibold text-xs rounded-xl transition-all shadow-md shadow-red-600/25 active:scale-95 flex items-center justify-center gap-1.5">
+          <span>Entrar no Painel</span>
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </form>
+      <p class="text-[10px] text-zinc-500 text-center mt-4">PIN 1111 (Professor) ou 2222 (Admin)</p>
+    </section>
+
+    <!-- Seção de Confirmações Pendentes (Ativa após login) -->
+    <section id="pendingSection" hidden class="w-full bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 sm:p-6 shadow-xl backdrop-blur-xl">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-zinc-800/60 gap-3 mb-4">
+        <div>
+          <span class="text-[10px] font-bold uppercase tracking-wider text-red-500">Tempo Real</span>
+          <h2 class="text-base sm:text-lg font-bold text-white mt-0.5">Indicações de Presença Pendentes</h2>
+          <small id="updatedAt" class="text-[11px] text-zinc-500"></small>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="refreshButton" type="button" class="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-750 border border-zinc-700 text-zinc-200 text-xs font-medium transition-all flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Atualizar
+          </button>
+          <button id="quickLogoutButton" type="button" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-zinc-200 text-xs font-medium transition-all">
+            Sair
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-2.5" id="pendingList"></div>
+    </section>
+
+  </main>
+
+  <footer class="w-full max-w-4xl mx-auto px-4 sm:px-6 py-4 border-t border-zinc-900 mt-auto flex items-center justify-between text-xs text-zinc-500">
+    <span>Team Lucão • Painel Rápido</span>
+    <a href="/" class="hover:text-zinc-300 transition-colors">Painel Completo de Gestão 🔒</a>
+  </footer>
+
+  <script src="authorize-fast.js?v=20260917-v2"></script>
+</body>
 </html>

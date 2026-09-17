@@ -584,7 +584,7 @@ async function findClasses(event) {
     phoneInput.focus();
     return;
   }
-  currentPhone = phone;
+  currentPhone = phone; try { localStorage.setItem("tlf_student_phone", phone); } catch {}
   dashboard.hidden = true;
   setButtonLoading(searchButton, true, 'Buscando...');
   setStatus(studentStatus, 'Buscando sua agenda...');
@@ -732,12 +732,10 @@ function setupGuestTimes() {
 function renderGuestClassList() {
   const container = document.getElementById('guestClassesList');
   if (!container) return;
-  const source = guestDate.value
-    ? guestClasses.filter((item) => item.data === guestDate.value)
-    : guestClasses;
+  const source = guestClasses;
 
   if (!source.length) {
-    container.innerHTML = '<p class="text-xs text-zinc-500 text-center py-6 bg-zinc-950/30 rounded-2xl border border-zinc-800/40">Nenhuma aula programada no momento.</p>';
+    container.innerHTML = '<p class="text-xs text-zinc-500 text-center py-6 bg-zinc-950/30 rounded-2xl border border-zinc-800/40">Nenhuma aula com vagas livres no momento.</p>';
     return;
   }
 
@@ -747,33 +745,39 @@ function renderGuestClassList() {
     const isSelected = String(guestTime.value) === String(item.id);
 
     return `
-      <article class="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border ${isSelected ? 'border-red-600 bg-red-950/10' : 'border-zinc-800 hover:border-zinc-700'} transition-all flex items-center justify-between gap-3">
-        <div class="flex items-center gap-3.5">
-          <div class="text-center min-w-[42px] sm:min-w-[48px]">
+      <article class="p-3 sm:p-3.5 rounded-2xl ${isSelected ? 'bg-red-950/30 border-red-600 ring-1 ring-red-600' : 'bg-zinc-950/60 border-zinc-800 hover:border-zinc-700'} border transition-all flex items-center justify-between gap-3 cursor-pointer select-none" data-pick-guest="${escapeHTML(item.id)}" data-pick-date="${escapeHTML(item.data)}" data-pick-title="${escapeHTML(dateOptionLabel(item.data))} às ${escapeHTML(item.horario)} - ${escapeHTML(item.turma || 'Turma')}">
+        <div class="flex items-center gap-3">
+          <div class="text-center min-w-[40px]">
             <span class="block text-[10px] font-semibold text-zinc-500 uppercase">${escapeHTML(dateOptionLabel(item.data))}</span>
-            <span class="block text-sm sm:text-base font-bold text-zinc-100">${escapeHTML(item.horario)}</span>
+            <span class="block text-sm font-bold text-zinc-100">${escapeHTML(item.horario)}</span>
           </div>
-          <div class="w-px h-8 bg-zinc-800"></div>
+          <div class="w-px h-7 bg-zinc-800"></div>
           <div>
-            <div class="flex items-center gap-2 flex-wrap">
-              <h4 class="text-xs sm:text-sm font-semibold text-zinc-200">${escapeHTML(item.turma || 'Turma Geral')}</h4>
-              ${item.professor ? `<span class="text-[10px] text-zinc-500">· Prof. ${escapeHTML(item.professor)}</span>` : ''}
+            <div class="flex items-center gap-2">
+              <h4 class="text-xs font-semibold text-zinc-200">${escapeHTML(item.turma || 'Turma Geral')}</h4>
+              ${item.professor ? `<span class="text-[10px] text-zinc-500">· ${escapeHTML(item.professor)}</span>` : ''}
             </div>
-            <p class="text-[11px] text-zinc-500 mt-0.5 flex items-center gap-1.5">
+            <p class="text-[10px] text-zinc-500 mt-0.5 flex items-center gap-1">
               <span class="w-1.5 h-1.5 rounded-full ${available ? 'bg-emerald-500' : 'bg-zinc-600'}"></span>
               ${available ? `${slots} ${slots === 1 ? 'vaga livre' : 'vagas livres'}` : 'Lotada'}
             </p>
           </div>
         </div>
-        ${available ? `
-          <button class="px-3 py-1.5 rounded-xl ${isSelected ? 'bg-emerald-600 text-white' : 'bg-red-600 hover:bg-red-500 text-white shadow-sm shadow-red-600/25'} text-xs font-medium transition-all active:scale-95 shrink-0" type="button" data-pick-guest="${escapeHTML(item.id)}" data-pick-date="${escapeHTML(item.data)}">
-            ${isSelected ? '✓ Selecionado' : 'Escolher horário'}
-          </button>
-        ` : `
-          <button class="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-600 text-xs font-medium cursor-not-allowed shrink-0" type="button" disabled>
-            Lotada
-          </button>
-        `}
+        <div class="shrink-0">
+          ${isSelected ? `
+            <span class="px-2.5 py-1 rounded-lg bg-red-600 text-white text-xs font-bold flex items-center gap-1">
+              ✓ Escolhido
+            </span>
+          ` : (available ? `
+            <span class="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium border border-zinc-700">
+              Escolher
+            </span>
+          ` : `
+            <span class="px-2.5 py-1 rounded-lg bg-zinc-900 text-zinc-600 text-xs font-medium">
+              Lotada
+            </span>
+          `)}
+        </div>
       </article>
     `;
   }).join('');
@@ -872,20 +876,29 @@ const tabGuest = document.getElementById('tabGuestPortal');
 if (tabStudent) tabStudent.addEventListener('click', () => switchMode(false));
 if (tabGuest) tabGuest.addEventListener('click', () => switchMode(true));
 
+
 const guestListContainer = document.getElementById('guestClassesList');
 if (guestListContainer) {
   guestListContainer.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-pick-guest]');
-    if (!button || button.disabled) return;
-    const classId = button.dataset.pickGuest;
-    const date = button.dataset.pickDate;
-    if (date) {
-      guestDate.value = date;
-      setupGuestTimes();
-      guestTime.value = classId;
-      renderGuestClassList();
-      guestForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const card = event.target.closest('[data-pick-guest]');
+    if (!card) return;
+    const classId = card.dataset.pickGuest;
+    const date = card.dataset.pickDate;
+    const title = card.dataset.pickTitle;
+
+    guestDate.innerHTML = '<option value="' + date + '" selected>' + date + '</option>';
+    guestDate.value = date;
+    guestTime.innerHTML = '<option value="' + classId + '" selected>' + classId + '</option>';
+    guestTime.value = classId;
+
+    const notice = document.getElementById('guestSelectedNotice');
+    if (notice) {
+      notice.className = 'p-2.5 rounded-xl bg-red-950/40 border border-red-900/40 text-red-200 text-xs font-medium mb-4 flex items-center gap-2';
+      notice.innerHTML = '<svg class="w-4 h-4 text-red-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>Aula: <strong>' + escapeHTML(title) + '</strong></span>';
     }
+
+    renderGuestClassList();
+    document.getElementById('guestName')?.focus();
   });
 }
 
@@ -913,7 +926,7 @@ if (btnSearchAgain) {
     dashboard.hidden = true;
     const searchCard = document.getElementById('studentSearchCard');
     if (searchCard) searchCard.style.display = 'block';
-    phoneInput.value = '';
+    phoneInput.value = ""; try { localStorage.removeItem("tlf_student_phone"); } catch {}
     phoneInput.focus();
     setStatus(studentStatus, '');
   });
