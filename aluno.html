@@ -1,318 +1,494 @@
-<!doctype html>
-<html lang="pt-BR" data-theme="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#0d1017" />
-    <meta name="description" content="Consulte sua agenda, confirme presença ou agende uma aula experimental no Team Lucão." />
-    <title>Team Lucão | Área do Aluno</title>
-    <script>try{document.documentElement.dataset.theme=String(localStorage.getItem('fv_theme')||'dark').toLowerCase().endsWith('light')?'light':'dark'}catch{}</script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="public.css?v=20260914-v5" />
-  </head>
-  <body>
-    <main class="fast-shell student-shell">
-      <!-- Barra de navegação superior limpa e responsiva -->
-      <nav class="fast-nav" aria-label="Navegação principal">
-        <a class="fast-nav-brand" href="/aluno">
-          <img src="assets/team-lucao-logo.png" alt="Logo Team Lucão" />
-          <span>Team Lucão</span>
-        </a>
-        <div class="fast-nav-actions">
-          <a class="nav-link-btn whatsapp-nav-btn" href="https://wa.me/5515996744160?text=Ol%C3%A1%2C%20gostaria%20de%20falar%20sobre%20as%20aulas!" target="_blank" rel="noopener" title="Falar no WhatsApp (15) 99674-4160">
-            <svg class="whatsapp-icon" viewBox="0 0 24 24" width="15" height="15" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.12c-1.5 0-2.97-.4-4.24-1.16l-.3-.18-3.12.82.83-3.04-.2-.32a8.03 8.03 0 0 1-1.23-4.33c0-4.47 3.64-8.11 8.12-8.11 2.17 0 4.21.85 5.74 2.38 1.54 1.53 2.38 3.57 2.38 5.74 0 4.47-3.64 8.2-8.28 8.2zm4.49-6.13c-.25-.13-1.47-.72-1.7-.81-.23-.09-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.25-.75-.67-1.26-1.5-1.4-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.77 2.7 4.29 3.79.6.26 1.07.41 1.44.53.6.19 1.15.16 1.58.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.07-.11-.23-.17-.48-.3z"/></svg>
-            <span>WhatsApp</span>
-          </a>
-          <a class="nav-link-btn prof-nav-btn" href="/" title="Acessar o Painel do Professor">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-            <span>Professor</span>
-          </a>
-          <button class="theme-switch" type="button" data-theme-toggle aria-label="Alternar tema claro/escuro"></button>
-          <button id="guestModeButton" type="button" style="display:none;" aria-hidden="true"></button>
-        </div>
-      </nav>
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#09090b">
+  <meta name="description" content="Consulte sua agenda de aulas, confirme presença e renove sua mensalidade no Team Lucão Futevôlei.">
+  <title>Team Lucão | Área do Aluno</title>
 
-      <!-- Hero Header -->
-      <header class="fast-hero">
-        <span class="fast-logo"><img src="assets/team-lucao-logo.png" alt="Team Lucão" /></span>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#fef2f2',
+              100: '#fee2e2',
+              500: '#ef4444',
+              600: '#dc2626',
+              700: '#b91c1c',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .tap-highlight-none { -webkit-tap-highlight-color: transparent; }
+    
+    /* Calendar styling matching Zinc 950 / Red accent */
+    .calendar-month { display: grid; gap: 10px; margin-bottom: 16px; }
+    .calendar-month h3 { margin: 0; color: #e4e4e7; font-size: 13px; font-weight: 700; text-transform: capitalize; }
+    .calendar-weekdays,
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+    .calendar-weekdays span { color: #71717a; font-size: 10px; font-weight: 600; text-align: center; text-transform: uppercase; padding: 2px 0; }
+    .calendar-day {
+      position: relative; display: grid; place-items: center; aspect-ratio: 1; min-width: 0; min-height: 32px;
+      border: 1px solid transparent; border-radius: 10px; padding: 0; background: transparent; color: #a1a1aa;
+      font-size: 11px; font-weight: 600; transition: all 0.15s ease;
+    }
+    button.calendar-day { cursor: pointer; }
+    button.calendar-day:hover { border-color: #dc2626; background: rgba(220, 38, 38, 0.12); color: #fff; }
+    .calendar-day.out-period { opacity: 0.25; }
+    .calendar-day.has-available { border-color: rgba(16, 185, 129, 0.4); color: #e4e4e7; }
+    .calendar-day.has-scheduled { border-color: #dc2626; background: #dc2626; color: #ffffff; }
+    .calendar-day.has-request { border-style: dashed; border-color: #f59e0b; }
+    .calendar-day.has-scheduled.has-available { box-shadow: inset 0 0 0 2px #18181b, inset 0 0 0 4px #10b981; }
+    .calendar-day.is-selected { outline: 2px solid #dc2626; outline-offset: 1px; }
+    .calendar-day i { position: absolute; right: 3px; bottom: 3px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; opacity: 0.8; }
+  </style>
+</head>
+<body class="bg-zinc-950 text-zinc-100 antialiased min-h-screen selection:bg-red-600 selection:text-white flex flex-col items-center justify-start pb-20 lg:pb-12">
+
+  <!-- Top Navbar -->
+  <header class="w-full border-b border-zinc-800/60 bg-zinc-950/80 backdrop-blur-xl sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <a href="/aluno" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center font-bold text-xs tracking-tighter text-white shadow-md shadow-red-600/20 group-hover:scale-105 transition-transform">
+          TL
+        </div>
         <div>
-          <p class="eyebrow" id="heroEyebrow">futevôlei de alto nível</p>
-          <h1 id="heroTitle">Team Lucão</h1>
-          <p id="heroDescription">Consulte seus horários ou agende sua aula experimental.</p>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold text-zinc-100 tracking-tight">Team Lucão</span>
+            <span class="hidden sm:inline-block text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400">Arena Futevôlei</span>
+          </div>
+          <p class="text-[11px] text-zinc-500 hidden sm:block">Centro de Treinamento Esportivo</p>
         </div>
-      </header>
+      </a>
 
-      <!-- Seletor de Modo: Abas Grandes e Destacadas -->
-      <div class="portal-mode-selector" role="tablist" aria-label="Tipo de acesso">
-        <button class="portal-mode-tab active" id="tabStudentPortal" type="button" role="tab" aria-selected="true" aria-controls="studentPanel">
-          <span class="tab-title">Já sou aluno</span>
-          <span class="tab-desc">Ver minhas aulas e presenças</span>
-        </button>
-        <button class="portal-mode-tab guest-tab" id="tabGuestPortal" type="button" role="tab" aria-selected="false" aria-controls="guestPanel">
-          <span class="tab-title">⭐ Aula Experimental</span>
-          <span class="tab-desc">Não sou aluno (Primeira aula)</span>
-        </button>
+      <div class="flex items-center gap-2 sm:gap-3">
+        <a href="https://wa.me/5515996744160?text=Ol%C3%A1%2C%20gostaria%20de%20falar%20sobre%20as%20aulas!" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-all">
+          <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.12c-1.5 0-2.97-.4-4.24-1.16l-.3-.18-3.12.82.83-3.04-.2-.32a8.03 8.03 0 0 1-1.23-4.33c0-4.47 3.64-8.11 8.12-8.11 2.17 0 4.21.85 5.74 2.38 1.54 1.53 2.38 3.57 2.38 5.74 0 4.47-3.64 8.2-8.28 8.2zm4.49-6.13c-.25-.13-1.47-.72-1.7-.81-.23-.09-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.25-.75-.67-1.26-1.5-1.4-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.77 2.7 4.29 3.79.6.26 1.07.41 1.44.53.6.19 1.15.16 1.58.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.07-.11-.23-.17-.48-.3z"/></svg>
+          <span class="hidden sm:inline">WhatsApp</span>
+        </a>
+        <a href="/" class="px-3 py-1.5 rounded-xl bg-zinc-900/60 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-zinc-200 text-xs font-medium flex items-center gap-1.5 transition-all">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <span class="hidden sm:inline">Painel do</span> Professor
+        </a>
       </div>
+    </div>
+  </header>
 
-      <!-- Painel do Aluno -->
-      <section class="fast-panel" id="studentPanel" role="tabpanel" aria-labelledby="tabStudentPortal">
-        <div class="section-heading">
-          <p class="eyebrow">consulta rápida</p>
-          <h2>Encontre suas aulas</h2>
-          <p>Digite o WhatsApp usado no seu cadastro.</p>
+  <!-- Hero & Mode Switcher -->
+  <div class="w-full max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 flex flex-col items-center text-center">
+    <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-xs font-medium text-zinc-400 mb-2.5">
+      <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+      Portal Oficial do Aluno • Sports Red Edition
+    </div>
+    <h1 id="heroTitle" class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Team Lucão • Grade & Presenças</h1>
+    <p id="heroDescription" class="text-xs sm:text-sm text-zinc-400 mt-1.5 max-w-md">
+      Consulte sua agenda semanal, confirme suas presenças e acompanhe seu plano em tempo real.
+    </p>
+
+    <!-- Tab Switcher -->
+    <div class="mt-5 p-1 bg-zinc-900/90 border border-zinc-800 rounded-2xl flex items-center gap-1 text-xs backdrop-blur-xl">
+      <button id="tabStudentPortal" type="button" class="px-4 py-2 rounded-xl font-medium transition-all bg-zinc-800 text-white shadow-sm flex items-center gap-2">
+        <svg class="w-3.5 h-3.5 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        Já sou aluno
+      </button>
+      <button id="tabGuestPortal" type="button" class="px-4 py-2 rounded-xl font-medium transition-all text-zinc-400 hover:text-zinc-200 flex items-center gap-2">
+        <svg class="w-3.5 h-3.5 text-amber-400" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        Aula Experimental
+      </button>
+    </div>
+  </div>
+
+  <main class="w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 flex-1 flex flex-col">
+    
+    <!-- Painel do Aluno -->
+    <section id="studentPanel">
+      
+      <!-- Card de Busca de WhatsApp -->
+      <div id="studentSearchCard" class="w-full max-w-md mx-auto bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-6 sm:p-7 shadow-2xl backdrop-blur-xl">
+        <div class="text-center mb-5">
+          <span class="text-[10px] font-bold uppercase tracking-wider text-red-500">Consulta Rápida</span>
+          <h2 class="text-lg font-bold text-white mt-1">Encontre suas aulas</h2>
+          <p class="text-xs text-zinc-400 mt-1">Digite o WhatsApp cadastrado no Team Lucão.</p>
         </div>
 
-        <form id="studentFastForm">
-          <label for="studentFastPhone">Seu WhatsApp
-            <input id="studentFastPhone" inputmode="tel" autocomplete="tel" placeholder="(15) 99999-9999" maxlength="15" required />
-          </label>
-          <button class="primary-button" type="submit">Ver minhas aulas</button>
-          <small class="privacy-note">Usamos o número apenas para localizar sua agenda.</small>
+        <form id="studentFastForm" class="space-y-4">
+          <div>
+            <label for="studentFastPhone" class="block text-xs font-medium text-zinc-300 mb-1.5">Seu WhatsApp</label>
+            <input id="studentFastPhone" inputmode="tel" autocomplete="tel" placeholder="(15) 99999-9999" maxlength="15" required class="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-100 font-mono text-sm placeholder:text-zinc-600 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all">
+          </div>
+          <button type="submit" class="w-full py-3 px-4 bg-red-600 hover:bg-red-500 text-white font-semibold text-sm rounded-xl transition-all shadow-md shadow-red-600/25 active:scale-95 flex items-center justify-center gap-2">
+            <span>Ver minhas aulas</span>
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+          <p class="text-[11px] text-zinc-500 text-center">Usamos o número apenas para localizar sua agenda.</p>
         </form>
 
-        <p id="studentFastStatus" role="status" aria-live="polite"></p>
+        <p id="studentFastStatus" role="status" aria-live="polite" class="hidden"></p>
+      </div>
 
-        <!-- Dashboard do Aluno (ativado após busca) -->
-        <div class="student-dashboard" id="studentDashboard" hidden>
-          <div class="student-dashboard-grid">
-            <!-- Coluna Esquerda: Perfil, Status, Cota e PIX (Fixa no Desktop) -->
-            <div class="student-col-left">
-              <section class="student-welcome" aria-label="Resumo da agenda">
+      <!-- Dashboard do Aluno (ativado dinamicamente) -->
+      <div id="studentDashboard" hidden class="w-full">
+        
+        <!-- Top Action Bar (Trocar número / Sair) -->
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-zinc-800/60">
+          <button id="btnSearchAgain" type="button" class="text-xs font-medium text-zinc-400 hover:text-zinc-200 flex items-center gap-1.5 transition-colors">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Trocar aluno / Buscar outro WhatsApp
+          </button>
+          <span id="weeklyDatesBadge" class="text-xs font-medium px-2.5 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400">Esta semana</span>
+        </div>
+
+        <!-- Responsive Grid: 1 col on Mobile, 12 cols on Desktop -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          <!-- Left Sidebar: Profile, Status, Quota, PIX (4 cols on Desktop) -->
+          <div class="lg:col-span-4 space-y-4 lg:sticky lg:top-20">
+            
+            <!-- Student Profile Card -->
+            <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 shadow-xl backdrop-blur-xl">
+              <div class="flex items-center justify-between pb-4 border-b border-zinc-800/60">
+                <div class="flex items-center gap-3">
+                  <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-red-600 to-rose-700 flex items-center justify-center font-bold text-sm tracking-tighter text-white shadow-lg shadow-red-600/20 shrink-0">
+                    TL
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <h2 id="studentGreeting" class="text-sm font-semibold text-zinc-100">Jefferson</h2>
+                      <span id="studentPlan" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700/50">Plano 2x</span>
+                    </div>
+                    <p id="studentPeriod" class="text-[11px] text-zinc-500 mt-0.5">Aulas até o vencimento</p>
+                  </div>
+                </div>
+
+                <!-- Status Badge (Clean dot, anti-AI-slop) -->
+                <div id="studentPlanStatus" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800/40 shrink-0">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span>Ativo</span>
+                </div>
+              </div>
+
+              <!-- Expired Warning Banner (Only visible if expired) -->
+              <div id="expiredPlanBanner" style="display: none;" class="mt-4 p-3.5 rounded-2xl bg-red-950/30 border border-red-900/40 text-red-200">
+                <div class="flex items-start gap-3">
+                  <div class="w-6 h-6 rounded-lg bg-red-900/50 flex items-center justify-center shrink-0 text-red-400 mt-0.5">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="12"></line>
+                      <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                  </div>
+                  <div class="text-xs flex-1">
+                    <p id="expiredBannerTitle" class="font-semibold text-red-200">Plano vencido</p>
+                    <p class="text-red-400/90 mt-0.5 leading-relaxed">
+                      Renove sua mensalidade para liberar a marcação de presença nas aulas da semana.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quota Card (Meta semanal de treinos) -->
+              <div id="studentQuotaCard" class="mt-4 bg-zinc-950/40 border border-zinc-800/60 rounded-2xl p-4">
+                <div class="flex items-center justify-between text-xs mb-2.5">
+                  <span class="font-medium text-zinc-400 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg>
+                    Presenças nesta semana
+                  </span>
+                  <span id="studentQuotaCounter" class="font-semibold text-zinc-200">1 de 2 aulas</span>
+                </div>
+                
+                <!-- Progress Bar Ultra Clean -->
+                <div class="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                  <div id="studentQuotaProgressBar" class="h-full bg-gradient-to-r from-red-600 to-rose-500 rounded-full transition-all duration-500" style="width: 50%;"></div>
+                </div>
+                
+                <div class="text-[11px] text-zinc-500 mt-2 flex items-center justify-between">
+                  <span id="studentQuotaHint">Plano 2x por semana</span>
+                  <span id="studentQuotaStatusPill" class="text-[10px] font-medium px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700/50">1 vaga restante</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- PIX Payment Card (Design System Sóbrio / Stripe Checkout) -->
+            <section id="pixDemoCard" class="bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 shadow-xl backdrop-blur-xl">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                  </div>
+                  <div>
+                    <h3 class="text-xs font-semibold text-zinc-100">Renovação Mensal</h3>
+                    <p class="text-[10px] text-zinc-500">Pagamento instantâneo via PIX</p>
+                  </div>
+                </div>
+                <span id="pixDisplayAmount" class="text-xs font-mono font-bold text-zinc-100 bg-zinc-950 px-2 py-1 rounded-lg border border-zinc-800">
+                  R$ 260,00
+                </span>
+              </div>
+
+              <div class="space-y-3 mt-3">
                 <div>
-                  <p class="eyebrow">agenda encontrada</p>
-                  <h2 id="studentGreeting"></h2>
-                  <p id="studentPeriod"></p>
-                </div>
-                <div class="student-plan-wrap">
-                  <span class="plan-pill" id="studentPlan"></span>
-                  <span class="plan-status-badge" id="studentPlanStatus"></span>
-                </div>
-              </section>
-
-              <!-- Banner de Aviso de Plano Vencido -->
-              <div class="expired-plan-banner" id="expiredPlanBanner" style="display:none;">
-                <div class="expired-banner-icon">
-                  <svg class="alert-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                </div>
-                <div class="expired-banner-info">
-                  <strong id="expiredBannerTitle">Seu plano está vencido</strong>
-                  <p>A confirmação de presença está pausada. Regularize sua mensalidade via PIX para liberar suas aulas na hora.</p>
-                </div>
-                <a class="primary-button btn-go-pix" href="#pixDemoCard">Pagar via PIX</a>
-              </div>
-
-              <!-- Card de Quota Semanal -->
-              <div class="student-quota-card" id="studentQuotaCard">
-                <div class="quota-header">
-                  <div class="quota-title-wrap">
-                    <span class="quota-badge">Aulas na semana</span>
-                    <span class="quota-counter" id="studentQuotaCounter">0 confirmadas</span>
-                  </div>
-                  <span class="quota-status-pill" id="studentQuotaStatusPill">Disponível</span>
-                </div>
-                <div class="quota-progress-track">
-                  <div class="quota-progress-bar" id="studentQuotaProgressBar" style="width: 0%"></div>
-                </div>
-                <p class="quota-hint" id="studentQuotaHint"></p>
-              </div>
-
-              <!-- Card de Pagamento & Renovação PIX -->
-              <section class="pix-card" id="pixDemoCard">
-                <div class="pix-card-header">
-                  <div class="pix-header-left">
-                    <span class="pix-tag">Pagamento Instantâneo</span>
-                    <h3>Renovação via PIX</h3>
-                    <p class="pix-sub">Liberação automática de presenças e agendamentos.</p>
-                  </div>
-                  <div class="pix-header-right">
-                    <span class="pix-status-indicator">● Chave Oficial</span>
-                  </div>
+                  <label for="pixPlanSelect" class="block text-[11px] text-zinc-400 mb-1">Selecione o plano:</label>
+                  <select id="pixPlanSelect" class="w-full px-3 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-red-500">
+                    <option value="260" data-name="2x semana" selected>2x por semana — R$ 260,00 / mês</option>
+                    <option value="180" data-name="1x semana">1x por semana — R$ 180,00 / mês</option>
+                    <option value="340" data-name="Livre">Livre (ilimitado) — R$ 340,00 / mês</option>
+                    <option value="70" data-name="Avulso">Aula Avulsa / Reposição — R$ 70,00</option>
+                  </select>
                 </div>
 
-                <div class="pix-card-body">
-                  <div class="pix-form-grid">
-                    <div class="pix-field-group">
-                      <label for="pixPlanSelect">Selecione o plano:</label>
-                      <select id="pixPlanSelect" class="pix-select">
-                        <option value="260" data-name="2x semana" selected>2x por semana — R$ 260,00 / mês</option>
-                        <option value="180" data-name="1x semana">1x por semana — R$ 180,00 / mês</option>
-                        <option value="340" data-name="Livre">Livre (ilimitado) — R$ 340,00 / mês</option>
-                        <option value="70" data-name="Avulso">Aula Avulsa / Reposição — R$ 70,00</option>
-                      </select>
+                <button id="btnGeneratePix" type="button" class="w-full py-2.5 px-3 rounded-xl bg-red-600 hover:bg-red-500 text-xs font-medium text-white flex items-center justify-center gap-1.5 transition-all shadow-sm shadow-red-600/25 active:scale-95">
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 7v7M16 7v7M12 11h4M7 11h1"/></svg>
+                  Gerar QR Code e Chave PIX
+                </button>
+
+                <!-- PIX Result Box -->
+                <div id="pixResultBox" style="display: none;" class="flex flex-col gap-3 pt-3 border-t border-zinc-800/80">
+                  <div class="flex flex-col sm:flex-row items-center gap-3 bg-zinc-950/60 p-3 rounded-2xl border border-zinc-800">
+                    <div class="w-28 h-28 bg-white p-1 rounded-xl shrink-0 flex items-center justify-center">
+                      <img id="pixQrImage" src="" alt="QR Code PIX" class="w-full h-full object-contain">
                     </div>
-                    <div class="pix-amount-card">
-                      <span class="amount-label">Valor</span>
-                      <strong class="amount-val" id="pixDisplayAmount">R$ 260,00</strong>
+                    <div class="text-[11px] text-zinc-400 space-y-1 text-center sm:text-left">
+                      <p><strong class="text-zinc-200">Favorecido:</strong> Lucas Fernandes (Team Lucão)</p>
+                      <p><strong class="text-zinc-200">Chave PIX:</strong> <span class="font-mono text-zinc-300">(15) 99674-4160</span></p>
+                      <p class="text-[10px] text-zinc-500">Aponte a câmera do seu banco no QR Code acima.</p>
                     </div>
                   </div>
 
-                  <button class="primary-button pix-cta-btn" id="btnGeneratePix" type="button">
-                    <span>Gerar QR Code e Chave PIX</span>
-                  </button>
-
-                  <!-- Área do QR Code & Copia e Cola gerado -->
-                  <div class="pix-result-box" id="pixResultBox" style="display:none;">
-                    <div class="pix-qr-container">
-                      <div class="pix-qr-img-frame">
-                        <img id="pixQrImage" src="" alt="QR Code PIX" />
-                      </div>
-                      <div class="pix-receiver-details">
-                        <div class="receiver-row">
-                          <span class="rec-label">Favorecido:</span>
-                          <strong class="rec-val">Lucas Fernandes (Team Lucão)</strong>
-                        </div>
-                        <div class="receiver-row">
-                          <span class="rec-label">Chave PIX:</span>
-                          <strong class="rec-val">(15) 99674-4160</strong>
-                        </div>
-                        <div class="receiver-row">
-                          <span class="rec-label">Banco:</span>
-                          <span class="rec-val">Conta Digital / Nubank</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="pix-copy-section">
-                      <label class="pix-copy-label" for="pixCopyCode">PIX Copia e Cola:</label>
-                      <div class="pix-copy-group">
-                        <input id="pixCopyCode" class="pix-copy-input" readonly value="" />
-                        <button class="pix-copy-button" id="btnCopyPix" type="button">
-                          <span id="btnCopyPixText">Copiar código PIX</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- Painel de Demonstração / Teste para o Professor -->
-                    <div class="pix-simulation-card">
-                      <div class="sim-header">
-                        <span class="sim-badge">Área de Demonstração</span>
-                        <strong>Simulação para o Professor</strong>
-                      </div>
-                      <p>Clique abaixo para simular a confirmação do PIX em tempo real:</p>
-                      <button class="pix-sim-action-btn" id="btnSimulatePix" type="button">
-                        <span>✓ Simular Pagamento Confirmado</span>
+                  <div>
+                    <label for="pixCopyCode" class="block text-[10px] font-medium text-zinc-500 mb-1">PIX Copia e Cola:</label>
+                    <div class="flex items-center gap-1.5">
+                      <input id="pixCopyCode" readonly value="" class="flex-1 px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-lg font-mono text-[11px] text-zinc-300 select-all truncate">
+                      <button id="btnCopyPix" type="button" class="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-100 rounded-lg text-xs font-medium flex items-center gap-1 shrink-0 transition-colors">
+                        <svg class="w-3 h-3 text-zinc-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                        <span id="btnCopyPixText">Copiar código PIX</span>
                       </button>
                     </div>
                   </div>
-                </div>
-              </section>
-            </div>
 
-            <!-- Coluna Direita: Grade Semanal, Calendário e Aulas (Ampla no Desktop) -->
-            <div class="student-col-right">
-              <!-- Grade da Semana -->
-              <section class="weekly-schedule-section" id="weeklyScheduleSection" aria-labelledby="weeklyScheduleTitle">
-                <div class="section-heading compact-heading">
-                  <div class="section-bar">
-                    <div>
-                      <p class="eyebrow" id="weeklyScheduleEyebrow">grade da semana</p>
-                      <h2 id="weeklyScheduleTitle">Aulas disponíveis na semana</h2>
+                  <!-- Simulation area for professor / test -->
+                  <div class="p-3 bg-zinc-950/80 rounded-xl border border-zinc-800/80 text-[11px]">
+                    <div class="flex items-center justify-between mb-1.5">
+                      <span class="font-semibold text-zinc-300">Simulação de Teste</span>
+                      <span class="text-[10px] text-zinc-500">Ambiente de Demonstração</span>
                     </div>
-                    <span class="week-dates-badge" id="weeklyDatesBadge">Esta semana</span>
+                    <button id="btnSimulatePix" type="button" class="w-full py-2 px-3 rounded-lg bg-zinc-800 hover:bg-zinc-750 text-emerald-400 text-xs font-medium border border-zinc-700/60 transition-all flex items-center justify-center gap-1.5">
+                      <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                      Simular Pagamento Confirmado
+                    </button>
                   </div>
-                  <p id="weeklyScheduleDescription">Escolha as aulas que deseja participar e confirme sua presença diretamente.</p>
                 </div>
-                <div class="list weekly-class-list" id="studentWeeklyList" aria-live="polite"></div>
-              </section>
 
-              <!-- Layout da Agenda e Calendário -->
-              <div class="agenda-layout">
-                <section class="agenda-column" aria-labelledby="upcomingTitle">
-                  <div class="section-heading compact-heading">
-                    <p class="eyebrow">até o vencimento</p>
-                    <h2 id="upcomingTitle">Próximas aulas confirmadas</h2>
-                    <p>Você pode confirmar, informar que não vai ou remover sua resposta.</p>
-                  </div>
-                  <div class="list student-class-list" id="studentUpcomingList" aria-live="polite"></div>
-                </section>
+                <!-- Micro Security Note -->
+                <div class="pt-2 border-t border-zinc-900 flex items-center justify-between text-[10px] text-zinc-500">
+                  <span>Favorecido: Lucas Fernandes</span>
+                  <span class="font-mono">Chave: 15996744160</span>
+                </div>
+              </div>
+            </section>
 
-                <aside class="calendar-card" aria-labelledby="calendarTitle">
-                  <div class="section-heading compact-heading">
-                    <p class="eyebrow">visão do período</p>
-                    <h2 id="calendarTitle">Calendário</h2>
-                  </div>
-                  <div class="calendar-legend" aria-label="Legenda do calendário">
-                    <span><i class="legend-dot scheduled"></i>Suas aulas</span>
-                    <span><i class="legend-dot available"></i>Com vaga</span>
-                  </div>
-                  <div class="student-calendar" id="studentCalendar"></div>
-                </aside>
+          </div>
+
+          <!-- Right Column: Weekly Schedule, Upcoming, Calendar (8 cols on Desktop) -->
+          <div class="lg:col-span-8 space-y-6">
+            
+            <!-- Section 1: Weekly Schedule (Aulas Disponíveis na Semana) -->
+            <section id="weeklyScheduleSection" class="bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 sm:p-6 shadow-xl backdrop-blur-xl">
+              <div class="flex items-center justify-between mb-4 pb-3 border-b border-zinc-800/60">
+                <div>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-red-500">Grade da Semana</span>
+                  <h3 id="weeklyScheduleTitle" class="text-base sm:text-lg font-bold text-white mt-0.5">Aulas Disponíveis</h3>
+                </div>
+                <span class="text-[11px] text-zinc-500">Horário de Brasília</span>
               </div>
 
-              <!-- Aulas Disponíveis Regulares -->
-              <section class="available-section" aria-labelledby="availableTitle">
-                <div class="section-heading compact-heading">
-                  <p class="eyebrow">outras opções</p>
-                  <h2 id="availableTitle">Outras aulas disponíveis</h2>
-                  <p>Escolha uma data e depois um horário com vaga.</p>
+              <!-- List of dynamic class cards rendered via student-fast.js -->
+              <div id="studentWeeklyList" class="space-y-2.5"></div>
+            </section>
+
+            <!-- Section 2: Upcoming Confirmed Classes -->
+            <section class="bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 sm:p-6 shadow-xl backdrop-blur-xl">
+              <div class="flex items-center justify-between mb-4 pb-3 border-b border-zinc-800/60">
+                <div>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Até o Vencimento</span>
+                  <h3 id="upcomingTitle" class="text-base sm:text-lg font-bold text-white mt-0.5">Próximas Aulas Confirmadas</h3>
                 </div>
-                <div class="filters" id="studentFastFilters">
-                  <label for="studentFastDate">Data
-                    <select id="studentFastDate"><option value="">Todas as datas</option></select>
-                  </label>
-                  <label for="studentFastTime">Horário
-                    <select id="studentFastTime"><option value="">Todos os horários</option></select>
-                  </label>
+                <p class="text-[11px] text-zinc-500 hidden sm:block">Aulas indicadas para você</p>
+              </div>
+              <div id="studentUpcomingList" class="space-y-2.5"></div>
+            </section>
+
+            <!-- Section 3: Calendar & Other Available Classes -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+              
+              <!-- Calendar Card -->
+              <section class="md:col-span-6 bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 shadow-xl backdrop-blur-xl">
+                <div class="flex items-center justify-between mb-3 pb-2 border-b border-zinc-800/60">
+                  <h3 id="calendarTitle" class="text-sm font-bold text-white">Calendário</h3>
+                  <div class="flex items-center gap-3 text-[10px] text-zinc-400 font-medium">
+                    <span class="flex items-center gap-1"><i class="w-2 h-2 rounded-full bg-red-600"></i>Sua aula</span>
+                    <span class="flex items-center gap-1"><i class="w-2 h-2 rounded-full border border-emerald-400"></i>Com vaga</span>
+                  </div>
                 </div>
-                <div class="list available-list" id="studentAvailableList" aria-live="polite"></div>
+                <div id="studentCalendar" class="student-calendar"></div>
               </section>
+
+              <!-- Other Available Classes with Filter -->
+              <section class="md:col-span-6 bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 shadow-xl backdrop-blur-xl">
+                <div class="mb-3 pb-2 border-b border-zinc-800/60">
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Outras Opções</span>
+                  <h3 id="availableTitle" class="text-sm font-bold text-white mt-0.5">Aulas Disponíveis</h3>
+                </div>
+
+                <div id="studentFastFilters" class="grid grid-cols-2 gap-2 mb-3">
+                  <div>
+                    <label for="studentFastDate" class="block text-[10px] font-medium text-zinc-400 mb-1">Data</label>
+                    <select id="studentFastDate" class="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200">
+                      <option value="">Todas as datas</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="studentFastTime" class="block text-[10px] font-medium text-zinc-400 mb-1">Horário</label>
+                    <select id="studentFastTime" class="w-full px-2.5 py-1.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200">
+                      <option value="">Todos os horários</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div id="studentAvailableList" class="space-y-2"></div>
+              </section>
+
             </div>
+
           </div>
-        </div>
-      </section>
 
-      <!-- Painel de Aula Experimental (Não sou aluno) -->
-      <section class="fast-panel guest-panel" id="guestPanel" role="tabpanel" aria-labelledby="tabGuestPortal" hidden>
-        <div class="section-heading">
-          <p class="eyebrow">primeira aula experimental</p>
-          <h2>Agendar aula experimental</h2>
-          <p>Informe seus dados e escolha uma aula disponível na grade. O professor confirmará pelo WhatsApp.</p>
         </div>
-        <form id="guestBookingForm">
-          <div class="guest-fields">
-            <label for="guestName">Seu Nome
-              <input id="guestName" autocomplete="name" placeholder="Ex: Carlos Eduardo" required />
-            </label>
-            <label for="guestPhone">WhatsApp
-              <input id="guestPhone" inputmode="tel" autocomplete="tel" placeholder="(15) 99999-9999" maxlength="15" required />
-            </label>
-            <label for="guestDate">Data da aula
-              <select id="guestDate" required><option value="">Selecione a data</option></select>
-            </label>
-            <label for="guestTime">Horário da aula
-              <select id="guestTime" required disabled><option value="">Escolha primeiro a data</option></select>
-            </label>
-            <label for="guestReferral">Quem indicou você? (Opcional)
-              <input id="guestReferral" placeholder="Ex: Nome de quem te indicou" />
-            </label>
+
+      </div>
+    </section>
+
+    <!-- Guest Panel (Primeira Aula Experimental) -->
+    <section id="guestPanel" hidden class="w-full max-w-4xl mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- Booking Form (Left 6 cols on Desktop) -->
+        <div class="lg:col-span-6 bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-6 shadow-2xl backdrop-blur-xl">
+          <div class="mb-5 pb-3 border-b border-zinc-800/60">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-500">Primeira Aula</span>
+            <h2 class="text-lg font-bold text-white mt-0.5">Agendar Aula Experimental</h2>
+            <p class="text-xs text-zinc-400 mt-1">Informe seus dados e escolha o horário. O professor confirmará pelo WhatsApp.</p>
           </div>
-          <button class="primary-button" id="guestSubmitButton" type="submit">Solicitar aula experimental</button>
-          <small class="privacy-note">O pedido será enviado diretamente ao professor pelo WhatsApp.</small>
-        </form>
-        <p id="guestStatus" role="status" aria-live="polite"></p>
 
-        <section class="guest-schedule-section" id="guestScheduleSection">
-          <div class="section-heading compact-heading">
-            <p class="eyebrow">todas as turmas da semana</p>
-            <h3>Horários e vagas disponíveis</h3>
-            <p class="meta">Você pode clicar em qualquer horário com vaga livre abaixo para selecioná-lo automaticamente no formulário.</p>
-          </div>
-          <div class="list guest-classes-list" id="guestClassesList" aria-live="polite"></div>
-        </section>
-      </section>
+          <form id="guestBookingForm" class="space-y-3.5">
+            <div>
+              <label for="guestName" class="block text-xs font-medium text-zinc-300 mb-1">Seu Nome</label>
+              <input id="guestName" autocomplete="name" placeholder="Ex: Carlos Eduardo" required class="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-red-500">
+            </div>
 
-      <!-- Rodapé -->
-      <footer class="fast-footer">
-        <div class="footer-inner">
-          <span><strong>Team Lucão</strong></span>
-          <a class="footer-admin-link" href="/" title="Acessar o Painel de Gestão">Painel do Professor 🔒</a>
+            <div>
+              <label for="guestPhone" class="block text-xs font-medium text-zinc-300 mb-1">WhatsApp</label>
+              <input id="guestPhone" inputmode="tel" autocomplete="tel" placeholder="(15) 99999-9999" maxlength="15" required class="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-100 font-mono placeholder:text-zinc-600 focus:outline-none focus:border-red-500">
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label for="guestDate" class="block text-xs font-medium text-zinc-300 mb-1">Data da Aula</label>
+                <select id="guestDate" required class="w-full px-3 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-red-500">
+                  <option value="">Selecione</option>
+                </select>
+              </div>
+
+              <div>
+                <label for="guestTime" class="block text-xs font-medium text-zinc-300 mb-1">Horário</label>
+                <select id="guestTime" required disabled class="w-full px-3 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-red-500">
+                  <option value="">Escolha a data</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label for="guestReferral" class="block text-xs font-medium text-zinc-300 mb-1">Quem indicou você? (Opcional)</label>
+              <input id="guestReferral" placeholder="Ex: Jefferson" class="w-full px-3.5 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-red-500">
+            </div>
+
+            <button id="guestSubmitButton" type="submit" class="w-full py-3 bg-red-600 hover:bg-red-500 text-white font-semibold text-xs rounded-xl transition-all shadow-md shadow-red-600/25 active:scale-95 flex items-center justify-center gap-2">
+              <span>Solicitar aula experimental</span>
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+            <p class="text-[11px] text-zinc-500 text-center">O pedido será enviado diretamente ao professor pelo WhatsApp.</p>
+          </form>
+
+          <p id="guestStatus" role="status" aria-live="polite" class="hidden"></p>
         </div>
-      </footer>
-    </main>
 
-    <script src="public-theme.js?v=20260914-v5"></script>
-    <script src="student-fast.js?v=20260914-v5"></script>
-  </body>
+        <!-- Schedule Slots to pick (Right 6 cols on Desktop) -->
+        <div id="guestScheduleSection" class="lg:col-span-6 bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-6 shadow-2xl backdrop-blur-xl">
+          <div class="mb-4 pb-3 border-b border-zinc-800/60 flex items-center justify-between">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Turmas da Semana</span>
+              <h3 class="text-sm font-bold text-white mt-0.5">Vagas Disponíveis</h3>
+            </div>
+            <span class="text-[10px] text-zinc-500">Clique para preencher</span>
+          </div>
+
+          <div id="guestClassesList" class="space-y-2.5"></div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <button id="guestModeButton" type="button" class="hidden" aria-hidden="true"></button>
+
+  <!-- Mobile Bottom Nav (Clean Lucide icons, native feel) -->
+  <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-6 py-3 bg-zinc-950/90 border-t border-zinc-800/80 backdrop-blur-xl flex items-center justify-around text-[10px] font-medium text-zinc-400">
+    <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="flex flex-col items-center gap-1 text-red-500">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Minhas Aulas</span>
+    </button>
+    <button onclick="document.getElementById('weeklyScheduleSection')?.scrollIntoView({behavior: 'smooth'})" class="flex flex-col items-center gap-1 hover:text-zinc-200 transition-colors">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+      <span>Grade Geral</span>
+    </button>
+    <a href="https://wa.me/5515996744160" target="_blank" rel="noopener" class="flex flex-col items-center gap-1 hover:text-zinc-200 transition-colors">
+      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2zm0 18.12c-1.5 0-2.97-.4-4.24-1.16l-.3-.18-3.12.82.83-3.04-.2-.32a8.03 8.03 0 0 1-1.23-4.33c0-4.47 3.64-8.11 8.12-8.11 2.17 0 4.21.85 5.74 2.38 1.54 1.53 2.38 3.57 2.38 5.74 0 4.47-3.64 8.2-8.28 8.2zm4.49-6.13c-.25-.13-1.47-.72-1.7-.81-.23-.09-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.25-.75-.67-1.26-1.5-1.4-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.44 1.03 2.61.13.17 1.77 2.7 4.29 3.79.6.26 1.07.41 1.44.53.6.19 1.15.16 1.58.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.07-.11-.23-.17-.48-.3z"/></svg>
+      <span>WhatsApp</span>
+    </a>
+  </nav>
+
+  <!-- Rodapé -->
+  <footer class="w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 border-t border-zinc-900 mt-auto flex flex-col sm:flex-row items-center justify-between text-xs text-zinc-500 gap-3">
+    <div class="flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-red-600"></span>
+      <span><strong>Team Lucão</strong> • Arena Futevôlei</span>
+    </div>
+    <div class="flex items-center gap-4">
+      <span>Sorocaba / SP</span>
+      <a href="/" class="hover:text-zinc-300 transition-colors">Painel do Professor 🔒</a>
+    </div>
+  </footer>
+
+  <script src="student-fast.js?v=20260917-v1"></script>
+</body>
 </html>

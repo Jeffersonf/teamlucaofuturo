@@ -46,8 +46,17 @@ let guestClassesLoaded = false;
 function setStatus(target, message = '', state = '') {
   if (!target) return;
   target.textContent = message;
-  if (state) target.dataset.state = state;
-  else delete target.dataset.state;
+  if (!message) {
+    target.className = 'hidden';
+    return;
+  }
+  if (state === 'success') {
+    target.className = 'p-3.5 rounded-2xl bg-emerald-950/60 border border-emerald-800/60 text-emerald-300 text-xs font-medium block my-3 text-center';
+  } else if (state === 'error') {
+    target.className = 'p-3.5 rounded-2xl bg-red-950/60 border border-red-800/60 text-red-300 text-xs font-medium block my-3 text-center';
+  } else {
+    target.className = 'p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 text-xs font-medium block my-3 text-center';
+  }
 }
 
 function setButtonLoading(button, loading, text = 'Salvando...') {
@@ -108,48 +117,50 @@ function responseMarkup(item) {
   const teacherApproved = item.confirmado_professor === 'sim';
   if (answer === 'sim') {
     return `
-      <div class="class-response">
-        <span class="response-pill yes">${teacherApproved ? 'Confirmada pelo professor' : 'Você informou que vai'}</span>
-        <button class="response-button secondary" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="remover">Remover confirmação</button>
+      <div class="flex items-center gap-2">
+        <span class="px-2.5 py-1 rounded-xl bg-zinc-800 text-emerald-400 text-xs font-medium border border-zinc-700 flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          ${teacherApproved ? 'Aprovado pelo Prof.' : 'Confirmado'}
+        </span>
+        <button class="px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 text-xs font-medium border border-zinc-800 transition-all active:scale-95" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="remover">Desmarcar</button>
       </div>`;
   }
   if (answer === 'nao') {
     return `
-      <div class="class-response">
-        <span class="response-pill no">Você informou que não vai</span>
-        <div class="class-actions">
-          <button class="response-button yes" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="sim">Agora eu vou</button>
-          <button class="response-button secondary" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="remover">Remover resposta</button>
-        </div>
+      <div class="flex items-center gap-2">
+        <span class="px-2.5 py-1 rounded-xl bg-red-950/60 text-red-400 text-xs font-medium border border-red-900/40">Não vou</span>
+        <button class="px-2.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-medium shadow-sm shadow-red-600/25 transition-all active:scale-95" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="sim">Agora eu vou</button>
+        <button class="px-2 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 text-xs font-medium border border-zinc-800 transition-all" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="remover">Remover</button>
       </div>`;
   }
   return `
-    <div class="class-response">
-      <span class="response-question">Você vai participar?</span>
-      <div class="class-actions">
-        <button class="response-button yes" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="sim">Sim, eu vou</button>
-        <button class="response-button no" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="nao">Não vou</button>
-      </div>
+    <div class="flex items-center gap-2">
+      <button class="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-medium transition-all shadow-sm shadow-red-600/25 active:scale-95" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="sim">Vou participar</button>
+      <button class="px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 text-xs font-medium border border-zinc-800 transition-all" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="nao">Não vou</button>
     </div>`;
 }
 
 function renderUpcoming() {
   const items = agendaData.items || [];
   upcomingList.innerHTML = items.length ? items.map((item) => `
-    <article class="student-class-card response-${escapeHTML(item.confirmado || 'pending')}" data-scheduled-date="${escapeHTML(item.data)}">
-      <div class="class-main">
-        <time datetime="${escapeHTML(item.data)}T${escapeHTML(item.horario)}">
-          <span>${escapeHTML(formatDate(item.data))}</span>
-          <strong>${escapeHTML(item.horario)}</strong>
-        </time>
-        <div class="class-copy">
-          <strong>${escapeHTML(item.turma || 'Turma')}</strong>
-          <small>${escapeHTML(formatDateLong(item.data))}${item.professor ? ` · ${escapeHTML(item.professor)}` : ''}</small>
+    <article class="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-zinc-800 hover:border-zinc-700 transition-colors flex items-center justify-between gap-3" data-scheduled-date="${escapeHTML(item.data)}">
+      <div class="flex items-center gap-3.5">
+        <div class="text-center min-w-[42px] sm:min-w-[48px]">
+          <span class="block text-[10px] font-semibold text-zinc-500 uppercase">${escapeHTML(formatDate(item.data))}</span>
+          <span class="block text-sm sm:text-base font-bold text-zinc-100">${escapeHTML(item.horario)}</span>
+        </div>
+        <div class="w-px h-8 bg-zinc-800"></div>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <h4 class="text-xs sm:text-sm font-semibold text-zinc-200">${escapeHTML(item.turma || 'Turma')}</h4>
+            ${item.professor ? `<span class="text-[10px] text-zinc-500">· Prof. ${escapeHTML(item.professor)}</span>` : ''}
+          </div>
+          <p class="text-[11px] text-zinc-500 mt-0.5">${escapeHTML(formatDateLong(item.data))}</p>
         </div>
       </div>
       ${responseMarkup(item)}
     </article>
-  `).join('') : '<p class="empty-state">Não há aulas indicadas para você até a data de vencimento deste período.</p>';
+  `).join('') : '<p class="text-xs text-zinc-500 text-center py-4 bg-zinc-950/30 rounded-2xl border border-zinc-800/40">Não há outras aulas indicadas até o vencimento.</p>';
 }
 
 function availableItems() {
@@ -187,19 +198,19 @@ function renderAvailable() {
   ));
   const requests = agendaData.requests || [];
   const requestsMarkup = requests.length ? `
-    <div class="request-summary">
-      <strong>${requests.length === 1 ? '1 solicitação aguardando o professor' : `${requests.length} solicitações aguardando o professor`}</strong>
-      ${requests.map((item) => `<span>${escapeHTML(formatDate(item.data))} às ${escapeHTML(item.horario)} · ${escapeHTML(item.turma || 'Turma')}</span>`).join('')}
+    <div class="p-3 rounded-2xl bg-zinc-950 border border-zinc-800 text-xs space-y-1 mb-3">
+      <strong class="text-zinc-200 block">${requests.length === 1 ? '1 solicitação aguardando professor:' : `${requests.length} solicitações aguardando professor:`}</strong>
+      ${requests.map((item) => `<div class="text-zinc-400 text-[11px]">• ${escapeHTML(formatDate(item.data))} às ${escapeHTML(item.horario)} · ${escapeHTML(item.turma || 'Turma')}</div>`).join('')}
     </div>` : '';
   const listMarkup = items.length ? items.map((item) => `
-    <article class="available-class-card">
+    <article class="p-3 rounded-2xl bg-zinc-950/60 border border-zinc-800 hover:border-zinc-700 transition-colors flex items-center justify-between gap-3">
       <div>
-        <strong>${escapeHTML(formatDateLong(item.data))} às ${escapeHTML(item.horario)}</strong>
-        <small>${escapeHTML(item.turma || 'Turma')} · ${openSlots(item)} ${openSlots(item) === 1 ? 'vaga disponível' : 'vagas disponíveis'}</small>
+        <strong class="text-xs font-semibold text-zinc-200 block">${escapeHTML(formatDateLong(item.data))} às ${escapeHTML(item.horario)}</strong>
+        <p class="text-[11px] text-zinc-500 mt-0.5">${escapeHTML(item.turma || 'Turma')} · ${openSlots(item)} ${openSlots(item) === 1 ? 'vaga' : 'vagas'}</p>
       </div>
-      <button type="button" data-book-class="${escapeHTML(item.id)}">Solicitar vaga</button>
+      <button class="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 border border-zinc-700 text-xs font-medium transition-all active:scale-95" type="button" data-book-class="${escapeHTML(item.id)}">Solicitar</button>
     </article>
-  `).join('') : '<p class="empty-state">Nenhuma outra aula com vaga para os filtros escolhidos.</p>';
+  `).join('') : '<p class="text-xs text-zinc-500 text-center py-4 bg-zinc-950/30 rounded-2xl border border-zinc-800/40">Nenhuma outra aula com vaga para os filtros escolhidos.</p>';
   availableList.innerHTML = requestsMarkup + listMarkup;
 }
 
@@ -266,7 +277,7 @@ function renderWeeklyQuota() {
   const pct = Math.min(100, Math.round((confirmed / limit) * 100));
 
   if (quotaCounter) {
-    quotaCounter.textContent = `${confirmed} de ${limit} ${limit === 1 ? 'aula confirmada' : 'aulas confirmadas'}`;
+    quotaCounter.textContent = `${confirmed} de ${limit} ${limit === 1 ? 'aula' : 'aulas'}`;
   }
 
   if (quotaProgressBar) {
@@ -275,16 +286,18 @@ function renderWeeklyQuota() {
 
   const isFull = confirmed >= limit;
   if (quotaStatusPill) {
-    quotaStatusPill.className = isFull ? 'quota-status-pill full' : 'quota-status-pill';
-    quotaStatusPill.textContent = isFull ? 'Limite atingido' : `${limit - confirmed} ${(limit - confirmed) === 1 ? 'vaga restante' : 'vagas restantes'}`;
+    quotaStatusPill.className = isFull
+      ? 'text-[10px] font-medium px-2 py-0.5 rounded-full bg-amber-950/60 text-amber-400 border border-amber-800/40'
+      : 'text-[10px] font-medium px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-zinc-700/50';
+    quotaStatusPill.textContent = isFull ? 'Limite atingido' : `${limit - confirmed} ${(limit - confirmed) === 1 ? 'aula restante' : 'aulas restantes'}`;
   }
 
   if (quotaSubtext) {
     const planName = student.plano_nome || 'ativo';
     if (isFull) {
-      quotaSubtext.textContent = `Você já atingiu o limite do seu plano (${planName}: ${limit}x na semana). Para escolher outro horário, desmarque uma aula confirmada abaixo.`;
+      quotaSubtext.textContent = `Limite atingido (${planName}: ${limit}x na semana). Para outro horário, desmarque uma aula acima.`;
     } else {
-      quotaSubtext.textContent = `Seu plano (${planName}) permite confirmar até ${limit} ${limit === 1 ? 'aula' : 'aulas'} por semana.`;
+      quotaSubtext.textContent = `Plano ${planName}: até ${limit} ${limit === 1 ? 'aula' : 'aulas'} por semana.`;
     }
   }
 
@@ -302,7 +315,7 @@ function renderWeeklySchedule() {
   const quotaReached = confirmedCount >= limit;
 
   if (!classes.length) {
-    weeklyList.innerHTML = '<p class="empty-state">Nenhuma aula cadastrada para esta semana no momento.</p>';
+    weeklyList.innerHTML = '<p class="text-xs text-zinc-500 text-center py-6 bg-zinc-950/30 rounded-2xl border border-zinc-800/40">Nenhuma aula cadastrada para esta semana no momento.</p>';
     return;
   }
 
@@ -310,55 +323,65 @@ function renderWeeklySchedule() {
     const isStudentConfirmed = String(cls.confirmado || '').toLowerCase() === 'sim';
     const spotsLeft = Math.max(0, Number(cls.capacidade || 8) - Number(cls.inscritos || 0));
     const isFull = spotsLeft <= 0 && !isStudentConfirmed;
-
     const isPlanExpired = Boolean(agendaData.student?.plano_vencido);
 
     let actionButtonMarkup = '';
     if (isStudentConfirmed) {
       actionButtonMarkup = `
-        <div class="weekly-class-action">
-          <span class="confirmed-badge">✓ Confirmado</span>
-          <button class="btn-unconfirm-slot" type="button" data-confirm-class="${escapeHTML(cls.id)}" data-confirm-value="remover">Desmarcar</button>
+        <div class="weekly-class-action flex items-center gap-2 shrink-0">
+          <span class="px-3 py-1.5 rounded-xl bg-zinc-800 text-emerald-400 text-xs font-medium border border-zinc-700 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Confirmado
+          </span>
+          <button class="px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 text-xs font-medium border border-zinc-800 transition-all active:scale-95" type="button" data-confirm-class="${escapeHTML(cls.id)}" data-confirm-value="remover">Desmarcar</button>
         </div>
       `;
     } else if (isPlanExpired) {
       actionButtonMarkup = `
-        <div class="weekly-class-action">
-          <a class="btn-confirm-slot is-blocked" href="#pixDemoCard" title="Seu plano está vencido. Regularize via PIX para confirmar presença.">Plano vencido</a>
+        <div class="weekly-class-action shrink-0">
+          <a class="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-500 text-xs font-medium flex items-center gap-1.5 hover:text-zinc-300 transition-colors" href="#pixDemoCard" title="Seu plano está vencido. Regularize via PIX para confirmar presença.">
+            <svg class="w-3.5 h-3.5 text-zinc-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Plano vencido
+          </a>
         </div>
       `;
     } else if (isFull) {
       actionButtonMarkup = `
-        <div class="weekly-class-action">
-          <button class="btn-confirm-slot" type="button" disabled>Aula lotada</button>
+        <div class="weekly-class-action shrink-0">
+          <button class="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-600 text-xs font-medium cursor-not-allowed" type="button" disabled>Lotada</button>
         </div>
       `;
     } else if (quotaReached) {
       actionButtonMarkup = `
-        <div class="weekly-class-action">
-          <button class="btn-confirm-slot" type="button" disabled title="Você já atingiu o limite do seu plano nesta semana">Limite atingido (${confirmedCount}/${limit})</button>
+        <div class="weekly-class-action shrink-0">
+          <button class="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-500 text-xs font-medium cursor-not-allowed" type="button" disabled title="Você já atingiu o limite do seu plano nesta semana">Limite atingido (${confirmedCount}/${limit})</button>
         </div>
       `;
     } else {
       actionButtonMarkup = `
-        <div class="weekly-class-action">
-          <button class="btn-confirm-slot" type="button" data-confirm-class="${escapeHTML(cls.id)}" data-confirm-value="sim">Confirmar presença</button>
+        <div class="weekly-class-action shrink-0">
+          <button class="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-medium transition-all shadow-sm shadow-red-600/25 active:scale-95" type="button" data-confirm-class="${escapeHTML(cls.id)}" data-confirm-value="sim">Vou participar</button>
         </div>
       `;
     }
 
     return `
-      <article class="weekly-class-card ${isStudentConfirmed ? 'is-confirmed' : ''} ${isFull ? 'is-full' : ''}">
-        <div class="weekly-timebox">
-          <span>${escapeHTML(dateOptionLabel(cls.data))}</span>
-          <strong>${escapeHTML(cls.horario)}</strong>
-        </div>
-        <div class="weekly-class-info">
-          <strong>${escapeHTML(cls.turma || 'Turma Geral')}</strong>
-          <div class="weekly-class-meta">
-            <span>${escapeHTML(formatDateLong(cls.data))}</span>
-            ${cls.professor ? `<span>· Prof. ${escapeHTML(cls.professor)}</span>` : ''}
-            <span>· ${spotsLeft} ${spotsLeft === 1 ? 'vaga disponível' : 'vagas disponíveis'}</span>
+      <article class="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border ${isStudentConfirmed ? 'border-zinc-700 bg-zinc-900/40' : 'border-zinc-800 hover:border-zinc-700'} transition-all flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3.5">
+          <div class="text-center min-w-[42px] sm:min-w-[48px]">
+            <span class="block text-[10px] font-semibold text-zinc-500 uppercase">${escapeHTML(dateOptionLabel(cls.data))}</span>
+            <span class="block text-sm sm:text-base font-bold text-zinc-100">${escapeHTML(cls.horario)}</span>
+          </div>
+          <div class="w-px h-8 bg-zinc-800"></div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h4 class="text-xs sm:text-sm font-semibold text-zinc-200">${escapeHTML(cls.turma || 'Turma Geral')}</h4>
+              ${cls.professor ? `<span class="text-[10px] text-zinc-500">· Prof. ${escapeHTML(cls.professor)}</span>` : ''}
+            </div>
+            <p class="text-[11px] text-zinc-500 mt-0.5 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full ${isFull ? 'bg-zinc-600' : 'bg-emerald-500'}"></span>
+              ${spotsLeft > 0 ? `${spotsLeft} ${spotsLeft === 1 ? 'vaga livre' : 'vagas livres'}` : 'Lotada'}
+            </p>
           </div>
         </div>
         ${actionButtonMarkup}
@@ -369,12 +392,13 @@ function renderWeeklySchedule() {
 
 function renderDashboard() {
   const student = agendaData.student || {};
-  const firstName = (student.nome || '').trim().split(/\s+/)[0] || 'aluno';
-  greeting.textContent = `Olá, ${firstName}! Seja bem-vindo(a).`;
-  period.textContent = `Aulas de hoje até ${formatDateLong(agendaData.period_end)}.`;
-  plan.textContent = student.plano_nome || 'Aluno ativo';
+  const firstName = (student.nome || '').trim().split(/\s+/)[0] || 'Aluno';
+  
+  if (greeting) greeting.textContent = firstName;
+  if (period) period.textContent = `Aulas até ${formatDateLong(agendaData.period_end)}.`;
+  if (plan) plan.textContent = student.plano_nome || 'Plano 2x';
 
-  // Plan status badge (verde / vermelho)
+  // Plan status badge (clean dot, anti-AI-slop)
   const statusBadge = document.getElementById('studentPlanStatus');
   const expiredBanner = document.getElementById('expiredPlanBanner');
   const expiredTitle = document.getElementById('expiredBannerTitle');
@@ -384,18 +408,18 @@ function renderDashboard() {
 
   if (statusBadge) {
     if (isExpired) {
-      statusBadge.className = 'plan-status-badge bad';
-      statusBadge.innerHTML = '<span class="status-dot bad"></span><span>Plano vencido</span>';
+      statusBadge.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-950/80 text-red-400 border border-red-800/40 shrink-0';
+      statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-400"></span><span>Vencido (${formattedDueDate || 'hoje'})`;
     } else {
-      statusBadge.className = 'plan-status-badge ok';
-      statusBadge.innerHTML = `<span class="status-dot ok"></span><span>Plano até ${formattedDueDate || 'o vencimento'}</span>`;
+      statusBadge.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-950/80 text-emerald-400 border border-emerald-800/40 shrink-0';
+      statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>Até ${formattedDueDate || 'o vencimento'}`;
     }
   }
 
   if (expiredBanner) {
     if (isExpired) {
       expiredBanner.style.display = 'flex';
-      if (expiredTitle) expiredTitle.textContent = `Seu plano venceu em ${formattedDueDate || 'dias anteriores'}`;
+      if (expiredTitle) expiredTitle.textContent = `Plano vencido em ${formattedDueDate || 'dias anteriores'}`;
     } else {
       expiredBanner.style.display = 'none';
     }
@@ -407,6 +431,9 @@ function renderDashboard() {
   setupAvailableFilters(true);
   renderCalendar();
   initPixDemoArea(student, firstName);
+  
+  const searchCard = document.getElementById('studentSearchCard');
+  if (searchCard) searchCard.style.display = 'none';
   dashboard.hidden = false;
 }
 
@@ -710,7 +737,7 @@ function renderGuestClassList() {
     : guestClasses;
 
   if (!source.length) {
-    container.innerHTML = '<p class="empty-state">Nenhuma aula programada no momento.</p>';
+    container.innerHTML = '<p class="text-xs text-zinc-500 text-center py-6 bg-zinc-950/30 rounded-2xl border border-zinc-800/40">Nenhuma aula programada no momento.</p>';
     return;
   }
 
@@ -720,26 +747,31 @@ function renderGuestClassList() {
     const isSelected = String(guestTime.value) === String(item.id);
 
     return `
-      <article class="guest-slot-card ${available ? '' : 'is-full'} ${isSelected ? 'is-selected' : ''}">
-        <div class="guest-slot-timebox">
-          <span>${escapeHTML(dateOptionLabel(item.data))}</span>
-          <strong>${escapeHTML(item.horario)}</strong>
-        </div>
-        <div class="guest-slot-info">
-          <strong>${escapeHTML(item.turma || 'Turma Geral')}</strong>
-          <div class="guest-slot-meta">
-            <span>${escapeHTML(formatDateLong(item.data))}</span>
-            ${item.professor ? `<span>· Prof. ${escapeHTML(item.professor)}</span>` : ''}
-            <span>· ${available ? `${slots} ${slots === 1 ? 'vaga livre' : 'vagas livres'}` : 'Lotada'}</span>
+      <article class="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border ${isSelected ? 'border-red-600 bg-red-950/10' : 'border-zinc-800 hover:border-zinc-700'} transition-all flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3.5">
+          <div class="text-center min-w-[42px] sm:min-w-[48px]">
+            <span class="block text-[10px] font-semibold text-zinc-500 uppercase">${escapeHTML(dateOptionLabel(item.data))}</span>
+            <span class="block text-sm sm:text-base font-bold text-zinc-100">${escapeHTML(item.horario)}</span>
+          </div>
+          <div class="w-px h-8 bg-zinc-800"></div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h4 class="text-xs sm:text-sm font-semibold text-zinc-200">${escapeHTML(item.turma || 'Turma Geral')}</h4>
+              ${item.professor ? `<span class="text-[10px] text-zinc-500">· Prof. ${escapeHTML(item.professor)}</span>` : ''}
+            </div>
+            <p class="text-[11px] text-zinc-500 mt-0.5 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full ${available ? 'bg-emerald-500' : 'bg-zinc-600'}"></span>
+              ${available ? `${slots} ${slots === 1 ? 'vaga livre' : 'vagas livres'}` : 'Lotada'}
+            </p>
           </div>
         </div>
         ${available ? `
-          <button class="btn-pick-guest-slot" type="button" data-pick-guest="${escapeHTML(item.id)}" data-pick-date="${escapeHTML(item.data)}">
-            ${isSelected ? '✓ Selecionado' : 'Escolher este horário'}
+          <button class="px-3 py-1.5 rounded-xl ${isSelected ? 'bg-emerald-600 text-white' : 'bg-red-600 hover:bg-red-500 text-white shadow-sm shadow-red-600/25'} text-xs font-medium transition-all active:scale-95 shrink-0" type="button" data-pick-guest="${escapeHTML(item.id)}" data-pick-date="${escapeHTML(item.data)}">
+            ${isSelected ? '✓ Selecionado' : 'Escolher horário'}
           </button>
         ` : `
-          <button class="btn-pick-guest-slot" type="button" disabled title="Esta aula já está com capacidade máxima">
-            Sem vagas (Lotada)
+          <button class="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-600 text-xs font-medium cursor-not-allowed shrink-0" type="button" disabled>
+            Lotada
           </button>
         `}
       </article>
@@ -751,33 +783,30 @@ function switchMode(showGuest) {
   studentPanel.hidden = showGuest;
   guestPanel.hidden = !showGuest;
 
-  if (guestModeButton) {
-    guestModeButton.textContent = showGuest ? '← Voltar para Sou Aluno' : '⭐ Não sou aluno (Experimental)';
-    guestModeButton.setAttribute('aria-expanded', String(showGuest));
-  }
-
   const tabStudent = document.getElementById('tabStudentPortal');
   const tabGuest = document.getElementById('tabGuestPortal');
   if (tabStudent && tabGuest) {
-    tabStudent.classList.toggle('active', !showGuest);
-    tabStudent.setAttribute('aria-selected', String(!showGuest));
-    tabGuest.classList.toggle('active', showGuest);
-    tabGuest.setAttribute('aria-selected', String(showGuest));
+    if (showGuest) {
+      tabStudent.className = 'px-4 py-2 rounded-xl font-medium transition-all text-zinc-400 hover:text-zinc-200 flex items-center gap-2';
+      tabGuest.className = 'px-4 py-2 rounded-xl font-medium transition-all bg-zinc-800 text-white shadow-sm flex items-center gap-2';
+    } else {
+      tabStudent.className = 'px-4 py-2 rounded-xl font-medium transition-all bg-zinc-800 text-white shadow-sm flex items-center gap-2';
+      tabGuest.className = 'px-4 py-2 rounded-xl font-medium transition-all text-zinc-400 hover:text-zinc-200 flex items-center gap-2';
+    }
   }
 
-  if (heroEyebrow) heroEyebrow.textContent = showGuest ? 'primeira aula experimental' : 'acesso do aluno';
-  if (heroTitle) heroTitle.textContent = 'Team Lucão';
+  if (heroTitle) heroTitle.textContent = showGuest ? 'Team Lucão • Aula Experimental' : 'Team Lucão • Grade & Presenças';
   if (heroDescription) {
     heroDescription.textContent = showGuest
       ? 'Escolha uma aula disponível na grade e solicite seu agendamento em poucos segundos.'
-      : 'Consulte seus horários ou informe se você vai participar.';
+      : 'Consulte sua agenda semanal, confirme suas presenças e acompanhe seu plano em tempo real.';
   }
 
   if (showGuest) {
     if (!guestClassesLoaded) loadGuestClasses();
-    window.setTimeout(() => guestName.focus(), 0);
+    window.setTimeout(() => guestName?.focus(), 50);
   } else {
-    window.setTimeout(() => phoneInput.focus(), 0);
+    window.setTimeout(() => phoneInput?.focus(), 50);
   }
 }
 
@@ -876,3 +905,16 @@ calendar.addEventListener('click', (event) => {
   const button = event.target.closest('[data-calendar-date]');
   if (button) selectCalendarDate(button.dataset.calendarDate);
 });
+
+
+const btnSearchAgain = document.getElementById('btnSearchAgain');
+if (btnSearchAgain) {
+  btnSearchAgain.addEventListener('click', () => {
+    dashboard.hidden = true;
+    const searchCard = document.getElementById('studentSearchCard');
+    if (searchCard) searchCard.style.display = 'block';
+    phoneInput.value = '';
+    phoneInput.focus();
+    setStatus(studentStatus, '');
+  });
+}
