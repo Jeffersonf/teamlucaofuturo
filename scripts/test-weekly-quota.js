@@ -79,17 +79,26 @@ async function runTest() {
       day: '2-digit'
     }).format(new Date());
 
-    // Monday & Tuesday & Wednesday of this week
     const [y, m, d] = today.split('-').map(Number);
     const dt = new Date(Date.UTC(y, m - 1, d));
     const day = dt.getUTCDay();
-    const diffToMon = day === 0 ? -6 : 1 - day;
-    dt.setUTCDate(dt.getUTCDate() + diffToMon);
-    const monStr = dt.toISOString().slice(0, 10);
-    dt.setUTCDate(dt.getUTCDate() + 1);
-    const tueStr = dt.toISOString().slice(0, 10);
-    dt.setUTCDate(dt.getUTCDate() + 1);
-    const wedStr = dt.toISOString().slice(0, 10);
+    let monStr, tueStr, wedStr;
+    if (day >= 1 && day <= 5) {
+      const d1 = new Date(Date.UTC(y, m - 1, d));
+      monStr = d1.toISOString().slice(0, 10);
+      d1.setUTCDate(d1.getUTCDate() + 1);
+      tueStr = d1.toISOString().slice(0, 10);
+      d1.setUTCDate(d1.getUTCDate() + 1);
+      wedStr = d1.toISOString().slice(0, 10);
+    } else {
+      const daysToNextMon = ((8 - day) % 7) || 7;
+      const d1 = new Date(Date.UTC(y, m - 1, d + daysToNextMon));
+      monStr = d1.toISOString().slice(0, 10);
+      d1.setUTCDate(d1.getUTCDate() + 1);
+      tueStr = d1.toISOString().slice(0, 10);
+      d1.setUTCDate(d1.getUTCDate() + 1);
+      wedStr = d1.toISOString().slice(0, 10);
+    }
 
     const class1 = await req('/api/classes', {
       method: 'POST',
@@ -115,7 +124,7 @@ async function runTest() {
     console.log('Confirmation 1 succeeded:', conf1.ok);
 
     // Check student-classes output for quota
-    const lookup1 = await req('/api/public/student-classes?telefone=988881111', { public: true });
+    const lookup1 = await req(`/api/public/student-classes?telefone=988881111&semana=${monStr}`, { public: true });
     console.log('Student lookup weekly quota:', lookup1.semana);
     if (lookup1.semana.limite !== 1 || lookup1.semana.confirmadas !== 1) {
       throw new Error(`Expected limite=1, confirmadas=1, got ${JSON.stringify(lookup1.semana)}`);

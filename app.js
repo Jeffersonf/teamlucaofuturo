@@ -2,6 +2,8 @@ import { applyRoleUI, setStoredRole, getStoredRole, isTeacher } from './modules/
 import { cancelClassDueToRain } from './modules/rain.js';
 import { openPixModal } from './modules/pix.js';
 import { loadArenas } from './modules/arenas.js';
+import { api, detectServer } from './modules/api.js';
+import { showToast } from './modules/toast.js';
 
 'use strict';
 
@@ -406,17 +408,6 @@ function syncLocalStateFromStorage() {
   }
 }
 
-async function api(path, options = {}) {
-  const headers = { ...(options.headers || {}) };
-  const pin = localStorage.getItem(PIN_KEY);
-  if (pin) headers['X-Admin-Pin'] = pin;
-  if (options.body) headers['Content-Type'] = 'application/json';
-  const res = await fetch(path, { ...options, headers });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || data.ok === false) throw new Error(data.error || `HTTP ${res.status}`);
-  return data;
-}
-
 function showLogin(show = true) {
   const wall = document.getElementById('loginWall');
   wall.classList.toggle('open', show);
@@ -448,21 +439,6 @@ async function unlockApp(pin) {
   showLogin(false);
   showBooking(false);
   await loadData({ serverKnown: hasServer });
-}
-
-async function detectServer() {
-  if (location.protocol === 'file:') return false;
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 900);
-    const res = await fetch('/health', { signal: controller.signal });
-    clearTimeout(timer);
-    if (!res.ok) return false;
-    const data = await res.json().catch(() => null);
-    return Boolean(data && data.ok === true && data.mode === 'server');
-  } catch {
-    return false;
-  }
 }
 
 function updateSystemNotice() {
@@ -962,12 +938,8 @@ function whatsappUrl(phone, text = '') {
   return `https://wa.me/${withCountry}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
 }
 
-function toast(message) {
-  const el = document.getElementById('toast');
-  el.textContent = message;
-  el.classList.add('show');
-  clearTimeout(toast.timer);
-  toast.timer = setTimeout(() => el.classList.remove('show'), 2200);
+function toast(message, type = 'info') {
+  showToast(message, type);
 }
 
 function updateTopbar(page) {

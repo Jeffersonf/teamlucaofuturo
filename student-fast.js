@@ -117,33 +117,36 @@ function responseMarkup(item) {
   const teacherApproved = item.confirmado_professor === 'sim';
   if (answer === 'sim') {
     return `
-      <div class="flex items-center gap-2">
-        <span class="px-2.5 py-1 rounded-xl bg-zinc-800 text-emerald-400 text-xs font-medium border border-zinc-700 flex items-center gap-1.5">
+      <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+        <span class="px-3 py-2 sm:py-1.5 rounded-xl bg-zinc-800 text-emerald-400 text-xs font-medium border border-zinc-700 flex items-center gap-1.5 min-h-[38px]">
           <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
           ${teacherApproved ? 'Aprovado pelo Prof.' : 'Confirmado'}
         </span>
-        <button class="px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 text-xs font-medium border border-zinc-800 transition-all active:scale-95" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="remover">Desmarcar</button>
+        <button class="px-3 py-2 sm:py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 text-xs font-medium border border-zinc-800 transition-all active:scale-95 min-h-[38px]" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="remover">Desmarcar</button>
       </div>`;
   }
   if (answer === 'nao') {
     return `
-      <div class="flex items-center gap-2">
-        <span class="px-2.5 py-1 rounded-xl bg-red-950/60 text-red-400 text-xs font-medium border border-red-900/40">Não vou</span>
-        <button class="px-2.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-medium shadow-sm shadow-red-600/25 transition-all active:scale-95" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="sim">Agora eu vou</button>
-        <button class="px-2 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 text-xs font-medium border border-zinc-800 transition-all" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="remover">Remover</button>
+      <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+        <span class="px-3 py-2 sm:py-1.5 rounded-xl bg-red-950/60 text-red-400 text-xs font-medium border border-red-900/40 min-h-[38px] flex items-center">Não vou</span>
+        <button class="px-3 py-2 sm:py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold shadow-sm shadow-red-600/25 transition-all active:scale-95 min-h-[38px]" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="sim">Agora eu vou</button>
+        <button class="px-2.5 py-2 sm:py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 text-xs font-medium border border-zinc-800 transition-all min-h-[38px]" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="remover">Remover</button>
       </div>`;
   }
   return `
-    <div class="flex items-center gap-2">
-      <button class="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-medium transition-all shadow-sm shadow-red-600/25 active:scale-95" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="sim">Vou participar</button>
-      <button class="px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 text-xs font-medium border border-zinc-800 transition-all" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="nao">Não vou</button>
+    <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+      <button class="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition-all shadow-sm shadow-red-600/25 active:scale-95 min-h-[40px] flex items-center justify-center gap-1.5" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="sim">
+        <span>Vou participar</span>
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+      <button class="px-3 py-2.5 sm:py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 text-xs font-medium border border-zinc-800 transition-all min-h-[40px]" type="button" data-confirm-class="${escapeHTML(item.id)}" data-confirm-value="nao">Não vou</button>
     </div>`;
 }
 
 function renderUpcoming() {
   const items = agendaData.items || [];
   upcomingList.innerHTML = items.length ? items.map((item) => `
-    <article class="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-zinc-800 hover:border-zinc-700 transition-colors flex items-center justify-between gap-3" data-scheduled-date="${escapeHTML(item.data)}">
+    <article class="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border border-zinc-800 hover:border-zinc-700 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3" data-scheduled-date="${escapeHTML(item.data)}">
       <div class="flex items-center gap-3.5">
         <div class="text-center min-w-[42px] sm:min-w-[48px]">
           <span class="block text-[10px] font-semibold text-zinc-500 uppercase">${escapeHTML(formatDate(item.data))}</span>
@@ -328,45 +331,48 @@ function renderWeeklySchedule() {
     let actionButtonMarkup = '';
     if (isStudentConfirmed) {
       actionButtonMarkup = `
-        <div class="weekly-class-action flex items-center gap-2 shrink-0">
-          <span class="px-3 py-1.5 rounded-xl bg-zinc-800 text-emerald-400 text-xs font-medium border border-zinc-700 flex items-center gap-1.5">
+        <div class="weekly-class-action flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          <span class="px-3 py-2 sm:py-1.5 rounded-xl bg-zinc-800 text-emerald-400 text-xs font-medium border border-zinc-700 flex items-center gap-1.5 min-h-[38px]">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
             Confirmado
           </span>
-          <button class="px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 text-xs font-medium border border-zinc-800 transition-all active:scale-95" type="button" data-confirm-class="${escapeHTML(cls.id)}" data-confirm-value="remover">Desmarcar</button>
+          <button class="px-3 py-2 sm:py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 text-xs font-medium border border-zinc-800 transition-all active:scale-95 min-h-[38px]" type="button" data-confirm-class="${escapeHTML(cls.id)}" data-confirm-value="remover">Desmarcar</button>
         </div>
       `;
     } else if (isPlanExpired) {
       actionButtonMarkup = `
-        <div class="weekly-class-action shrink-0">
-          <a class="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-500 text-xs font-medium flex items-center gap-1.5 hover:text-zinc-300 transition-colors" href="#pixDemoCard" title="Seu plano está vencido. Regularize via PIX para confirmar presença.">
-            <svg class="w-3.5 h-3.5 text-zinc-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            Plano vencido
+        <div class="weekly-class-action w-full sm:w-auto">
+          <a class="w-full sm:w-auto px-3.5 py-2.5 sm:py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 text-xs font-medium flex items-center justify-center gap-1.5 hover:text-zinc-200 transition-colors min-h-[40px]" href="#pixDemoCard" title="Seu plano está vencido. Regularize via PIX para confirmar presença.">
+            <svg class="w-3.5 h-3.5 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <span>Plano vencido · Pagar PIX</span>
           </a>
         </div>
       `;
     } else if (isFull) {
       actionButtonMarkup = `
-        <div class="weekly-class-action shrink-0">
-          <button class="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-600 text-xs font-medium cursor-not-allowed" type="button" disabled>Lotada</button>
+        <div class="weekly-class-action w-full sm:w-auto">
+          <button class="w-full sm:w-auto px-3.5 py-2.5 sm:py-1.5 rounded-xl bg-zinc-900/80 border border-zinc-800 text-zinc-600 text-xs font-medium cursor-not-allowed min-h-[40px]" type="button" disabled>Lotada</button>
         </div>
       `;
     } else if (quotaReached) {
       actionButtonMarkup = `
-        <div class="weekly-class-action shrink-0">
-          <button class="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-500 text-xs font-medium cursor-not-allowed" type="button" disabled title="Você já atingiu o limite do seu plano nesta semana">Limite atingido (${confirmedCount}/${limit})</button>
+        <div class="weekly-class-action w-full sm:w-auto">
+          <button class="w-full sm:w-auto px-3.5 py-2.5 sm:py-1.5 rounded-xl bg-zinc-900/80 border border-zinc-800 text-zinc-500 text-xs font-medium cursor-not-allowed min-h-[40px]" type="button" disabled title="Você já atingiu o limite do seu plano nesta semana">Limite atingido (${confirmedCount}/${limit})</button>
         </div>
       `;
     } else {
       actionButtonMarkup = `
-        <div class="weekly-class-action shrink-0">
-          <button class="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-medium transition-all shadow-sm shadow-red-600/25 active:scale-95" type="button" data-confirm-class="${escapeHTML(cls.id)}" data-confirm-value="sim">Vou participar</button>
+        <div class="weekly-class-action w-full sm:w-auto">
+          <button class="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-semibold transition-all shadow-sm shadow-red-600/25 active:scale-95 min-h-[40px] flex items-center justify-center gap-1.5" type="button" data-confirm-class="${escapeHTML(cls.id)}" data-confirm-value="sim">
+            <span>Vou participar</span>
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
         </div>
       `;
     }
 
     return `
-      <article class="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border ${isStudentConfirmed ? 'border-zinc-700 bg-zinc-900/40' : 'border-zinc-800 hover:border-zinc-700'} transition-all flex items-center justify-between gap-3">
+      <article class="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border ${isStudentConfirmed ? 'border-zinc-700 bg-zinc-900/40' : 'border-zinc-800 hover:border-zinc-700'} transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div class="flex items-center gap-3.5">
           <div class="text-center min-w-[42px] sm:min-w-[48px]">
             <span class="block text-[10px] font-semibold text-zinc-500 uppercase">${escapeHTML(dateOptionLabel(cls.data))}</span>
@@ -384,7 +390,9 @@ function renderWeeklySchedule() {
             </p>
           </div>
         </div>
-        ${actionButtonMarkup}
+        <div class="w-full sm:w-auto flex justify-end">
+          ${actionButtonMarkup}
+        </div>
       </article>
     `;
   }).join('');
@@ -527,24 +535,57 @@ function initPixDemoArea(student, firstName) {
       resultBox?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
 
+async function copyPixText(text, inputElement) {
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch (e) {}
+  }
+  // Fallback para WebViews (WhatsApp, Instagram, Android antigo)
+  try {
+    const tempArea = document.createElement('textarea');
+    tempArea.value = text;
+    tempArea.setAttribute('readonly', '');
+    tempArea.style.position = 'fixed';
+    tempArea.style.top = '-9999px';
+    tempArea.style.left = '-9999px';
+    tempArea.style.opacity = '0';
+    document.body.appendChild(tempArea);
+    tempArea.focus();
+    tempArea.select();
+    tempArea.setSelectionRange(0, 99999);
+    const successful = document.execCommand('copy');
+    document.body.removeChild(tempArea);
+    if (successful) return true;
+  } catch (e) {}
+  if (inputElement) {
+    try {
+      inputElement.focus();
+      inputElement.select();
+      inputElement.setSelectionRange(0, 99999);
+      return document.execCommand('copy');
+    } catch (e) {}
+  }
+  return false;
+}
+
     if (btnCopy && copyInput) {
       btnCopy.addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(copyInput.value);
-          btnCopy.classList.add('copied');
-          if (btnCopyText) btnCopyText.textContent = '✓ Copiado com sucesso!';
-          setTimeout(() => {
-            btnCopy.classList.remove('copied');
-            if (btnCopyText) btnCopyText.textContent = '📋 Copiar código PIX';
-          }, 3000);
-        } catch {
-          copyInput.select();
-          document.execCommand('copy');
-          if (btnCopyText) btnCopyText.textContent = '✓ Copiado!';
-          setTimeout(() => {
-            if (btnCopyText) btnCopyText.textContent = '📋 Copiar código PIX';
-          }, 3000);
+        const text = copyInput.value;
+        if (!text) return;
+        const ok = await copyPixText(text, copyInput);
+        if (ok) {
+          btnCopy.classList.add('bg-emerald-600', 'text-white');
+          if (btnCopyText) btnCopyText.textContent = 'Copiado!';
+          if (navigator.vibrate) { try { navigator.vibrate(40); } catch (e) {} }
+        } else {
+          if (btnCopyText) btnCopyText.textContent = 'Erro ao copiar';
         }
+        setTimeout(() => {
+          btnCopy.classList.remove('bg-emerald-600', 'text-white');
+          if (btnCopyText) btnCopyText.textContent = 'Copiar';
+        }, 2500);
       });
     }
 
@@ -558,7 +599,7 @@ function initPixDemoArea(student, firstName) {
             body: JSON.stringify({ telefone: currentPhone })
           });
           const data = await responseData(res, 'Não foi possível confirmar o pagamento simulado.');
-          setStatus(studentStatus, '🎉 Pagamento PIX aprovado com sucesso! Seu plano foi renovado e suas aulas foram liberadas.', 'success');
+          setStatus(studentStatus, 'Pagamento PIX confirmado com sucesso! Seu plano foi renovado e suas aulas foram liberadas.', 'success');
           await loadAgenda();
         } catch (err) {
           setStatus(studentStatus, err.message, 'error');
@@ -584,7 +625,10 @@ async function findClasses(event) {
     phoneInput.focus();
     return;
   }
-  currentPhone = phone; try { localStorage.setItem("tlf_student_phone", phone); } catch {}
+  currentPhone = phone;
+  try { localStorage.setItem("tlf_student_phone", phone); } catch {}
+  phoneInput.blur();
+  document.activeElement?.blur();
   dashboard.hidden = true;
   setButtonLoading(searchButton, true, 'Buscando...');
   setStatus(studentStatus, 'Buscando sua agenda...');
@@ -791,12 +835,18 @@ function switchMode(showGuest) {
   const tabGuest = document.getElementById('tabGuestPortal');
   if (tabStudent && tabGuest) {
     if (showGuest) {
-      tabStudent.className = 'px-4 py-2 rounded-xl font-medium transition-all text-zinc-400 hover:text-zinc-200 flex items-center gap-2';
-      tabGuest.className = 'px-4 py-2 rounded-xl font-medium transition-all bg-zinc-800 text-white shadow-sm flex items-center gap-2';
+      tabStudent.className = 'px-4 sm:px-5 py-2.5 sm:py-2 rounded-xl font-medium transition-all text-zinc-400 hover:text-zinc-200 flex items-center gap-2 min-h-[40px]';
+      tabGuest.className = 'px-4 sm:px-5 py-2.5 sm:py-2 rounded-xl font-semibold transition-all bg-zinc-800 text-white shadow-sm flex items-center gap-2 min-h-[40px]';
     } else {
-      tabStudent.className = 'px-4 py-2 rounded-xl font-medium transition-all bg-zinc-800 text-white shadow-sm flex items-center gap-2';
-      tabGuest.className = 'px-4 py-2 rounded-xl font-medium transition-all text-zinc-400 hover:text-zinc-200 flex items-center gap-2';
+      tabStudent.className = 'px-4 sm:px-5 py-2.5 sm:py-2 rounded-xl font-semibold transition-all bg-zinc-800 text-white shadow-sm flex items-center gap-2 min-h-[40px]';
+      tabGuest.className = 'px-4 sm:px-5 py-2.5 sm:py-2 rounded-xl font-medium transition-all text-zinc-400 hover:text-zinc-200 flex items-center gap-2 min-h-[40px]';
     }
+  }
+
+  if (showGuest) {
+    try { history.replaceState(null, '', '#experimental'); } catch (e) {}
+  } else {
+    try { history.replaceState(null, '', '#aulas'); } catch (e) {}
   }
 
   if (heroTitle) heroTitle.textContent = showGuest ? 'Team Lucão • Aula Experimental' : 'Team Lucão • Grade & Presenças';
@@ -808,9 +858,13 @@ function switchMode(showGuest) {
 
   if (showGuest) {
     if (!guestClassesLoaded) loadGuestClasses();
-    window.setTimeout(() => guestName?.focus(), 50);
+    if (window.innerWidth >= 1024) {
+      window.setTimeout(() => guestName?.focus(), 50);
+    }
   } else {
-    window.setTimeout(() => phoneInput?.focus(), 50);
+    if (window.innerWidth >= 1024 && !currentPhone) {
+      window.setTimeout(() => phoneInput?.focus(), 50);
+    }
   }
 }
 
@@ -833,6 +887,11 @@ async function submitGuestBooking(event) {
     setStatus(guestStatus, 'Escolha uma data e um horário disponível.', 'error');
     return;
   }
+
+  guestPhone.blur();
+  guestName.blur();
+  document.activeElement?.blur();
+
   setButtonLoading(guestButton, true, 'Enviando pedido...');
   setStatus(guestStatus, 'Enviando sua solicitação...');
   const referral = document.getElementById('guestReferral')?.value?.trim() || '';
@@ -893,12 +952,17 @@ if (guestListContainer) {
 
     const notice = document.getElementById('guestSelectedNotice');
     if (notice) {
-      notice.className = 'p-2.5 rounded-xl bg-red-950/40 border border-red-900/40 text-red-200 text-xs font-medium mb-4 flex items-center gap-2';
+      notice.className = 'p-3 rounded-2xl bg-red-950/40 border border-red-900/40 text-red-200 text-xs font-medium mb-4 flex items-center gap-2';
       notice.innerHTML = '<svg class="w-4 h-4 text-red-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>Aula: <strong>' + escapeHTML(title) + '</strong></span>';
     }
 
     renderGuestClassList();
-    document.getElementById('guestName')?.focus();
+    if (window.innerWidth < 1024) {
+      const formCard = document.getElementById('guestBookingForm');
+      formCard?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      document.getElementById('guestName')?.focus();
+    }
   });
 }
 
@@ -926,8 +990,49 @@ if (btnSearchAgain) {
     dashboard.hidden = true;
     const searchCard = document.getElementById('studentSearchCard');
     if (searchCard) searchCard.style.display = 'block';
-    phoneInput.value = ""; try { localStorage.removeItem("tlf_student_phone"); } catch {}
+    phoneInput.value = "";
+    try { localStorage.removeItem("tlf_student_phone"); } catch {}
     phoneInput.focus();
     setStatus(studentStatus, '');
   });
+}
+
+// Resposta tátil instantânea no Android (elimina atraso de toque)
+document.addEventListener('touchstart', () => {}, { passive: true });
+
+// Auto-login do aluno via localStorage ou query params (?telefone= / ?phone=)
+function initStudentPortal() {
+  const hash = window.location.hash.toLowerCase();
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramPhone = urlParams.get('telefone') || urlParams.get('phone');
+  const isGuestMode = hash === '#experimental' || hash === '#guest' || urlParams.get('tab') === 'guest';
+
+  if (isGuestMode) {
+    switchMode(true);
+    return;
+  }
+
+  const storedPhone = paramPhone || (function() {
+    try { return localStorage.getItem('tlf_student_phone'); } catch (e) { return null; }
+  })();
+
+  if (storedPhone && phoneDigits(storedPhone).length >= 10) {
+    phoneInput.value = formatPhone(storedPhone);
+    currentPhone = phoneDigits(storedPhone);
+    dashboard.hidden = true;
+    setButtonLoading(searchButton, true, 'Carregando...');
+    setStatus(studentStatus, 'Carregando sua agenda...');
+    loadAgenda().catch(() => {
+      const searchCard = document.getElementById('studentSearchCard');
+      if (searchCard) searchCard.style.display = 'block';
+      setButtonLoading(searchButton, false);
+      setStatus(studentStatus, '');
+    });
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initStudentPortal);
+} else {
+  initStudentPortal();
 }

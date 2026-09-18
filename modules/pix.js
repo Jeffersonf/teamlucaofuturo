@@ -81,11 +81,34 @@ export async function openPixModal({ studentId, studentName, studentPhone, amoun
 
     // Botão de cópia
     const btnCopy = document.getElementById('btnCopyPix');
-    btnCopy.onclick = () => {
-      navigator.clipboard.writeText(data.pix_code);
-      btnCopy.textContent = 'Copiado!';
+    btnCopy.onclick = async () => {
+      let copied = false;
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(data.pix_code);
+          copied = true;
+        } catch (e) {}
+      }
+      if (!copied) {
+        try {
+          const tArea = document.createElement('textarea');
+          tArea.value = data.pix_code;
+          tArea.setAttribute('readonly', '');
+          tArea.style.position = 'fixed';
+          tArea.style.top = '-9999px';
+          tArea.style.left = '-9999px';
+          document.body.appendChild(tArea);
+          tArea.focus();
+          tArea.select();
+          tArea.setSelectionRange(0, 99999);
+          copied = document.execCommand('copy');
+          document.body.removeChild(tArea);
+        } catch (e) {}
+      }
+      if (copied && navigator.vibrate) { try { navigator.vibrate(40); } catch (e) {} }
+      btnCopy.textContent = copied ? 'Copiado!' : 'Erro ao copiar';
       setTimeout(() => { btnCopy.textContent = 'Copiar'; }, 2500);
-      if (typeof showToast === 'function') showToast('Código Pix copiado!');
+      if (typeof showToast === 'function') showToast(copied ? 'Código Pix copiado!' : 'Selecione e copie manualmente.');
     };
 
     // Botão de simular baixa automática
