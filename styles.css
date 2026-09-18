@@ -2030,8 +2030,18 @@ label {
 }
 
 @media (max-width: 980px) {
+  * {
+    -webkit-tap-highlight-color: transparent !important;
+  }
+
   .app {
-    padding: 14px 12px calc(var(--mobile-nav) + 16px + env(safe-area-inset-bottom, 0px));
+    padding: 14px 14px calc(var(--mobile-nav) + 32px + env(safe-area-inset-bottom, 0px));
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
   }
 
   .sidebar {
@@ -2041,14 +2051,16 @@ label {
     display: block !important;
     width: 100% !important;
     margin: 0;
-    padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px));
-    border-width: 1px 0 0;
-    border-radius: 18px 18px 0 0;
-    border-color: var(--line);
-    background: color-mix(in srgb, var(--surface) 96%, transparent);
-    box-shadow: 0 -8px 28px rgba(0, 0, 0, .2);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    padding: 6px 8px calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+    border-radius: 20px 20px 0 0 !important;
+    border-top: 1px solid var(--line) !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    border-bottom: 0 !important;
+    background: color-mix(in srgb, var(--surface) 96%, transparent) !important;
+    box-shadow: 0 -8px 28px rgba(0, 0, 0, .4) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
   }
 
   .sidebar .brand,
@@ -2057,18 +2069,8 @@ label {
   .nav-label,
   .secondary-nav { display: none !important; }
 
-  .sidebar {
-    padding: 6px 8px calc(8px + env(safe-area-inset-bottom)) !important;
-    border-radius: 20px 20px 0 0 !important;
-    border-top: 1px solid var(--line) !important;
-    border-left: 0 !important;
-    border-right: 0 !important;
-    border-bottom: 0 !important;
-    background: color-mix(in srgb, var(--surface) 95%, transparent) !important;
-    box-shadow: 0 -4px 24px rgba(0, 0, 0, .14) !important;
-    backdrop-filter: blur(24px) !important;
-    -webkit-backdrop-filter: blur(24px) !important;
-  }
+  .mobile-only { display: flex !important; }
+  .mobile-only-page.active { display: grid !important; }
 
   .nav {
     display: grid !important;
