@@ -4,7 +4,7 @@ const DATA_TABLES = [
 ];
 
 const TABLE_COLUMNS = {
-  alunos: ['id', 'nome', 'telefone', 'email', 'plano_id', 'plano_nome', 'mensalidade', 'dia_vencimento', 'status', 'nivel', 'dia_fixo', 'horario_fixo', 'turma_fixa', 'agendas_fixas', 'observacao', 'pago_ate', 'data_cadastro', 'indicado_por'],
+  alunos: ['id', 'nome', 'telefone', 'email', 'plano_id', 'plano_nome', 'mensalidade', 'dia_vencimento', 'status', 'nivel', 'dia_fixo', 'horario_fixo', 'turma_fixa', 'agendas_fixas', 'observacao', 'pago_ate', 'data_cadastro', 'indicado_por', 'saldo_reposicoes'],
   planos: ['id', 'nome', 'preco', 'aulas_semana', 'descricao', 'ativo'],
   aulas: ['id', 'data', 'horario', 'turma', 'tipo', 'professor', 'plano_id', 'plano_nome', 'capacidade', 'status', 'valor_avulso', 'extras', 'observacao'],
   aula_alunos: ['id', 'aula_id', 'aluno_id', 'presente', 'confirmado', 'confirmado_em', 'confirmado_professor', 'confirmado_professor_em', 'observacao'],
@@ -16,6 +16,72 @@ const TABLE_COLUMNS = {
 };
 
 const ACTIVE_WAITLIST_STATUSES = ['Novo', 'Contatado', 'Experimental marcado'];
+
+function crc16(str) {
+  let crc = 0xFFFF;
+  for (let i = 0; i < str.length; i++) {
+    crc ^= str.charCodeAt(i) << 8;
+    for (let j = 0; j < 8; j++) {
+      if ((crc & 0x8000) !== 0) {
+        crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+      } else {
+        crc = (crc << 1) & 0xFFFF;
+      }
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, '0');
+}
+
+function formatPixField(id, value) {
+  const str = String(value);
+  const len = String(str.length).padStart(2, '0');
+  return `${id}${len}${str}`;
+}
+
+function normalizePixText(text = '', maxLength = 25) {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9 ]/g, '')
+    .trim()
+    .slice(0, maxLength)
+    .toUpperCase();
+}
+
+function generatePixPayload({
+  key = 'arena@futevolei.com.br',
+  name = 'TEAM LUCAO ARENA',
+  city = 'SOROCABA',
+  amount = 0,
+  txid = 'MENSALIDADE'
+}) {
+  const cleanKey = String(key).trim();
+  const cleanName = normalizePixText(name, 25) || 'ARENA FUTVOLEI';
+  const cleanCity = normalizePixText(city, 15) || 'SAO PAULO';
+  const cleanTxid = normalizePixText(txid, 25) || 'TLF001';
+
+  const merchantAccount = formatPixField('00', 'br.gov.bcb.pix') + formatPixField('01', cleanKey);
+
+  let payload =
+    formatPixField('00', '01') +
+    formatPixField('26', merchantAccount) +
+    formatPixField('52', '0000') +
+    formatPixField('53', '986');
+
+  if (amount && Number(amount) > 0) {
+    payload += formatPixField('54', Number(amount).toFixed(2));
+  }
+
+  payload +=
+    formatPixField('58', 'BR') +
+    formatPixField('59', cleanName) +
+    formatPixField('60', cleanCity) +
+    formatPixField('62', formatPixField('05', cleanTxid)) +
+    '6304';
+
+  const checksum = crc16(payload);
+  return payload + checksum;
+}
 
 function json(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data), {
@@ -217,7 +283,8 @@ function normalizeStudent(body = {}) {
     agendas_fixas: JSON.stringify(schedules),
     observacao: String(body.observacao || body.note || ''),
     pago_ate: String(body.pago_ate || body.paidUntil || ''),
-    indicado_por: String(body.indicado_por || body.referredBy || body.indicacao || '').trim()
+    indicado_por: String(body.indicado_por || body.referredBy || body.indicacao || '').trim(),
+    saldo_reposicoes: int(body.saldo_reposicoes ?? body.saldo ?? 0, 0, 0, 999)
   };
 }
 
@@ -561,7 +628,7 @@ async function apiHandler(request, env, body) {
     return json({ ok: true, role: 'admin' });
   }
 
-  const isPublic = url.pathname.startsWith('/api/public/') || url.pathname === '/api/webhooks/pix' || (url.pathname === '/api/pix/config' && method === 'GET');
+  const isPublic = url.pathname.startsWith('/api/public/') || url.pathname === '/api/webhooks/pix' || (url.pathname === '/api/pix/config' && method === 'GET') || (url.pathname === '/api/arenas' && method === 'GET') || (url.pathname === '/api/arenas/current' && method === 'GET');
   if (!isPublic && url.pathname !== '/api/login') {
     if (!isValidPin(request.headers.get('x-admin-pin'))) return json({ ok: false, error: 'PIN invalido' }, 401);
   }
@@ -664,6 +731,102 @@ async function apiHandler(request, env, body) {
       await logAction(db, 'Configuração Pix', `Chave Pix atualizada para ${chave} (${tipo}).`, 'Professor');
       return json({ ok: true, chave_pix: chave, tipo_chave: tipo, beneficiario, cidade });
     }
+  }
+
+  if (url.pathname === '/api/pix/generate' && method === 'POST') {
+    const studentId = Number(body.aluno_id || body.studentId || 0);
+    const student = studentId ? await first(db, 'SELECT * FROM alunos WHERE id=?', [studentId]) : null;
+    await run(db, 'CREATE TABLE IF NOT EXISTS configuracoes (chave TEXT PRIMARY KEY, valor TEXT)');
+    const rowChave = await first(db, "SELECT valor FROM configuracoes WHERE chave='chave_pix'");
+    const rowBeneficiario = await first(db, "SELECT valor FROM configuracoes WHERE chave='beneficiario'");
+    const pixKey = String(rowChave?.valor || 'arena@futevolei.com.br');
+    const arenaName = String(rowBeneficiario?.valor || 'TEAM LUCAO ARENA');
+
+    const amount = money(body.valor ?? body.amount ?? student?.mensalidade ?? 220);
+    const reference = String(body.referencia || currentMonth());
+
+    const pixCode = generatePixPayload({
+      key: pixKey,
+      name: arenaName,
+      city: 'SOROCABA',
+      amount: amount,
+      txid: `TLF${studentId || 'AV'}${reference.replace('-', '')}`
+    });
+
+    return json({
+      ok: true,
+      pix_code: pixCode,
+      chave: pixKey,
+      valor: amount,
+      aluno_nome: student?.nome || 'Aluno Avulso',
+      referencia: reference,
+      expira_em_minutos: 60
+    });
+  }
+
+  if (url.pathname === '/api/pix/simulate-payment' && method === 'POST') {
+    const studentId = Number(body.aluno_id || body.studentId || 0);
+    const student = await first(db, 'SELECT * FROM alunos WHERE id=?', [studentId]);
+    if (!student) throw new Error('Aluno nao encontrado');
+
+    const reference = String(body.referencia || currentMonth());
+    const amount = money(body.valor ?? student.mensalidade);
+    const monthDueDate = String(body.vencimento || dueDateForMonth(student, reference)).slice(0, 10);
+    const paidUntil = student.pago_ate && student.pago_ate > monthDueDate ? student.pago_ate : monthDueDate;
+    const paidAt = today();
+
+    await run(db, 'UPDATE alunos SET pago_ate=? WHERE id=?', [paidUntil, student.id]);
+    await insertRow(db, 'pagamentos', {
+      aluno_id: student.id,
+      referencia: reference,
+      valor: amount,
+      vencimento: monthDueDate,
+      pago_em: paidAt,
+      status: 'PAGO',
+      forma_pagamento: 'Pix Automatico',
+      observacao: 'Baixa automatica via Webhook Pix'
+    });
+
+    await logAction(db, 'Pix Recebido', `Pagamento Pix de R$ ${amount.toFixed(2)} confirmado automaticamente para ${student.nome} (${reference}).`, 'Sistema');
+
+    return json({
+      ok: true,
+      mensagem: `Pagamento Pix de ${student.nome} confirmado com sucesso!`,
+      paidUntil,
+      student: await first(db, 'SELECT * FROM alunos WHERE id=?', [student.id])
+    });
+  }
+
+  if (url.pathname === '/api/arenas' && method === 'GET') {
+    await run(db, 'CREATE TABLE IF NOT EXISTS arenas (id INTEGER PRIMARY KEY AUTOINCREMENT, slug TEXT UNIQUE, nome TEXT, responsavel TEXT, telefone TEXT, chave_pix TEXT, tipo_chave_pix TEXT, cor_tema TEXT)');
+    return json({ ok: true, items: await all(db, 'SELECT * FROM arenas ORDER BY id') });
+  }
+
+  if (url.pathname === '/api/arenas/current' && method === 'GET') {
+    await run(db, 'CREATE TABLE IF NOT EXISTS arenas (id INTEGER PRIMARY KEY AUTOINCREMENT, slug TEXT UNIQUE, nome TEXT, responsavel TEXT, telefone TEXT, chave_pix TEXT, tipo_chave_pix TEXT, cor_tema TEXT)');
+    const arena = (await first(db, 'SELECT * FROM arenas ORDER BY id LIMIT 1')) || {
+      slug: 'team-lucao',
+      nome: 'Team Lucão Futevôlei',
+      responsavel: 'Lucão',
+      chave_pix: 'lucao@futevolei.com.br'
+    };
+    return json({ ok: true, arena });
+  }
+
+  if (url.pathname === '/api/arenas' && method === 'POST') {
+    await run(db, 'CREATE TABLE IF NOT EXISTS arenas (id INTEGER PRIMARY KEY AUTOINCREMENT, slug TEXT UNIQUE, nome TEXT, responsavel TEXT, telefone TEXT, chave_pix TEXT, tipo_chave_pix TEXT, cor_tema TEXT)');
+    const nome = String(body.nome || '').trim();
+    if (!nome) throw new Error('Nome da arena obrigatorio');
+    const slug = String(body.slug || nome.toLowerCase().replace(/[^a-z0-9]+/g, '-')).trim();
+    const result = await insertRow(db, 'arenas', {
+      slug,
+      nome,
+      responsavel: String(body.responsavel || '').trim(),
+      telefone: String(body.telefone || '').trim(),
+      chave_pix: String(body.chave_pix || '').trim(),
+      cor_tema: String(body.cor_tema || '#0d9488').trim()
+    });
+    return json({ ok: true, item: await first(db, 'SELECT * FROM arenas WHERE id=?', [result.id]) });
   }
 
   if (url.pathname === '/api/public/group-summary' && method === 'GET') {
@@ -951,6 +1114,40 @@ async function apiHandler(request, env, body) {
     await run(db, 'UPDATE aula_alunos SET confirmado_professor=?, confirmado_professor_em=? WHERE aula_id=? AND aluno_id=?', [action === 'approve' ? 'sim' : '', action === 'approve' ? new Date().toISOString() : '', path[2], studentId]);
     await logAction(db, action === 'approve' ? 'Confirmacao professor' : 'Confirmacao professor removida', `${student.nome} ${action === 'approve' ? 'foi confirmado(a)' : 'deixou de estar confirmado(a)'} na aula ${classItem.horario} - ${classItem.turma || 'Turma'} em ${classItem.data}.`, 'Professor');
     return json({ ok: true, item: await classWithStudents(db, classItem) });
+  }
+
+  if (path[1] === 'classes' && path.length === 4 && path[3] === 'cancel-rain' && method === 'POST') {
+    const classId = Number(path[2]);
+    const classItem = await first(db, 'SELECT * FROM aulas WHERE id=?', [classId]);
+    if (!classItem) throw new Error('Aula nao encontrada');
+
+    await run(db, "UPDATE aulas SET status = 'Cancelada (Chuva)' WHERE id=?", [classId]);
+
+    const enrolled = await all(db, `
+      SELECT aa.aluno_id, a.nome, a.telefone, COALESCE(a.saldo_reposicoes, 0) as saldo
+      FROM aula_alunos aa
+      JOIN alunos a ON a.id = aa.aluno_id
+      WHERE aa.aula_id = ?
+    `, [classId]);
+
+    const affected = [];
+    for (const student of enrolled) {
+      await run(db, 'UPDATE alunos SET saldo_reposicoes = COALESCE(saldo_reposicoes, 0) + 1 WHERE id=?', [student.aluno_id]);
+      affected.push({ id: student.aluno_id, nome: student.nome, novo_saldo: student.saldo + 1 });
+    }
+
+    const turmaDesc = `${classItem.horario} - ${classItem.turma || 'Turma'} (${classItem.data})`;
+    await logAction(db, 'Cancelamento por Chuva', `Aula ${turmaDesc} cancelada por chuva. +1 credito de reposicao concedido para ${affected.length} aluno(s).`, 'Professor');
+
+    const whatsappMsg = `🌧️ *Aviso de Chuva - Team Lucao*\n\nGalera, devido as condicoes climaticas/chuva, a aula de *${classItem.turma || 'Futevolei'}* de hoje (*${classItem.horario}*) foi *cancelada por chuva*.\n\n✅ Todos os ${affected.length} alunos previstos ganharam *+1 credito de reposicao* automatico no sistema para agendar em outra data!\n\nQualquer duvida, estamos a disposicao! ⚽👊`;
+
+    return json({
+      ok: true,
+      item: await classWithStudents(db, await first(db, 'SELECT * FROM aulas WHERE id=?', [classId])),
+      mensagem: `Aula cancelada por chuva. ${affected.length} credito(s) de reposicao concedido(s).`,
+      alunos_afetados: affected,
+      whatsapp_msg: whatsappMsg
+    });
   }
 
   if (path[1] === 'bookings' && path.length === 3 && method === 'POST' && path[2] !== 'respond') return json(await respondBooking(db, path[2], body));

@@ -20,12 +20,12 @@ const PAGE_KEY = 'tlf_last_page';
 const CONFIG_KEY = 'tlf_admin_config_v1';
 const ACTION_REFRESH_MS = 15000;
 const STANDARD_CLASS_SLOTS = Object.freeze([
-  { day: 1, label: 'Segunda', times: ['18:30', '19:30', '20:30'] },
-  { day: 2, label: 'Terça', times: ['18:30', '19:30', '20:30'] },
-  { day: 3, label: 'Quarta', times: ['18:30', '19:30', '20:30'] },
-  { day: 4, label: 'Quinta', times: ['18:30', '19:30', '20:30'] },
-  { day: 5, label: 'Sexta', times: ['18:30', '19:30', '20:30'] },
-  { day: 6, label: 'Sábado', times: ['09:00', '10:00', '14:00', '15:00'] }
+  { day: 1, label: 'Segunda', times: ['08:00', '09:00', '17:30', '18:30', '19:30', '20:30'] },
+  { day: 2, label: 'Terça', times: ['08:00', '09:00', '17:30', '18:30', '19:30', '20:30'] },
+  { day: 3, label: 'Quarta', times: ['08:00', '09:00', '17:30', '18:30', '19:30', '20:30'] },
+  { day: 4, label: 'Quinta', times: ['08:00', '09:00', '17:30', '18:30', '19:30', '20:30'] },
+  { day: 5, label: 'Sexta', times: ['08:00', '09:00', '17:30', '18:30', '19:30', '20:30'] },
+  { day: 6, label: 'Sábado', times: ['08:00', '09:00', '10:00', '14:00'] }
 ]);
 const MOBILE_MORE_PAGES = ['bookings', 'actions', 'waitlist', 'plans', 'reports', 'settings'];
 const PAGE_TITLES = {
@@ -1420,7 +1420,7 @@ function renderBookings() {
   if (summary) {
     summary.innerHTML = `
       <article class="mini-stat ${pending.length ? 'kpi-warn' : 'kpi-ok'}"><span>Aguardando</span><strong>${pending.length}</strong></article>
-      <article class="mini-stat ${experimentalsPending.length ? 'kpi-warn' : ''}" style="${experimentalsPending.length ? 'border-color: rgba(245,158,11,0.4);' : ''}"><span>🧪 Experimentais</span><strong style="${experimentalsPending.length ? 'color: #fbbf24;' : ''}">${experimentalsPending.length}</strong></article>
+      <article class="mini-stat ${experimentalsPending.length ? 'kpi-warn' : ''}" style="${experimentalsPending.length ? 'border-color: rgba(245,158,11,0.4);' : ''}"><span>Experimentais</span><strong style="${experimentalsPending.length ? 'color: #fbbf24;' : ''}">${experimentalsPending.length}</strong></article>
       <article class="mini-stat kpi-ok"><span>Aprovados</span><strong>${approved.length}</strong></article>
       <article class="mini-stat"><span>Total</span><strong>${bookings.length}</strong></article>
     `;
@@ -1443,7 +1443,7 @@ function renderBookings() {
           <div class="booking-titleline">
             <h3 style="display:flex; align-items:center; gap:8px;">
               ${escapeHTML(booking.nome)}
-              ${isExp ? '<span class="pill warn" style="font-size:10px; font-weight:700; background:rgba(245,158,11,0.18); color:#fbbf24; border:1px solid rgba(245,158,11,0.35);">🧪 Experimental</span>' : ''}
+              ${isExp ? '<span class="pill warn" style="font-size:10px; font-weight:700; background:rgba(245,158,11,0.14); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);"><span class="status-dot-6px amber" style="margin-right:4px;"></span>Experimental</span>' : ''}
             </h3>
             <span class="pill ${bookingStatusTone(status)}">${escapeHTML(status)}</span>
           </div>
@@ -1480,7 +1480,7 @@ function renderBookings() {
         <div style="margin-top: 24px; padding: 16px; border: 1px dashed rgba(245,158,11,0.35); border-radius: 18px; background: rgba(245,158,11,0.04);">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
             <strong style="display:flex; align-items:center; gap:6px; color:#fbbf24; font-size:14px;">
-              🧪 Experimentais na Fila de Espera (${waitlistExp.length})
+              <span class="status-dot-6px amber"></span> Experimentais na Fila de Espera (${waitlistExp.length})
             </strong>
             <small style="color: var(--muted);">Interessados aguardando confirmação de horário</small>
           </div>
@@ -1862,7 +1862,7 @@ function renderPlanOptions(selected = '') {
 function fixedDayOptions(selected = '') {
   return [
     ['', 'Selecione o dia'], ['1', 'Segunda'], ['2', 'Terça'], ['3', 'Quarta'],
-    ['4', 'Quinta'], ['5', 'Sexta'], ['6', 'Sábado'], ['0', 'Domingo']
+    ['4', 'Quinta'], ['5', 'Sexta'], ['6', 'Sábado']
   ].map(([value, label]) => `<option value="${value}" ${String(selected) === value ? 'selected' : ''}>${label}</option>`).join('');
 }
 
@@ -2317,13 +2317,14 @@ function classGroupMessageText(item, template = 'confirm') {
       msg += `\n⚠️ _Se for faltar, desmarque pelo link com antecedência para liberar a vaga pro parceiro!_ 👊`;
       return msg;
     } else {
+      const eveningClasses = todayClasses.filter((c) => c.horario >= '12:00');
       let msg = `🔥 *Chamada pros treinos de hoje à noite!* 🏐\n\n`;
       msg += `Fique por dentro das turmas e garanta sua vaga de última hora:\n👉 ${portalUrl}\n\n`;
       msg += `📅 *QUADRO DE HOJE À NOITE (${dateFormatted})*:\n`;
-      if (todayClasses.length === 0) {
-        msg += `_Nenhum treino agendado para hoje._\n`;
+      if (eveningClasses.length === 0) {
+        msg += `_Nenhum treino agendado para o período da tarde/noite hoje._\n`;
       } else {
-        todayClasses.forEach((c) => {
+        eveningClasses.forEach((c) => {
           const students = classStudents(c);
           const confirmed = students.filter((s) => c.presencas?.[s.aluno_id || s.id] === 'sim' || s.confirmado === 'sim');
           const cap = Number(c.capacidade || 8);

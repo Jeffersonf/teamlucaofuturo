@@ -4,9 +4,10 @@
  * Limpa e formata o telefone para o padrão internacional do WhatsApp (ex: 5515999999999)
  */
 export function formatPhoneForWhatsApp(phone) {
-  const digits = String(phone || '').replace(/\D/g, '');
+  let digits = String(phone || '').replace(/\D/g, '');
   if (!digits) return '';
   if (digits.startsWith('55') && digits.length >= 12) return digits;
+  if (digits.length === 8 || digits.length === 9) digits = `15${digits}`;
   if (digits.length >= 10) return `55${digits}`;
   return digits;
 }

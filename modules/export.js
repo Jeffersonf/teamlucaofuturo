@@ -32,6 +32,13 @@ export function downloadCsv(filename, headers, rows) {
   URL.revokeObjectURL(url);
 }
 
+function notifyToast(ctx, msg) {
+  const fn = ctx?.toast || ctx?.showToast;
+  if (typeof fn === 'function') {
+    fn(msg);
+  }
+}
+
 /**
  * Exporta as mensalidades do mês selecionado
  */
@@ -74,14 +81,14 @@ export function exportMonthlyPaymentsCsv(ctx, month) {
 
   const filename = `mensalidades-team-lucao-${targetMonth}.csv`;
   downloadCsv(filename, headers, rows);
-  ctx.toast(`Arquivo ${filename} exportado com sucesso!`);
+  notifyToast(ctx, `Arquivo ${filename} exportado com sucesso!`);
 }
 
 /**
  * Exporta a base completa de alunos
  */
 export function exportStudentsCsv(ctx) {
-  const students = ctx.state.alunos || [];
+  const students = ctx.state.students || ctx.state.alunos || [];
 
   const headers = [
     'ID',
@@ -118,15 +125,16 @@ export function exportStudentsCsv(ctx) {
   const todayIso = new Date().toISOString().slice(0, 10);
   const filename = `alunos-team-lucao-${todayIso}.csv`;
   downloadCsv(filename, headers, rows);
-  ctx.toast(`Base de alunos exportada (${students.length} registros)!`);
+  notifyToast(ctx, `Base de alunos exportada (${students.length} registros)!`);
 }
 
 /**
  * Exporta histórico de pagamentos realizados
  */
 export function exportPaymentHistoryCsv(ctx) {
-  const payments = ctx.state.pagamentos || [];
-  const studentMap = new Map((ctx.state.alunos || []).map((s) => [s.id, s.nome]));
+  const payments = ctx.state.payments || ctx.state.pagamentos || [];
+  const students = ctx.state.students || ctx.state.alunos || [];
+  const studentMap = new Map(students.map((s) => [s.id, s.nome]));
 
   const headers = [
     'ID Pagamento',
@@ -157,5 +165,5 @@ export function exportPaymentHistoryCsv(ctx) {
   const todayIso = new Date().toISOString().slice(0, 10);
   const filename = `historico-pagamentos-${todayIso}.csv`;
   downloadCsv(filename, headers, rows);
-  ctx.toast(`Histórico de ${payments.length} pagamentos exportado!`);
+  notifyToast(ctx, `Histórico de ${payments.length} pagamentos exportado!`);
 }

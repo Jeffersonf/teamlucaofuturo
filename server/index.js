@@ -144,7 +144,7 @@ function addMonthsIso(dateIso, months = 1) {
 }
 
 function currentMonth() {
-  return new Date().toISOString().slice(0, 7);
+  return today().slice(0, 7);
 }
 
 function phoneDigits(value = '') {
