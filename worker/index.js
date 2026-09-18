@@ -420,7 +420,12 @@ async function upsertClassStudents(db, classId, studentIds = [], attendance = {}
   for (const item of current) if (!cleanIds.includes(Number(item.aluno_id))) await run(db, 'DELETE FROM aula_alunos WHERE aula_id=? AND aluno_id=?', [classId, item.aluno_id]);
   for (const studentId of cleanIds) {
     const present = attendance[String(studentId)] || attendance[studentId] ? 1 : 0;
-    await run(db, `INSERT OR IGNORE INTO aula_alunos (aula_id, aluno_id, presente) VALUES (?, ?, ?)`, [classId, studentId, present]);
+    const existing = await first(db, 'SELECT id FROM aula_alunos WHERE aula_id=? AND aluno_id=?', [classId, studentId]);
+    if (existing) {
+      await run(db, 'UPDATE aula_alunos SET presente=? WHERE id=?', [present, existing.id]);
+    } else {
+      await run(db, 'INSERT INTO aula_alunos (aula_id, aluno_id, presente) VALUES (?, ?, ?)', [classId, studentId, present]);
+    }
   }
 }
 

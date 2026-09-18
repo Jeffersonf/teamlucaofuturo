@@ -1975,6 +1975,7 @@ function escapeHTML(value) {
 function openModal(id) {
   const modalWrap = document.getElementById(id);
   if (!modalWrap) return;
+  const wasAlreadyOpen = modalWrap.classList.contains('open');
   if (!document.querySelector('.modal-wrap.open') && document.activeElement instanceof HTMLElement) {
     lastModalTrigger = document.activeElement;
   }
@@ -1988,10 +1989,12 @@ function openModal(id) {
   modalWrap.setAttribute('aria-hidden', 'false');
   document.body.classList.add('modal-open');
   const modal = modalWrap.querySelector('.modal');
-  if (modal) modal.scrollTop = 0;
-  requestAnimationFrame(() => {
-    modalWrap.querySelector('input:not([type="hidden"]), select, textarea, button.close')?.focus();
-  });
+  if (modal && !wasAlreadyOpen) modal.scrollTop = 0;
+  if (!wasAlreadyOpen) {
+    requestAnimationFrame(() => {
+      modalWrap.querySelector('input:not([type="hidden"]), select, textarea, button.close')?.focus();
+    });
+  }
 }
 
 function closeModal(id) {
@@ -3619,28 +3622,98 @@ async function addExtraAttendance(event) {
   const item = classById(activeAttendanceClassId);
   if (!item) return;
   const input = document.getElementById('extraAttendanceName');
-  const name = input.value.trim();
-  if (!name) return;
-  const type = document.getElementById('extraAttendanceType').value || 'Avulso';
-  item.extra_presentes = [...classExtras(item), { id: uid(), nome: name, tipo: type, criado_em: todayISO() }];
-  recordAction('Professor', 'Fora da lista', `${name} entrou como ${type} na aula ${item.horario} - ${item.turma || 'Turma'}.`);
+  const rawName = (input.value || '').trim();
+  if (!rawName) return;
+  const type = document.getElementById('extraAttendanceType').value || 'Sem confirmação';
+
+  // Verifica se rawName corresponde a algum aluno cadastrado (exato ou sem sufixo de plano)
+  const cleanName = rawName.split('•')[0].trim().toLowerCase();
+  const matchedStudent = (state.students || []).find((s) => {
+    const sName = String(s.nome || '').trim().toLowerCase();
+    return sName === cleanName || sName === rawName.toLowerCase();
+  });
+
+  const enrolledIds = classStudentIds(item).map(String);
+
+  if (matchedStudent) {
+    const studentIdStr = String(matchedStudent.id);
+    if (enrolledIds.includes(studentIdStr)) {
+      item.presencas = item.presencas || {};
+      item.presencas[matchedStudent.id] = true;
+      recordAction('Professor', 'Presenca', `${matchedStudent.nome} já estava na lista e foi marcado(a) presente na aula ${item.horario} - ${item.turma || 'Turma'}.`);
+      toast(`${matchedStudent.nome} já estava na turma e foi marcado(a) presente!`);
+    } else {
+      const extraEntry = {
+        id: uid(),
+        aluno_id: matchedStudent.id,
+        nome: matchedStudent.nome,
+        tipo: type,
+        plano_nome: matchedStudent.plano_nome || 'Sem plano',
+        criado_em: todayISO()
+      };
+      item.extra_presentes = [...classExtras(item), extraEntry];
+      item.aluno_ids = [...new Set([...classStudentIds(item), matchedStudent.id])];
+      item.presencas = item.presencas || {};
+      item.presencas[matchedStudent.id] = true;
+      recordAction('Professor', 'Fora da lista', `${matchedStudent.nome} entrou como ${type} na aula ${item.horario} - ${item.turma || 'Turma'}.`);
+      toast(`${matchedStudent.nome} (${type}) adicionado(a) e marcado(a) presente!`);
+    }
+  } else {
+    const extraEntry = {
+      id: uid(),
+      nome: rawName,
+      tipo: type,
+      criado_em: todayISO()
+    };
+    item.extra_presentes = [...classExtras(item), extraEntry];
+    recordAction('Professor', 'Fora da lista', `${rawName} entrou como ${type} na aula ${item.horario} - ${item.turma || 'Turma'}.`);
+    const cleanVisitorName = rawName.replace(/^visitante\s+/i, '');
+    toast(`Visitante ${cleanVisitorName} adicionado(a) como ${type}!`);
+  }
+
   input.value = '';
-  document.getElementById('extraAttendanceType').value = 'Avulso';
-  await saveClassItem(item);
+  document.getElementById('extraAttendanceType').value = 'Sem confirmação';
+
+  // Atualização otimista imediata no DOM (0ms de latência)
+  touchState();
   openAttendance(item.id);
-  toast('Avulso adicionado');
+
+  // Persistência em background
+  try {
+    await saveClassItem(item);
+  } catch (err) {
+    toast(`Erro ao salvar no servidor: ${err.message}`);
+  }
 }
 
 async function removeExtraAttendance(classId, index) {
   const item = classById(classId);
   if (!item) return;
-  item.extra_presentes = [...classExtras(item)];
-  const removed = item.extra_presentes[Number(index)];
-  item.extra_presentes.splice(Number(index), 1);
+  const extras = [...classExtras(item)];
+  const removed = extras[Number(index)];
+  if (!removed) return;
+  extras.splice(Number(index), 1);
+  item.extra_presentes = extras;
+
+  if (removed.aluno_id) {
+    delete item.presencas?.[removed.aluno_id];
+    delete item.presencas?.[String(removed.aluno_id)];
+    item.aluno_ids = (item.aluno_ids || []).filter((id) => String(id) !== String(removed.aluno_id));
+  }
+
   recordAction('Professor', 'Fora da lista removido', `${removed?.nome || 'Pessoa'} foi removido(a) da aula ${item.horario} - ${item.turma || 'Turma'}.`);
-  await saveClassItem(item);
+  toast('Removido da aula');
+
+  // Atualização otimista imediata no DOM
+  touchState();
   openAttendance(classId);
-  toast('Avulso removido');
+
+  // Persistência em background
+  try {
+    await saveClassItem(item);
+  } catch (err) {
+    toast(`Erro ao remover no servidor: ${err.message}`);
+  }
 }
 
 async function setClassAttendance(classId, present) {
@@ -3649,14 +3722,23 @@ async function setClassAttendance(classId, present) {
   item.presencas = item.presencas || {};
   classStudentIds(item).forEach((studentId) => { item.presencas[studentId] = present; });
   if (!apiMode) recordAction('Professor', 'Presenca em massa', `${item.turma || 'Turma'} teve presencas ${present ? 'marcadas' : 'limpas'}.`);
-  if (apiMode) {
-    await api(`/api/classes/${classId}/attendance`, { method: 'PUT', body: JSON.stringify({ attendance: item.presencas }) });
-    await loadData();
-  } else {
-    saveAndRender();
-  }
-  openAttendance(classId);
   toast(present ? 'Turma marcada presente' : 'Presenças limpas');
+
+  // Atualização otimista imediata no DOM
+  touchState();
+  openAttendance(classId);
+
+  // Persistência em background
+  try {
+    if (apiMode) {
+      await api(`/api/classes/${classId}/attendance`, { method: 'PUT', body: JSON.stringify({ attendance: item.presencas }) });
+      await loadData();
+    } else {
+      saveAndRender();
+    }
+  } catch (err) {
+    toast(`Erro ao salvar presenças: ${err.message}`);
+  }
 }
 
 async function toggleAttendance(classId, studentId) {
@@ -3666,13 +3748,22 @@ async function toggleAttendance(classId, studentId) {
   item.presencas[studentId] = !item.presencas[studentId];
   const student = studentById(studentId);
   if (!apiMode) recordAction('Professor', 'Presenca', `${student?.nome || 'Aluno'} foi ${item.presencas[studentId] ? 'marcado presente' : 'desmarcado'} na aula ${item.horario} - ${item.turma || 'Turma'}.`);
-  if (apiMode) {
-    await api(`/api/classes/${classId}/attendance`, { method: 'PUT', body: JSON.stringify({ attendance: item.presencas }) });
-    await loadData();
-  } else {
-    saveAndRender();
-  }
+
+  // Atualização otimista imediata no DOM
+  touchState();
   openAttendance(classId);
+
+  // Persistência em background
+  try {
+    if (apiMode) {
+      await api(`/api/classes/${classId}/attendance`, { method: 'PUT', body: JSON.stringify({ attendance: item.presencas }) });
+      await loadData();
+    } else {
+      saveAndRender();
+    }
+  } catch (err) {
+    toast(`Erro ao registrar presença: ${err.message}`);
+  }
 }
 
 async function confirmStudentAttendance(classId, studentId, action = 'approve') {

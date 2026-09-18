@@ -181,6 +181,18 @@ export function openAttendance(ctx, classId) {
   const absentLikely = enrolled.filter((student) => (student.confirmado || student.confirmacao) === 'nao').length;
   const pendingTeacher = confirmation.pendingTeacher;
 
+  // Popula o datalist para sugestão instantânea com alunos cadastrados
+  const datalist = document.getElementById('studentsAttendanceDatalist');
+  if (datalist && ctx.state?.students) {
+    const enrolledSet = new Set(ids.map(String));
+    const activeStudents = ctx.state.students.filter((s) => (s.status || 'Ativo') !== 'Pausado');
+    datalist.innerHTML = activeStudents.map((s) => {
+      const alreadyIn = enrolledSet.has(String(s.id)) ? ' (já na turma)' : '';
+      const plan = s.plano_nome ? ` • ${s.plano_nome}` : '';
+      return `<option value="${ctx.escapeHTML(s.nome)}">${ctx.escapeHTML(s.nome + plan + alreadyIn)}</option>`;
+    }).join('');
+  }
+
   const titleElem = document.getElementById('attendanceTitle');
   if (titleElem) {
     titleElem.innerHTML = `
@@ -217,7 +229,7 @@ export function openAttendance(ctx, classId) {
             ${phone ? `<a class="pill" href="${ctx.whatsappUrl(phone, `Oi ${student.nome}, tudo bem? Aqui é do Team Lucão. Você confirma a aula de hoje às ${item.horario}?`)}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
           </div>
         </div>
-        <button class="mini-btn ${present ? 'present' : ''}" data-toggle-attendance="${item.id}:${id}">
+        <button class="mini-btn ${present ? 'present' : ''}" type="button" data-toggle-attendance="${item.id}:${id}">
           ${present ? 'Presente' : 'Marcar'}
         </button>
       </div>
@@ -227,17 +239,73 @@ export function openAttendance(ctx, classId) {
 
   const extraElem = document.getElementById('extraAttendanceList');
   if (extraElem) {
-    extraElem.innerHTML = extras.length ? extras.map((extra, index) => `
-      <article class="row-card compact-row">
-        <div>
-          <h3>${ctx.escapeHTML(extra.nome || extra)}</h3>
-          <p class="meta">${ctx.escapeHTML(ctx.extraType(extra))} - fora da lista prevista</p>
-        </div>
-        <div class="actions">
-          <button class="mini-btn danger-mini" data-remove-extra="${item.id}:${index}">Remover</button>
-        </div>
-      </article>
-    `).join('') : ctx.empty('Nenhum aluno avulso ou reposição nesta aula.');
+    extraElem.innerHTML = extras.length ? extras.map((extra, index) => {
+      const studentId = extra.aluno_id || extra.id_aluno;
+      const fullStudent = studentId ? ctx.studentById(studentId) : null;
+      const extraName = extra.nome || fullStudent?.nome || (typeof extra === 'string' ? extra : 'Aluno');
+      const typeLabel = ctx.extraType(extra);
+      const isLinked = Boolean(fullStudent || studentId);
+
+      const initials = (extraName || 'EX')
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((p) => p[0])
+        .join('')
+        .toUpperCase() || 'EX';
+
+      if (isLinked && fullStudent) {
+        const weeklyCount = ctx.weeklyAttendanceCount(fullStudent.id, item.data);
+        const weeklyTarget = ctx.planWeeklyTarget(fullStudent);
+        return `
+          <article class="row-card compact-row extra-student-card" style="border-left: 3px solid #22c55e; background: rgba(34, 197, 94, 0.05); border-radius: 12px; margin-bottom: 8px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(34, 197, 94, 0.18); color: #22c55e; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0;">
+                ${initials}
+              </div>
+              <div style="min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                  <button type="button" data-report-student="${fullStudent.id}" style="background:none; border:none; padding:0; color:#fff; font-weight:700; font-size:14px; cursor:pointer; text-decoration:underline; text-underline-offset:2px;">
+                    ${ctx.escapeHTML(fullStudent.nome)}
+                  </button>
+                  <span class="pill ok" style="font-size:10px; padding:2px 6px;">✓ Presente</span>
+                  <span class="pill warn" style="font-size:10px; padding:2px 6px;">${ctx.escapeHTML(typeLabel)}</span>
+                </div>
+                <p class="meta" style="margin:2px 0 0; font-size:12px; color:#a1a1aa;">
+                  ${ctx.escapeHTML(fullStudent.plano_nome || 'Aluno')} • ${weeklyCount}/${weeklyTarget || '-'} na semana
+                </p>
+              </div>
+            </div>
+            <div class="actions" style="margin: 0; flex-shrink: 0;">
+              <button class="mini-btn danger-mini" type="button" data-remove-extra="${item.id}:${index}">Remover</button>
+            </div>
+          </article>
+        `;
+      }
+
+      return `
+        <article class="row-card compact-row extra-visitor-card" style="border-left: 3px solid #eab308; background: rgba(234, 179, 8, 0.05); border-radius: 12px; margin-bottom: 8px; padding: 10px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(234, 179, 8, 0.18); color: #eab308; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0;">
+              ${initials}
+            </div>
+            <div style="min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <strong style="color:#fff; font-size:14px;">${ctx.escapeHTML(extraName)}</strong>
+                <span class="pill ok" style="font-size:10px; padding:2px 6px;">✓ Presente</span>
+                <span class="pill" style="font-size:10px; padding:2px 6px;">${ctx.escapeHTML(typeLabel)}</span>
+              </div>
+              <p class="meta" style="margin:2px 0 0; font-size:12px; color:#a1a1aa;">
+                Visitante externo / não cadastrado
+              </p>
+            </div>
+          </div>
+          <div class="actions" style="margin: 0; flex-shrink: 0;">
+            <button class="mini-btn danger-mini" type="button" data-remove-extra="${item.id}:${index}">Remover</button>
+          </div>
+        </article>
+      `;
+    }).join('') : ctx.empty('Nenhum aluno avulso ou reposição nesta aula.');
   }
 
   ctx.openModal('attendanceModal');

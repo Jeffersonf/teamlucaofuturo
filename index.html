@@ -1109,19 +1109,28 @@
             <button class="soft-btn" type="button" id="copyAttendance">Copiar resumo</button>
             <button class="soft-btn attendance-muted" type="button" id="clearAttendance">Limpar</button>
           </div>
+
+          <div class="section-label" style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; margin-bottom:8px;">
+            <span>Atletas da Turma</span>
+          </div>
+          <div class="check-list" id="attendanceList"></div>
+
+          <div class="section-label" style="display:flex; justify-content:space-between; align-items:center; margin-top:22px; margin-bottom:8px;">
+            <span>Adicionar Aluno que Compareceu / Fora da Lista</span>
+          </div>
           <form class="extra-attendance" id="extraAttendanceForm">
-            <input id="extraAttendanceName" placeholder="Nome de quem veio sem estar na aula" />
-            <select id="extraAttendanceType" aria-label="Tipo de avulso">
+            <input id="extraAttendanceName" list="studentsAttendanceDatalist" placeholder="Buscar aluno da escola ou digitar visitante..." autocomplete="off" />
+            <datalist id="studentsAttendanceDatalist"></datalist>
+            <select id="extraAttendanceType" aria-label="Tipo de presença">
+              <option value="Sem confirmação">Sem confirmação</option>
+              <option value="Reposição">Reposição</option>
               <option value="Avulso">Avulso</option>
-              <option value="Reposicao">Reposição</option>
               <option value="Experimental">Experimental</option>
               <option value="Visitante">Visitante</option>
             </select>
-            <button class="soft-btn" type="submit">Adicionar avulso</button>
+            <button class="soft-btn attendance-primary" type="submit">+ Adicionar</button>
           </form>
-          <div class="check-list" id="attendanceList"></div>
-          <div class="section-label">Avulsos / fora da lista</div>
-          <div class="list" id="extraAttendanceList"></div>
+          <div class="list" id="extraAttendanceList" style="margin-top:10px;"></div>
         </div>
         <div class="modal-footer">
           <button class="soft-btn" type="button" data-close="attendanceModal">Fechar</button>

@@ -355,7 +355,12 @@ function upsertClassStudents(classId, studentIds = [], attendance = {}) {
   });
   cleanIds.forEach((studentId) => {
     const present = attendance[String(studentId)] || attendance[studentId] ? 1 : 0;
-    run('INSERT OR IGNORE INTO aula_alunos (aula_id, aluno_id, presente) VALUES (?, ?, ?)', [classId, studentId, present]);
+    const existing = row('SELECT id FROM aula_alunos WHERE aula_id=? AND aluno_id=?', [classId, studentId]);
+    if (existing) {
+      run('UPDATE aula_alunos SET presente=? WHERE id=?', [present, existing.id]);
+    } else {
+      run('INSERT INTO aula_alunos (aula_id, aluno_id, presente) VALUES (?, ?, ?)', [classId, studentId, present]);
+    }
   });
 }
 

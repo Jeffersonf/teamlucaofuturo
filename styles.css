@@ -2461,8 +2461,42 @@ label {
   color: var(--accent);
 }
 
-.extra-attendance input { flex: 1 1 220px; }
-.extra-attendance select { flex: 0 1 160px; }
+.extra-attendance input {
+  flex: 1 1 240px;
+  height: 38px;
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  color: #fff;
+  padding: 0 12px;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.extra-attendance input:focus {
+  border-color: #ef4444;
+}
+
+.extra-attendance select {
+  flex: 0 1 170px;
+  height: 38px;
+  background: #18181b;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  color: #fff;
+  padding: 0 10px;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+
+.extra-attendance button {
+  height: 38px;
+  padding: 0 16px;
+  white-space: nowrap;
+}
+
 .attendance-title-pills { margin-top: 8px; }
 
 .check-item.checked-in {
