@@ -1876,26 +1876,18 @@ function classRow(item) {
   const isToday = item.data === todayISO();
   const id = escapeHTML(item.id);
   return `
-    <article class="row-card class-row class-${cssToken(item.status || 'Marcada')} type-${cssToken(classType(item))}" style="${isToday ? 'border-left: 3px solid #dc2626;' : ''}">
+    <article class="row-card class-row class-${cssToken(item.status || 'Marcada')} type-${cssToken(classType(item))}">
       <div>
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap;">
-          <strong style="font-size:16px; color:#fff;">${item.horario} • ${escapeHTML(item.turma || 'Turma')}</strong>
-          <span class="pill" style="font-size:11px;">${formatDate(item.data)}</span>
-          ${isToday ? '<span class="pill ok" style="font-weight:700;">Hoje</span>' : ''}
-          <span class="pill ${operationTone}">${escapeHTML(operationLabel)}</span>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:4px;">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <strong style="font-size:16px; color:#fff; font-weight:700;">${item.horario} • ${escapeHTML(item.turma || 'Turma')}</strong>
+            ${isToday ? '<span class="pill ok" style="font-weight:700; font-size:10px;">Hoje</span>' : `<span class="pill" style="font-size:10px;">${formatDate(item.data)}</span>`}
+          </div>
+          <span class="pill ${operationTone}" style="font-size:11px;">${escapeHTML(item.status || 'Marcada')}</span>
         </div>
-        <p class="meta">${escapeHTML(item.professor || 'Professor não informado')} • ${enrolled.length}/${item.capacidade || 8} atletas previstos • ${present} presenças</p>
-        <div class="pill-row" style="margin-top:6px;">
-          <span class="pill ok">${confirmation.yes} confirmados</span>
-          ${confirmation.pendingTeacher ? `<span class="pill warn">${confirmation.pendingTeacher} aguardando professor</span>` : ''}
-          ${confirmation.no ? `<span class="pill bad">${confirmation.no} ausentes</span>` : ''}
-          ${confirmation.open ? `<span class="pill warn">${confirmation.open} sem resposta</span>` : ''}
-          ${extras.length ? `<span class="pill warn">${extras.length} avulsos</span>` : ''}
-          <span class="pill">${escapeHTML(classType(item))}</span>
-          <span class="pill">${escapeHTML(item.status || 'Marcada')}</span>
-        </div>
+        <p class="meta" style="margin:2px 0 6px;">${escapeHTML(item.professor || 'Professor não informado')} • ${enrolled.length}/${item.capacidade || 8} atletas • ${confirmation.yes} confirmados${present ? ` • ${present} presenças` : ''}</p>
         ${enrolled.length || extras.length ? `
-          <div class="roster-list class-roster" style="margin-top:10px;">
+          <div class="roster-list class-roster" style="margin-top:8px;">
             ${enrolled.map((student) => rosterPerson(student, item.data, Boolean(item.presencas?.[student.aluno_id || student.id] || student.presente))).join('')}
             ${extras.map((extra) => `<span class="roster-person extra"><strong>${escapeHTML(extra.nome || extra)}</strong><small>${escapeHTML(extraType(extra))}</small></span>`).join('')}
           </div>

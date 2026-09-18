@@ -24,44 +24,37 @@ export function renderFocusStrip(ctx) {
   if (!target) return;
   const index = ctx.getStateIndex();
   const next = ctx.nextClass();
-  const todayClasses = index.todayClasses;
-  const pending = index.activeStudents.filter((student) => !ctx.isPaidForMonth(student, ctx.currentMonth()));
-  const pendingValue = pending.reduce((sum, student) => sum + Number(student.mensalidade || 0), 0);
   const lead = ctx.nextWaitLead();
   const pendingBookings = index.pendingBookings;
   const nextStudents = next ? ctx.classStudents(next) : [];
   const nextPresent = next ? nextStudents.filter((student) => next.presencas?.[student.aluno_id || student.id] || student.presente).length : 0;
   const briefTitle = next ? `${next.horario} • ${next.turma || 'Turma'}` : 'Sem aula marcada para agora';
-  const briefText = next ? `${ctx.formatDate(next.data)} • ${nextStudents.length}/${next.capacidade || 8} atletas previstos • ${nextPresent} presenças confirmadas` : 'Crie a primeira aula do dia para iniciar a operação.';
+  const briefText = next ? `${ctx.formatDate(next.data)} • ${nextStudents.length}/${next.capacidade || 8} atletas previstos • ${nextPresent} presenças confirmadas` : 'Crie uma aula para iniciar a grade do dia.';
+
   target.innerHTML = `
-    <section class="day-command focus-${next ? 'live' : 'ok'}">
+    <section class="day-command next-class-panel">
       <div class="day-command-main">
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-          <span class="eyebrow" style="color:#ef4444; font-weight:700; display:flex; align-items:center; gap:5px;">
-            <span class="online-dot" style="background:#ef4444; box-shadow:0 0 8px #ef4444;"></span>
-            Comando Operacional
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+          <span class="eyebrow" style="color:#f87171; font-weight:700; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; display:flex; align-items:center; gap:5px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Próxima Aula
           </span>
-          ${next ? `<span class="pill ok" style="font-size:10px;">Próxima Aula</span>` : ''}
+          ${next ? `<span class="pill ok" style="font-size:10px; padding:2px 8px;">Confirmada</span>` : ''}
         </div>
-        <h2>${ctx.escapeHTML(briefTitle)}</h2>
-        <p>${ctx.escapeHTML(briefText)}</p>
-        <div class="pill-row" style="margin-top:12px;">
-          <span class="pill">${todayClasses.length} aula(s) hoje</span>
-          <span class="pill ${pendingBookings.length ? 'warn' : 'ok'}">${pendingBookings.length} pedido(s) pendente(s)</span>
-          <span class="pill ${pending.length ? 'bad' : 'ok'}">${pending.length ? `${ctx.money.format(pendingValue)} a receber` : 'financeiro em dia'}</span>
-        </div>
+        <h2 style="font-size:20px; font-weight:700; color:#ffffff; margin:0 0 4px; letter-spacing:-0.02em;">${ctx.escapeHTML(briefTitle)}</h2>
+        <p class="meta" style="margin:0; font-size:13px; color:#a1a1aa;">${ctx.escapeHTML(briefText)}</p>
       </div>
       <div class="day-command-actions">
         <button class="primary-btn" type="button" data-focus-action="next-class">${next ? 'Abrir chamada' : 'Criar aula'}</button>
-        <button class="soft-btn" type="button" data-focus-action="bookings">Ver pedidos</button>
-        <button class="soft-btn" type="button" data-focus-action="${lead ? `wait:${lead.id}` : 'waitlist'}">Fila de espera</button>
+        ${pendingBookings.length ? `<button class="soft-btn" type="button" data-focus-action="bookings">Ver pedidos (${pendingBookings.length})</button>` : ''}
+        ${lead ? `<button class="soft-btn" type="button" data-focus-action="wait:${lead.id}">Fila de espera</button>` : ''}
       </div>
     </section>
   `;
 }
 
 /**
- * Renderiza os KPIs operacionais rápidos no padrão Shadcn UI Kit SaaS
+ * Renderiza os KPIs operacionais no padrão Shadcn UI Kit SaaS com alinhamento e simetria perfeitos
  */
 export function renderKpis(ctx) {
   const target = document.getElementById('kpiGrid');
@@ -80,62 +73,62 @@ export function renderKpis(ctx) {
 
   target.innerHTML = `
     <!-- KPI 1: Aulas Hoje -->
-    <div class="kpi-card ${todayClasses.length ? 'highlight' : ''}">
+    <div class="kpi-card">
       <div class="finance-kpi-header">
         <span class="kpi-card-label">Aulas Hoje</span>
         <div class="finance-kpi-icon">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg>
         </div>
       </div>
       <div class="kpi-card-value">${todayClasses.length}</div>
       <div class="finance-kpi-footer">
         <span class="trend-pill ${todayClasses.length ? 'up' : 'neutral'}">${expectedToday} previstos</span>
-        <span class="meta">${todayClasses.length === 1 ? '1 turma agendada' : `${todayClasses.length} turmas no dia`}</span>
+        <span class="meta">${todayClasses.length === 1 ? '1 turma' : `${todayClasses.length} turmas`}</span>
       </div>
     </div>
 
-    <!-- KPI 2: Presenças Confirmadas -->
+    <!-- KPI 2: Presenças -->
     <div class="kpi-card">
       <div class="finance-kpi-header">
-        <span class="kpi-card-label">Presenças Confirmadas</span>
+        <span class="kpi-card-label">Presenças</span>
         <div class="finance-kpi-icon">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
         </div>
       </div>
       <div class="kpi-card-value">${presentToday}/${expectedToday || 0}</div>
       <div class="finance-kpi-footer">
-        <span class="trend-pill ${attendanceRate >= 70 ? 'up' : attendanceRate > 0 ? 'warn' : 'neutral'}">${attendanceRate}% presença</span>
-        <span class="meta">${expectedToday ? 'chamada ativa' : 'sem lista'}</span>
+        <span class="trend-pill ${attendanceRate >= 70 ? 'up' : attendanceRate > 0 ? 'warn' : 'neutral'}">${attendanceRate}% taxa</span>
+        <span class="meta">${expectedToday ? 'em andamento' : 'sem lista'}</span>
       </div>
     </div>
 
     <!-- KPI 3: Pedidos & Fila -->
-    <div class="kpi-card ${pendingBookings ? 'highlight' : ''}">
+    <div class="kpi-card">
       <div class="finance-kpi-header">
         <span class="kpi-card-label">Pedidos & Fila</span>
         <div class="finance-kpi-icon">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
       </div>
       <div class="kpi-card-value">${pendingBookings}</div>
       <div class="finance-kpi-footer">
-        <span class="trend-pill ${pendingBookings ? 'warn' : 'up'}">${pendingBookings ? 'requer ação' : 'em dia'}</span>
-        <span class="meta">${pendingBookings ? 'aguardando aprovação' : 'nenhum pedido pendente'}</span>
+        <span class="trend-pill ${pendingBookings ? 'warn' : 'up'}">${pendingBookings ? 'pendentes' : 'em dia'}</span>
+        <span class="meta">${pendingBookings ? 'ver lista' : 'tudo em dia'}</span>
       </div>
     </div>
 
     <!-- KPI 4: A Receber -->
-    <div class="kpi-card ${pendingStudents.length ? 'highlight' : ''}">
+    <div class="kpi-card">
       <div class="finance-kpi-header">
         <span class="kpi-card-label">A Receber no Mês</span>
         <div class="finance-kpi-icon">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 6v2m0 8v2"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 6v2m0 8v2"/></svg>
         </div>
       </div>
       <div class="kpi-card-value" style="${pendingStudents.length ? 'color:#ef4444;' : ''}">${pendingStudents.length ? ctx.money.format(pendingValue) : 'R$ 0,00'}</div>
       <div class="finance-kpi-footer">
-        <span class="trend-pill ${pendingStudents.length ? 'down' : 'up'}">${pendingStudents.length} pendência(s)</span>
-        <span class="meta">${active} alunos ativos</span>
+        <span class="trend-pill ${pendingStudents.length ? 'down' : 'up'}">${pendingStudents.length} pendentes</span>
+        <span class="meta">${active} alunos</span>
       </div>
     </div>
   `;

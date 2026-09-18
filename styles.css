@@ -948,22 +948,7 @@ textarea::placeholder {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.kpi::before,
-.kpi-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: transparent;
-  transition: all 0.2s;
-}
 
-.kpi.highlight::before,
-.kpi-card.highlight::before {
-  background: linear-gradient(90deg, #dc2626, #ef4444);
-}
 
 .kpi span,
 .mini-stat span {
@@ -3069,6 +3054,15 @@ label {
   .student-report-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 8px !important;
+  }
+
+  .kpi-card {
+    padding: 12px !important;
+    min-height: 96px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    border-radius: 12px !important;
   }
 
   .day-command,
