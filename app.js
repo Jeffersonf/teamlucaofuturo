@@ -979,6 +979,7 @@ function normalizeTheme(theme) {
 function setTheme(theme, { persist = true } = {}) {
   const next = 'dark';
   document.documentElement.dataset.theme = next;
+  document.documentElement.classList.add('dark');
   if (persist) localStorage.setItem('fv_theme', next);
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#09090b');
   updateThemeButton();
@@ -988,7 +989,7 @@ function setTheme(theme, { persist = true } = {}) {
 function renderSettings({ syncForm = true } = {}) {
   const picker = document.getElementById('themePicker');
   if (!picker) return;
-  const current = document.documentElement.dataset.theme || 'light';
+  const current = 'dark';
   const renderTheme = (item) => `
     <button class="theme-choice ${item.id === current ? 'is-active' : ''}" type="button" role="option" aria-selected="${item.id === current}" data-theme-choice="${item.id}">
       <span class="theme-choice-preview" aria-hidden="true">
@@ -1048,7 +1049,7 @@ function resetSettingsForm() {
 function clearSettings() {
   appConfig = { ...DEFAULT_APP_CONFIG };
   localStorage.setItem(CONFIG_KEY, JSON.stringify(appConfig));
-  setTheme('light');
+  setTheme('dark');
   applyAppConfig();
   updateSystemNotice();
   renderSettings();
@@ -3962,8 +3963,8 @@ function bindEvents() {
   });
   document.getElementById('settingsForm')?.addEventListener('input', updateSettingsPreview);
   document.querySelectorAll('[data-settings-default-theme]').forEach((button) => button.addEventListener('click', () => {
-    setTheme('light');
-    toast('Modo claro ativado');
+    setTheme('dark');
+    toast('Tema escuro oficial ativado');
   }));
   document.querySelectorAll('[data-settings-reset]').forEach((button) => button.addEventListener('click', resetSettingsForm));
   document.querySelectorAll('[data-settings-clear]').forEach((button) => button.addEventListener('click', clearSettings));
@@ -4151,7 +4152,7 @@ function bindEvents() {
 }
 
 applyAppConfig();
-setTheme(localStorage.getItem('fv_theme') || 'light');
+setTheme('dark');
 updatePerformanceMode();
 bindEvents();
 window.addEventListener('resize', updatePerformanceMode);
@@ -4160,7 +4161,7 @@ document.addEventListener('visibilitychange', () => {
 });
 window.addEventListener('storage', (event) => {
   if (event.key === STORE_KEY) syncLocalStateFromStorage();
-  if (event.key === 'fv_theme') setTheme(event.newValue || 'light', { persist: false });
+  if (event.key === 'fv_theme') setTheme('dark', { persist: false });
 });
 startActionRefresh();
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
