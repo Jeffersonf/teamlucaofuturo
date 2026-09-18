@@ -247,7 +247,11 @@
               <strong>Horários padrão</strong>
               <p class="meta">Seg a sex: 18:30, 19:30 e 20:30. Sábado: 09:00, 10:00, 14:00 e 15:00.</p>
             </div>
-            <button class="soft-btn" type="button" data-open-group-message>Mensagens para grupo</button>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="soft-btn" type="button" data-group-summary="morning" title="Postar resumo matutino no grupo do WhatsApp">☀️ Resumo Manhã</button>
+              <button class="soft-btn" type="button" data-group-summary="evening" title="Postar chamada da noite no grupo do WhatsApp">🌇 Chamada Noite</button>
+              <button class="soft-btn" type="button" data-open-group-message>Outras Mensagens</button>
+            </div>
           </div>
           <div class="section-label">Hoje</div>
           <div class="today-planner" id="classesTodayPlanner"></div>
@@ -793,6 +797,8 @@
         <label>Aula<select id="groupMessageClass"></select></label>
         <label>Modelo
           <select id="groupMessageTemplate">
+            <option value="morning_summary">☀️ Resumo do Dia (Manhã - Todas as Aulas)</option>
+            <option value="evening_summary">🌇 Chamada da Noite (Vagas e Alunos)</option>
             <option value="confirm">Confirmação de aula</option>
             <option value="reminder">Lembrete de horário</option>
             <option value="cancel">Aviso de cancelamento</option>

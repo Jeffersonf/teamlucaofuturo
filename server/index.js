@@ -600,6 +600,105 @@ app.get('/api/public/student-classes', (req, res) => {
   }
 });
 
+app.get('/api/public/group-summary', (req, res) => {
+  try {
+    const todayStr = String(req.query.data || today()).slice(0, 10);
+    const nowHour = new Date().getHours();
+    const period = String(req.query.periodo || (nowHour < 13 ? 'manha' : 'tarde')).toLowerCase();
+    const format = String(req.query.format || 'json').toLowerCase();
+
+    const classes = rows(`
+      SELECT * FROM aulas 
+      WHERE data = ? AND status != 'Cancelada' 
+      ORDER BY horario, turma
+    `, [todayStr]);
+
+    const items = classes.map((c) => {
+      const links = rows(`
+        SELECT aa.confirmado, aa.presente, a.nome
+        FROM aula_alunos aa
+        JOIN alunos a ON a.id = aa.aluno_id
+        WHERE aa.aula_id = ? AND aa.confirmado = 'sim'
+        ORDER BY a.nome
+      `, [c.id]);
+
+      const confirmedNames = links.map((l) => l.nome.trim().split(' ')[0]);
+      const confirmedCount = links.length;
+      const capacity = Number(c.capacidade || 8);
+      const openSlots = Math.max(0, capacity - confirmedCount);
+
+      return {
+        id: c.id,
+        horario: c.horario,
+        turma: c.turma || 'Turma',
+        tipo: c.tipo || 'Regular',
+        capacidade: capacity,
+        confirmados: confirmedCount,
+        vagas_restantes: openSlots,
+        lotada: openSlots === 0,
+        nomes_confirmados: confirmedNames
+      };
+    });
+
+    const [y, m, d] = todayStr.split('-');
+    const dateFormatted = `${d}/${m}`;
+    const portalUrl = 'https://teamlucaofuturo.pages.dev/aluno';
+
+    let text = '';
+    if (period === 'manha') {
+      text += `☀️ *Bom dia, galera do Team Lucão!* 🏐\n\n`;
+      text += `Confiram os treinos de hoje e confirmem suas presenças na Área do Aluno:\n👉 ${portalUrl}\n\n`;
+      text += `📅 *TREINOS DE HOJE (${dateFormatted})*:\n`;
+      if (items.length === 0) {
+        text += `_Nenhum treino agendado para hoje._\n`;
+      } else {
+        items.forEach((c) => {
+          const statusText = c.lotada ? '❌ *LOTADA*' : `✅ *${c.vagas_restantes} vaga(s)*`;
+          text += `▫️ *${c.horario}* - ${c.turma} (${c.confirmados}/${c.capacidade}) • ${statusText}\n`;
+          if (c.nomes_confirmados.length > 0) {
+            text += `   👥 _${c.nomes_confirmados.join(', ')}_\n`;
+          }
+        });
+      }
+      text += `\n⚠️ _Se for faltar, desmarque pelo link com antecedência para liberar a vaga pro parceiro!_ 👊`;
+    } else {
+      text += `🔥 *Chamada pros treinos de hoje à noite!* 🏐\n\n`;
+      text += `Fique por dentro das turmas e garanta sua vaga de última hora:\n👉 ${portalUrl}\n\n`;
+      text += `📅 *QUADRO DE HOJE À NOITE (${dateFormatted})*:\n`;
+      if (items.length === 0) {
+        text += `_Nenhum treino agendado para hoje._\n`;
+      } else {
+        items.forEach((c) => {
+          const statusText = c.lotada ? '❌ *LOTADA*' : `⚡ *${c.vagas_restantes} vaga(s) restante(s)*`;
+          text += `▫️ *${c.horario}* - ${c.turma} • ${statusText}\n`;
+          if (c.nomes_confirmados.length > 0) {
+            text += `   👥 Confirmados: ${c.nomes_confirmados.join(', ')}\n`;
+          } else {
+            text += `   👥 Nenhum aluno confirmado ainda.\n`;
+          }
+        });
+      }
+      text += `\n📲 _Confirme ou desmarque direto pelo link acima. Bora pro play!_ 🚀`;
+    }
+
+    if (format === 'text') {
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      return res.send(text);
+    }
+
+    res.json({
+      ok: true,
+      data: todayStr,
+      periodo: period,
+      total_aulas: items.length,
+      texto: text,
+      items
+    });
+  } catch (err) {
+    jsonError(res, err);
+  }
+});
+
 app.post('/api/public/student-confirm', (req, res) => {
   try {
     const student = findStudentByPhone(req.body.telefone || req.body.phone || '');

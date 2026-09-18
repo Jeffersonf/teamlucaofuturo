@@ -105,3 +105,12 @@ export function sendPaymentReceipt(student, payment) {
     `Sua matrícula está 100% em dia. Bons treinos! 🏐👊`;
   openWhatsApp(student.telefone, msg);
 }
+
+/**
+ * 6. Abre o WhatsApp com texto pronto para compartilhar no Grupo de Alunos
+ */
+export function openGroupWhatsApp(message) {
+  const encodedMsg = message ? `?text=${encodeURIComponent(message)}` : '';
+  window.open(`https://wa.me/${encodedMsg}`, '_blank');
+}
+

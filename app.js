@@ -2153,6 +2153,58 @@ function classShareText(item) {
 }
 
 function classGroupMessageText(item, template = 'confirm') {
+  if (template === 'morning_summary' || template === 'evening_summary') {
+    const todayClasses = [...state.classes].filter((c) => c.data === todayISO() && c.status !== 'Cancelada').sort(sortClass);
+    const dateFormatted = todayISO().split('-').reverse().slice(0, 2).join('/');
+    const portalUrl = 'https://teamlucaofuturo.pages.dev/aluno';
+
+    if (template === 'morning_summary') {
+      let msg = `☀️ *Bom dia, galera do Team Lucão!* 🏐\n\n`;
+      msg += `Confiram os treinos de hoje e confirmem suas presenças na Área do Aluno:\n👉 ${portalUrl}\n\n`;
+      msg += `📅 *TREINOS DE HOJE (${dateFormatted})*:\n`;
+      if (todayClasses.length === 0) {
+        msg += `_Nenhum treino agendado para hoje._\n`;
+      } else {
+        todayClasses.forEach((c) => {
+          const students = classStudents(c);
+          const confirmed = students.filter((s) => c.presencas?.[s.aluno_id || s.id] === 'sim' || s.confirmado === 'sim');
+          const cap = Number(c.capacidade || 8);
+          const open = Math.max(0, cap - confirmed.length);
+          const status = open === 0 ? '❌ *LOTADA*' : `✅ *${open} vaga(s)*`;
+          msg += `▫️ *${c.horario}* - ${c.turma || 'Turma'} (${confirmed.length}/${cap}) • ${status}\n`;
+          if (confirmed.length > 0) {
+            msg += `   👥 _${confirmed.map((s) => (s.nome || '').trim().split(' ')[0]).join(', ')}_\n`;
+          }
+        });
+      }
+      msg += `\n⚠️ _Se for faltar, desmarque pelo link com antecedência para liberar a vaga pro parceiro!_ 👊`;
+      return msg;
+    } else {
+      let msg = `🔥 *Chamada pros treinos de hoje à noite!* 🏐\n\n`;
+      msg += `Fique por dentro das turmas e garanta sua vaga de última hora:\n👉 ${portalUrl}\n\n`;
+      msg += `📅 *QUADRO DE HOJE À NOITE (${dateFormatted})*:\n`;
+      if (todayClasses.length === 0) {
+        msg += `_Nenhum treino agendado para hoje._\n`;
+      } else {
+        todayClasses.forEach((c) => {
+          const students = classStudents(c);
+          const confirmed = students.filter((s) => c.presencas?.[s.aluno_id || s.id] === 'sim' || s.confirmado === 'sim');
+          const cap = Number(c.capacidade || 8);
+          const open = Math.max(0, cap - confirmed.length);
+          const status = open === 0 ? '❌ *LOTADA*' : `⚡ *${open} vaga(s) restante(s)*`;
+          msg += `▫️ *${c.horario}* - ${c.turma || 'Turma'} • ${status}\n`;
+          if (confirmed.length > 0) {
+            msg += `   👥 Confirmados: ${confirmed.map((s) => (s.nome || '').trim().split(' ')[0]).join(', ')}\n`;
+          } else {
+            msg += `   👥 Nenhum aluno confirmado ainda.\n`;
+          }
+        });
+      }
+      msg += `\n📲 _Confirme ou desmarque direto pelo link acima. Bora pro play!_ 🚀`;
+      return msg;
+    }
+  }
+
   if (!item) {
     if (template === 'cancel') return 'Pessoal, aviso importante: uma aula foi cancelada. Vamos avisar uma nova opcao assim que estiver definida.';
     if (template === 'reminder') return 'Pessoal, lembrete da aula de hoje: cheguem alguns minutos antes para aquecer. Nos vemos na quadra!';
@@ -2167,6 +2219,16 @@ function classGroupMessageText(item, template = 'confirm') {
   if (template === 'change') return `Pessoal, o horario da aula foi atualizado para ${classLine}. Por favor, confirmem a leitura no grupo. Qualquer duvida, falem com a equipe.`;
   if (template === 'week') return `Pessoal, agenda da semana: a aula de ${classLine} esta prevista. Confiram seus demais horarios no painel e avisem qualquer necessidade de ajuste.`;
   return `Pessoal, confirmando a aula de ${classLine}. Quem for participar, responda com um ok aqui no grupo. Ate la!`;
+}
+
+function openGroupSummary(period = 'morning') {
+  renderGroupMessageOptions();
+  const templateSelect = document.getElementById('groupMessageTemplate');
+  if (templateSelect) {
+    templateSelect.value = period === 'morning' ? 'morning_summary' : 'evening_summary';
+  }
+  updateGroupMessagePreview();
+  openModal('groupMessageModal');
 }
 
 function renderGroupMessageOptions(selectedId = '') {
@@ -3541,6 +3603,9 @@ function bindEvents() {
   document.getElementById('groupMessageClass')?.addEventListener('change', updateGroupMessagePreview);
   document.getElementById('groupMessageTemplate')?.addEventListener('change', updateGroupMessagePreview);
   document.querySelector('[data-copy-group-message]')?.addEventListener('click', () => copyGroupMessage().catch((err) => toast(err.message)));
+  document.querySelectorAll('[data-group-summary]').forEach((button) => {
+    button.addEventListener('click', () => openGroupSummary(button.dataset.groupSummary));
+  });
   document.querySelector('[data-open-schedule]')?.addEventListener('click', openSchedule);
   document.getElementById('planForm').addEventListener('submit', (event) => savePlan(event).catch((err) => toast(err.message)));
   document.getElementById('waitlistForm').addEventListener('submit', (event) => saveWaitlist(event).catch((err) => toast(err.message)));

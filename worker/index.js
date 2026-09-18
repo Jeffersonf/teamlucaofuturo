@@ -650,6 +650,107 @@ async function apiHandler(request, env, body) {
     }
   }
 
+  if (url.pathname === '/api/public/group-summary' && method === 'GET') {
+    const todayStr = String(url.searchParams.get('data') || today()).slice(0, 10);
+    const nowHour = new Date().getUTCHours() - 3;
+    const period = String(url.searchParams.get('periodo') || (nowHour < 13 ? 'manha' : 'tarde')).toLowerCase();
+    const format = String(url.searchParams.get('format') || 'json').toLowerCase();
+
+    const classes = await all(db, `
+      SELECT * FROM aulas 
+      WHERE data = ? AND status != 'Cancelada' 
+      ORDER BY horario, turma
+    `, [todayStr]);
+
+    const items = [];
+    for (const c of classes) {
+      const links = await all(db, `
+        SELECT aa.confirmado, aa.presente, a.nome
+        FROM aula_alunos aa
+        JOIN alunos a ON a.id = aa.aluno_id
+        WHERE aa.aula_id = ? AND aa.confirmado = 'sim'
+        ORDER BY a.nome
+      `, [c.id]);
+
+      const confirmedNames = links.map((l) => l.nome.trim().split(' ')[0]);
+      const confirmedCount = links.length;
+      const capacity = Number(c.capacidade || 8);
+      const openSlots = Math.max(0, capacity - confirmedCount);
+
+      items.push({
+        id: c.id,
+        horario: c.horario,
+        turma: c.turma || 'Turma',
+        tipo: c.tipo || 'Regular',
+        capacidade: capacity,
+        confirmados: confirmedCount,
+        vagas_restantes: openSlots,
+        lotada: openSlots === 0,
+        nomes_confirmados: confirmedNames
+      });
+    }
+
+    const [y, m, d] = todayStr.split('-');
+    const dateFormatted = `${d}/${m}`;
+    const portalUrl = 'https://teamlucaofuturo.pages.dev/aluno';
+
+    let text = '';
+    if (period === 'manha') {
+      text += `☀️ *Bom dia, galera do Team Lucão!* 🏐\n\n`;
+      text += `Confiram os treinos de hoje e confirmem suas presenças na Área do Aluno:\n👉 ${portalUrl}\n\n`;
+      text += `📅 *TREINOS DE HOJE (${dateFormatted})*:\n`;
+      if (items.length === 0) {
+        text += `_Nenhum treino agendado para hoje._\n`;
+      } else {
+        items.forEach((c) => {
+          const statusText = c.lotada ? '❌ *LOTADA*' : `✅ *${c.vagas_restantes} vaga(s)*`;
+          text += `▫️ *${c.horario}* - ${c.turma} (${c.confirmados}/${c.capacidade}) • ${statusText}\n`;
+          if (c.nomes_confirmados.length > 0) {
+            text += `   👥 _${c.nomes_confirmados.join(', ')}_\n`;
+          }
+        });
+      }
+      text += `\n⚠️ _Se for faltar, desmarque pelo link com antecedência para liberar a vaga pro parceiro!_ 👊`;
+    } else {
+      text += `🔥 *Chamada pros treinos de hoje à noite!* 🏐\n\n`;
+      text += `Fique por dentro das turmas e garanta sua vaga de última hora:\n👉 ${portalUrl}\n\n`;
+      text += `📅 *QUADRO DE HOJE À NOITE (${dateFormatted})*:\n`;
+      if (items.length === 0) {
+        text += `_Nenhum treino agendado para hoje._\n`;
+      } else {
+        items.forEach((c) => {
+          const statusText = c.lotada ? '❌ *LOTADA*' : `⚡ *${c.vagas_restantes} vaga(s) restante(s)*`;
+          text += `▫️ *${c.horario}* - ${c.turma} • ${statusText}\n`;
+          if (c.nomes_confirmados.length > 0) {
+            text += `   👥 Confirmados: ${c.nomes_confirmados.join(', ')}\n`;
+          } else {
+            text += `   👥 Nenhum aluno confirmado ainda.\n`;
+          }
+        });
+      }
+      text += `\n📲 _Confirme ou desmarque direto pelo link acima. Bora pro play!_ 🚀`;
+    }
+
+    if (format === 'text') {
+      return new Response(text, {
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'Cache-Control': 'no-store',
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    }
+
+    return json({
+      ok: true,
+      data: todayStr,
+      periodo: period,
+      total_aulas: items.length,
+      texto: text,
+      items
+    });
+  }
+
   if (url.pathname === '/api/public/classes' && method === 'GET') return json({ ok: true, items: await publicClasses(db) });
   if (url.pathname === '/api/public/student-classes' && method === 'GET') return json(await studentClasses(db, request));
   if (url.pathname === '/api/public/student-waitlist' && method === 'GET') {
