@@ -29,17 +29,17 @@ const STANDARD_CLASS_SLOTS = Object.freeze([
 ]);
 const MOBILE_MORE_PAGES = ['bookings', 'actions', 'waitlist', 'plans', 'reports', 'settings'];
 const PAGE_TITLES = {
-  dashboard: ['operação de hoje', 'Painel do dia'],
-  actions: ['histórico', 'Central de ações'],
-  bookings: ['alunos', 'Pedidos de aula'],
-  students: ['cadastro', 'Alunos'],
-  classes: ['agenda', 'Aulas'],
-  payments: ['financeiro', 'Finance Dashboard'],
-  waitlist: ['demanda', 'Lista de espera'],
-  plans: ['oferta', 'Planos'],
-  reports: ['gestão', 'Relatórios'],
-  more: ['atalhos', 'Mais'],
-  settings: ['administração', 'Configuração']
+  dashboard: ['Dashboards', 'Painel do dia'],
+  actions: ['Gestão & Sistema', 'Central de ações'],
+  bookings: ['Operação & Grade', 'Pedidos de aula'],
+  students: ['Operação & Grade', 'Atletas & Alunos'],
+  classes: ['Operação & Grade', 'Grade & Aulas'],
+  payments: ['Dashboards', 'Finance Dashboard'],
+  waitlist: ['Gestão & Sistema', 'Lista de espera'],
+  plans: ['Gestão & Sistema', 'Planos de treino'],
+  reports: ['Gestão & Sistema', 'Relatórios'],
+  more: ['Navegação', 'Mais'],
+  settings: ['Gestão & Sistema', 'Configuração']
 };
 const DEFAULT_APP_CONFIG = Object.freeze({
   brandName: 'Team Lucão',
@@ -946,8 +946,10 @@ function toast(message, type = 'info') {
 function updateTopbar(page) {
   const [eyebrow, title] = PAGE_TITLES[page] || PAGE_TITLES.dashboard;
   const eyebrowEl = document.getElementById('topbarEyebrow');
+  const categoryEl = document.getElementById('topbarCategory');
   const titleEl = document.getElementById('topbarTitle');
   if (eyebrowEl) eyebrowEl.textContent = eyebrow;
+  if (categoryEl) categoryEl.textContent = eyebrow;
   if (titleEl) titleEl.textContent = title;
 }
 
@@ -1207,12 +1209,46 @@ function renderPage(page = currentPage()) {
     settings: renderSettings
   };
   (renderers[page] || renderDashboard)();
+  renderSidebarBadges();
+}
+
+function renderSidebarBadges() {
+  const index = getStateIndex();
+  const todayClasses = index.todayClasses.length;
+  const pendingStudents = index.pendingStudents.length;
+  const activeStudents = index.activeStudents.length;
+  const pendingBookings = index.pendingBookings.length;
+
+  const badgeClasses = document.getElementById('navBadgeClasses');
+  if (badgeClasses) {
+    badgeClasses.textContent = todayClasses;
+    badgeClasses.style.display = todayClasses > 0 ? 'inline-flex' : 'none';
+  }
+
+  const badgeFinance = document.getElementById('navBadgeFinance');
+  if (badgeFinance) {
+    badgeFinance.textContent = pendingStudents;
+    badgeFinance.style.display = pendingStudents > 0 ? 'inline-flex' : 'none';
+  }
+
+  const badgeStudents = document.getElementById('navBadgeStudents');
+  if (badgeStudents) {
+    badgeStudents.textContent = activeStudents;
+    badgeStudents.style.display = activeStudents > 0 ? 'inline-flex' : 'none';
+  }
+
+  const badgeBookings = document.getElementById('navBadgeBookings');
+  if (badgeBookings) {
+    badgeBookings.textContent = pendingBookings;
+    badgeBookings.style.display = pendingBookings > 0 ? 'inline-flex' : 'none';
+  }
 }
 
 function render() {
   renderPlanOptions();
   renderPage();
   renderGlobalResults();
+  renderSidebarBadges();
 }
 
 function renderKpis() {
@@ -1419,10 +1455,38 @@ function renderBookings() {
   const summary = document.getElementById('bookingSummary');
   if (summary) {
     summary.innerHTML = `
-      <article class="mini-stat ${pending.length ? 'kpi-warn' : 'kpi-ok'}"><span>Aguardando</span><strong>${pending.length}</strong></article>
-      <article class="mini-stat ${experimentalsPending.length ? 'kpi-warn' : ''}" style="${experimentalsPending.length ? 'border-color: rgba(245,158,11,0.4);' : ''}"><span>Experimentais</span><strong style="${experimentalsPending.length ? 'color: #fbbf24;' : ''}">${experimentalsPending.length}</strong></article>
-      <article class="mini-stat kpi-ok"><span>Aprovados</span><strong>${approved.length}</strong></article>
-      <article class="mini-stat"><span>Total</span><strong>${bookings.length}</strong></article>
+      <div class="kpi-card ${pending.length ? 'highlight' : ''}">
+        <div class="finance-kpi-header">
+          <span class="kpi-card-label">Aguardando</span>
+          <div class="finance-kpi-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg></div>
+        </div>
+        <div class="kpi-card-value">${pending.length}</div>
+        <div class="finance-kpi-footer"><span class="trend-pill ${pending.length ? 'warn' : 'up'}">${pending.length ? 'requer decisão' : 'fila zerada'}</span><span class="meta">pedidos abertos</span></div>
+      </div>
+      <div class="kpi-card ${experimentalsPending.length ? 'highlight' : ''}">
+        <div class="finance-kpi-header">
+          <span class="kpi-card-label">Experimentais</span>
+          <div class="finance-kpi-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+        </div>
+        <div class="kpi-card-value" style="${experimentalsPending.length ? 'color:#fbbf24;' : ''}">${experimentalsPending.length}</div>
+        <div class="finance-kpi-footer"><span class="trend-pill ${experimentalsPending.length ? 'warn' : 'neutral'}">${totalExperimentals.length} no total</span><span class="meta">novos atletas</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="finance-kpi-header">
+          <span class="kpi-card-label">Aprovados</span>
+          <div class="finance-kpi-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+        </div>
+        <div class="kpi-card-value">${approved.length}</div>
+        <div class="finance-kpi-footer"><span class="trend-pill up">confirmados</span><span class="meta">vagas preenchidas</span></div>
+      </div>
+      <div class="kpi-card">
+        <div class="finance-kpi-header">
+          <span class="kpi-card-label">Total de Pedidos</span>
+          <div class="finance-kpi-icon"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg></div>
+        </div>
+        <div class="kpi-card-value">${bookings.length}</div>
+        <div class="finance-kpi-footer"><span class="trend-pill neutral">histórico</span><span class="meta">${rejected.length} recusados</span></div>
+      </div>
     `;
   }
 
@@ -1437,25 +1501,31 @@ function renderBookings() {
     const status = booking.status || 'Pendente';
     const full = item ? classStudentIds(item).length >= Number(item.capacidade || 8) : false;
     const isExp = isExperimentalBooking(booking);
+    const initials = booking.nome ? booking.nome.split(' ').filter(Boolean).map((n) => n[0]).slice(0, 2).join('').toUpperCase() : 'AL';
     return `
       <article class="row-card booking-request booking-${cssToken(status)}" style="${isExp ? 'border-left: 3px solid #f59e0b;' : ''}">
-        <div class="booking-main">
-          <div class="booking-titleline">
-            <h3 style="display:flex; align-items:center; gap:8px;">
-              ${escapeHTML(booking.nome)}
-              ${isExp ? '<span class="pill warn" style="font-size:10px; font-weight:700; background:rgba(245,158,11,0.14); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);"><span class="status-dot-6px amber" style="margin-right:4px;"></span>Experimental</span>' : ''}
-            </h3>
-            <span class="pill ${bookingStatusTone(status)}">${escapeHTML(status)}</span>
+        <div style="display:flex; align-items:flex-start; gap:12px; min-width:0;">
+          <div style="width:36px; height:36px; border-radius:10px; background:${isExp ? 'rgba(245,158,11,0.14)' : 'rgba(220,38,38,0.14)'}; border:1px solid ${isExp ? 'rgba(245,158,11,0.3)' : 'rgba(220,38,38,0.25)'}; color:${isExp ? '#fbbf24' : '#ef4444'}; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; flex-shrink:0;">
+            ${initials}
           </div>
-          <p class="meta">${escapeHTML(booking.telefone || 'sem WhatsApp')}</p>
-          <p class="booking-class-meta">${item ? `${formatDate(item.data)} às ${item.horario} - ${escapeHTML(item.turma || 'Turma')}` : 'aula removida'}</p>
-          <div class="pill-row">
-            ${isExp ? '<span class="pill warn">Aula Experimental</span>' : '<span class="pill">Aula Regular</span>'}
-            ${item ? `<span class="pill ${full ? 'bad' : 'ok'}">${classStudentIds(item).length}/${item.capacidade || 8} vagas</span>` : ''}
-            ${booking.indicado_por ? `<span class="pill">Indicação: ${escapeHTML(booking.indicado_por)}</span>` : ''}
-            ${booking.criado_em ? `<span class="pill">${formatDate(booking.criado_em)}</span>` : ''}
+          <div class="booking-main" style="min-width:0; flex:1;">
+            <div class="booking-titleline">
+              <h3 style="display:flex; align-items:center; gap:8px;">
+                ${escapeHTML(booking.nome)}
+                ${isExp ? '<span class="pill warn" style="font-size:10px; font-weight:700; background:rgba(245,158,11,0.14); color:#fbbf24; border:1px solid rgba(245,158,11,0.3);"><span class="status-dot-6px amber" style="margin-right:4px;"></span>Experimental</span>' : ''}
+              </h3>
+              <span class="pill ${bookingStatusTone(status)}">${escapeHTML(status)}</span>
+            </div>
+            <p class="meta">${escapeHTML(booking.telefone || 'sem WhatsApp')}</p>
+            <p class="booking-class-meta">${item ? `${formatDate(item.data)} às ${item.horario} • ${escapeHTML(item.turma || 'Turma')}` : 'aula removida'}</p>
+            <div class="pill-row">
+              ${isExp ? '<span class="pill warn">Aula Experimental</span>' : '<span class="pill">Aula Regular</span>'}
+              ${item ? `<span class="pill ${full ? 'bad' : 'ok'}">${classStudentIds(item).length}/${item.capacidade || 8} vagas</span>` : ''}
+              ${booking.indicado_por ? `<span class="pill">Indicação: ${escapeHTML(booking.indicado_por)}</span>` : ''}
+              ${booking.criado_em ? `<span class="pill">${formatDate(booking.criado_em)}</span>` : ''}
+            </div>
+            ${booking.observacao ? `<p class="meta" style="color:var(--text);">${escapeHTML(booking.observacao)}</p>` : ''}
           </div>
-          ${booking.observacao ? `<p class="meta" style="color:var(--text);">${escapeHTML(booking.observacao)}</p>` : ''}
         </div>
         <div class="actions">
           ${booking.telefone ? `<a class="mini-btn" href="${whatsappUrl(booking.telefone, bookingReplyText(booking, item))}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
@@ -1572,17 +1642,33 @@ function renderPayments() {
 }
 
 function renderPlans() {
-  document.getElementById('planGrid').innerHTML = state.plans.length ? state.plans.map((plan) => `
-    <article class="student-card">
-      <h3>${escapeHTML(plan.nome)}</h3>
-      <p class="meta">${money.format(Number(plan.preco || 0))} - ${Number(plan.aulas_semana || 0)} aula(s)/semana</p>
-      <div class="pill-row"><span class="pill ${Number(plan.ativo ?? 1) ? 'ok' : ''}">${Number(plan.ativo ?? 1) ? 'ativo' : 'inativo'}</span></div>
-      ${plan.descricao ? `<p class="meta">${escapeHTML(plan.descricao)}</p>` : ''}
-      <div class="actions">
-        <button class="mini-btn" data-edit-plan="${plan.id}">Editar</button>
-      </div>
-    </article>
-  `).join('') : empty('Cadastre planos para organizar aulas e mensalidades.');
+  document.getElementById('planGrid').innerHTML = state.plans.length ? state.plans.map((plan) => {
+    const studentsInPlan = state.students.filter((s) => String(s.plano_id || '') === String(plan.id) || s.plano_nome === plan.nome).length;
+    const isActive = Number(plan.ativo ?? 1);
+    return `
+      <article class="student-card ${isActive ? 'highlight' : ''}" style="display:flex; flex-direction:column; justify-content:space-between; gap:16px; padding:20px; background:#121215; border:1px solid rgba(255,255,255,0.08); border-radius:16px;">
+        <div>
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+            <span class="eyebrow" style="color:var(--muted); font-size:11px; font-weight:700;">Plano de Treino</span>
+            <span class="pill ${isActive ? 'ok' : ''}"><span class="online-dot" style="background:${isActive ? '#10b981' : '#71717a'}; margin-right:4px;"></span>${isActive ? 'ativo' : 'inativo'}</span>
+          </div>
+          <h3 style="font-size:18px; font-weight:700; color:#fff; margin-bottom:4px;">${escapeHTML(plan.nome)}</h3>
+          <div style="display:flex; align-items:baseline; gap:4px; margin: 12px 0;">
+            <span style="font-size:28px; font-weight:800; color:#fff; letter-spacing:-0.03em;">${money.format(Number(plan.preco || 0))}</span>
+            <span style="color:var(--muted); font-size:12px;">/mês</span>
+          </div>
+          <div class="pill-row" style="margin-bottom:8px;">
+            <span class="pill warn" style="font-weight:600;">${Number(plan.aulas_semana || 0)} aula(s) por semana</span>
+            <span class="pill">${studentsInPlan} aluno(s) vinculados</span>
+          </div>
+          ${plan.descricao ? `<p class="meta" style="color:var(--muted); font-size:12px; margin-top:8px;">${escapeHTML(plan.descricao)}</p>` : ''}
+        </div>
+        <div class="actions" style="margin-top:auto; padding-top:12px; border-top:1px solid rgba(255,255,255,0.08);">
+          <button class="mini-btn" style="width:100%; justify-content:center;" data-edit-plan="${plan.id}">Editar Plano</button>
+        </div>
+      </article>
+    `;
+  }).join('') : empty('Cadastre planos para organizar aulas e mensalidades.');
 }
 
 function renderWaitlist() {
@@ -1602,20 +1688,28 @@ function renderWaitlist() {
     const needsReply = priority.rank === 0;
     const queue = item.aula_id ? state.waitlist.filter((entry) => String(entry.aula_id) === String(item.aula_id) && ['Novo', 'Contatado', 'Experimental marcado'].includes(entry.status || 'Novo')).sort((a, b) => String(a.data_cadastro || '').localeCompare(String(b.data_cadastro || '')) || String(a.id).localeCompare(String(b.id))) : [];
     const position = item.aula_id ? queue.findIndex((entry) => String(entry.id) === String(item.id)) + 1 : 0;
+    const initials = item.nome ? item.nome.split(' ').filter(Boolean).map((n) => n[0]).slice(0, 2).join('').toUpperCase() : 'LT';
     return `
     <article class="row-card wait-row wait-${cssToken(item.status || 'Novo')} ${needsReply ? 'wait-needs-reply' : ''}">
-      <div>
-        <h3>${escapeHTML(item.nome)}</h3>
-        <p class="meta">${escapeHTML(item.telefone || 'sem telefone')} - ${item.aula_data ? `aula ${formatDate(item.aula_data)} as ${escapeHTML(item.aula_horario || '')} - ${escapeHTML(item.aula_turma || 'Turma')}` : escapeHTML(item.preferencia || 'sem preferencia')}</p>
-        <div class="pill-row">
-          <span class="pill ${priority.className}">${escapeHTML(priority.label)}</span>
-          <span class="pill ${item.status === 'Convertido' ? 'ok' : item.status === 'Contatado' || item.status === 'Experimental marcado' ? 'warn' : item.status === 'Perdido' ? 'bad' : ''}">${escapeHTML(item.status || 'Novo')}</span>
-          ${item.data_cadastro ? `<span class="pill">${formatDate(item.data_cadastro)}</span>` : ''}
-          ${position ? `<span class="pill warn">posicao ${position}</span>` : ''}
-          <span class="pill ${needsReply ? 'bad' : age ? 'warn' : ''}">${age || 0} dia(s)</span>
-          ${needsReply ? '<span class="pill bad">responder hoje</span>' : ''}
+      <div style="display:flex; align-items:flex-start; gap:12px; min-width:0;">
+        <div style="width:36px; height:36px; border-radius:10px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; flex-shrink:0;">
+          ${initials}
         </div>
-        ${item.observacao ? `<p class="meta">${escapeHTML(item.observacao)}</p>` : ''}
+        <div style="min-width:0; flex:1;">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:4px;">
+            <strong style="font-size:15px; color:#fff;">${escapeHTML(item.nome)}</strong>
+            <span class="pill ${priority.className}">${escapeHTML(priority.label)}</span>
+            <span class="pill ${item.status === 'Convertido' ? 'ok' : item.status === 'Contatado' || item.status === 'Experimental marcado' ? 'warn' : item.status === 'Perdido' ? 'bad' : ''}">${escapeHTML(item.status || 'Novo')}</span>
+          </div>
+          <p class="meta">${escapeHTML(item.telefone || 'sem telefone')} • ${item.aula_data ? `aula ${formatDate(item.aula_data)} às ${escapeHTML(item.aula_horario || '')} • ${escapeHTML(item.aula_turma || 'Turma')}` : escapeHTML(item.preferencia || 'sem preferência')}</p>
+          <div class="pill-row" style="margin-top:6px;">
+            ${item.data_cadastro ? `<span class="pill">${formatDate(item.data_cadastro)}</span>` : ''}
+            ${position ? `<span class="pill warn">posição ${position}</span>` : ''}
+            <span class="pill ${needsReply ? 'bad' : age ? 'warn' : ''}">${age || 0} dia(s)</span>
+            ${needsReply ? '<span class="pill bad">responder hoje</span>' : ''}
+          </div>
+          ${item.observacao ? `<p class="meta" style="color:var(--text); margin-top:6px;">${escapeHTML(item.observacao)}</p>` : ''}
+        </div>
       </div>
       <div class="actions">
         ${item.telefone ? `<a class="mini-btn" href="${whatsappUrl(item.telefone, `Oi ${item.nome}, tudo bem? Aqui é do Team Lucão. Ainda tem interesse em começar as aulas?`)}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
@@ -1743,25 +1837,28 @@ function classRow(item) {
   const extras = classExtras(item);
   const confirmation = classConfirmationStats(item);
   const [operationTone, operationLabel] = classOperationStatus(item);
+  const isToday = item.data === todayISO();
   return `
-    <article class="row-card class-row class-${cssToken(item.status || 'Marcada')} type-${cssToken(classType(item))}">
+    <article class="row-card class-row class-${cssToken(item.status || 'Marcada')} type-${cssToken(classType(item))}" style="${isToday ? 'border-left: 3px solid #dc2626;' : ''}">
       <div>
-        <h3>${formatDate(item.data)} às ${item.horario} - ${escapeHTML(item.turma || 'Turma')}</h3>
-        <p class="meta">${escapeHTML(item.professor || 'Professor nao informado')} - ${enrolled.length}/${item.capacidade || 8} aluno(s) previstos</p>
-        <div class="pill-row">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px; flex-wrap:wrap;">
+          <strong style="font-size:16px; color:#fff;">${item.horario} • ${escapeHTML(item.turma || 'Turma')}</strong>
+          <span class="pill" style="font-size:11px;">${formatDate(item.data)}</span>
+          ${isToday ? '<span class="pill ok" style="font-weight:700;">Hoje</span>' : ''}
           <span class="pill ${operationTone}">${escapeHTML(operationLabel)}</span>
-          <span class="pill">${present}/${enrolled.length} presenças</span>
-          <span class="pill ok">${confirmation.yes} vão</span>
+        </div>
+        <p class="meta">${escapeHTML(item.professor || 'Professor não informado')} • ${enrolled.length}/${item.capacidade || 8} atletas previstos • ${present} presenças</p>
+        <div class="pill-row" style="margin-top:6px;">
+          <span class="pill ok">${confirmation.yes} confirmados</span>
           ${confirmation.pendingTeacher ? `<span class="pill warn">${confirmation.pendingTeacher} aguardando professor</span>` : ''}
-          ${confirmation.no ? `<span class="pill bad">${confirmation.no} não vão</span>` : ''}
+          ${confirmation.no ? `<span class="pill bad">${confirmation.no} ausentes</span>` : ''}
           ${confirmation.open ? `<span class="pill warn">${confirmation.open} sem resposta</span>` : ''}
-          ${extras.length ? `<span class="pill warn">${extras.length} fora da lista</span>` : ''}
-          <span class="pill warn">${escapeHTML(classType(item))}</span>
+          ${extras.length ? `<span class="pill warn">${extras.length} avulsos</span>` : ''}
+          <span class="pill">${escapeHTML(classType(item))}</span>
           <span class="pill">${escapeHTML(item.status || 'Marcada')}</span>
-          ${item.data === todayISO() ? '<span class="pill ok">hoje</span>' : ''}
         </div>
         ${enrolled.length || extras.length ? `
-          <div class="roster-list class-roster">
+          <div class="roster-list class-roster" style="margin-top:10px;">
             ${enrolled.map((student) => rosterPerson(student, item.data, Boolean(item.presencas?.[student.aluno_id || student.id] || student.presente))).join('')}
             ${extras.map((extra) => `<span class="roster-person extra"><strong>${escapeHTML(extra.nome || extra)}</strong><small>${escapeHTML(extraType(extra))}</small></span>`).join('')}
           </div>
@@ -1772,7 +1869,7 @@ function classRow(item) {
         <button class="mini-btn" data-attendance="${item.id}">Presenças</button>
         ${classStatusActions(item)}
         <button class="mini-btn" data-copy-class="${item.id}">Copiar</button>
-        <button class="mini-btn" data-open-group-message="${item.id}">Avisar grupo</button>
+        <button class="mini-btn" data-open-group-message="${item.id}">Avisar</button>
         <button class="mini-btn" data-edit-class="${item.id}">Editar</button>
       </div>
     </article>
@@ -3802,6 +3899,9 @@ function bindEvents() {
     resetStudentListLimit();
     renderStudentsLater();
   });
+  document.getElementById('sidebarSearchTrigger')?.addEventListener('click', () => {
+    document.getElementById('globalSearch')?.focus();
+  });
   document.getElementById('globalSearch').addEventListener('input', renderGlobalResultsLater);
   document.getElementById('globalResults').addEventListener('click', (event) => {
     const target = event.target.closest('[data-global-result]');
@@ -3811,6 +3911,11 @@ function bindEvents() {
     if (!event.target.closest('.global-search')) closeGlobalResults();
   });
   document.addEventListener('keydown', (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      document.getElementById('globalSearch')?.focus();
+      return;
+    }
     const activeLayer = document.querySelector('.modal-wrap.open, .login-wall.open');
     if (event.key === 'Escape') {
       const openModalEl = document.querySelector('.modal-wrap.open');

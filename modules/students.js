@@ -4,7 +4,79 @@
 /**
  * Renderiza a listagem de alunos com busca e filtros
  */
+/**
+ * Renderiza a listagem de alunos com busca e filtros
+ */
 export function renderStudents(ctx) {
+  const kpiTarget = document.getElementById('studentsKpiGrid');
+  if (kpiTarget) {
+    const all = ctx.state.students || [];
+    const active = all.filter((s) => s.status === 'Ativo');
+    const trials = all.filter((s) => s.status === 'Experimental');
+    const paused = all.filter((s) => s.status === 'Pausado');
+    const currentMonth = ctx.currentMonth();
+    const paidActive = active.filter((s) => ctx.isPaidForMonth(s, currentMonth));
+    const rate = active.length ? Math.round((paidActive.length / active.length) * 100) : 100;
+
+    kpiTarget.innerHTML = `
+      <div class="kpi-card">
+        <div class="finance-kpi-header">
+          <span class="kpi-card-label">Total Cadastrados</span>
+          <div class="finance-kpi-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+          </div>
+        </div>
+        <div class="kpi-card-value">${all.length}</div>
+        <div class="finance-kpi-footer">
+          <span class="trend-pill neutral">base geral</span>
+          <span class="meta">${paused.length} pausado(s)</span>
+        </div>
+      </div>
+
+      <div class="kpi-card highlight">
+        <div class="finance-kpi-header">
+          <span class="kpi-card-label">Alunos Ativos</span>
+          <div class="finance-kpi-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+        </div>
+        <div class="kpi-card-value">${active.length}</div>
+        <div class="finance-kpi-footer">
+          <span class="trend-pill up">grade regular</span>
+          <span class="meta">${active.length === 1 ? '1 atleta frequente' : `${active.length} atletas frequentes`}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card ${trials.length ? 'highlight' : ''}">
+        <div class="finance-kpi-header">
+          <span class="kpi-card-label">Experimentais</span>
+          <div class="finance-kpi-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+          </div>
+        </div>
+        <div class="kpi-card-value">${trials.length}</div>
+        <div class="finance-kpi-footer">
+          <span class="trend-pill ${trials.length ? 'warn' : 'neutral'}">${trials.length ? 'em conversão' : 'sem teste'}</span>
+          <span class="meta">potenciais matrículas</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="finance-kpi-header">
+          <span class="kpi-card-label">Adimplência do Mês</span>
+          <div class="finance-kpi-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+        </div>
+        <div class="kpi-card-value">${rate}%</div>
+        <div class="finance-kpi-footer">
+          <span class="trend-pill ${rate >= 80 ? 'up' : rate >= 50 ? 'warn' : 'down'}">${paidActive.length}/${active.length || 0} em dia</span>
+          <span class="meta">mensalidades pagas</span>
+        </div>
+      </div>
+    `;
+  }
+
   const query = document.getElementById('studentSearch')?.value.trim().toLowerCase() || '';
   const status = document.getElementById('studentStatusFilter')?.value || '';
   const payment = document.getElementById('studentPaymentFilter')?.value || '';
