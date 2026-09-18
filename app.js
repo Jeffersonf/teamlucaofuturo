@@ -2027,9 +2027,18 @@ function renderStudentSchedulePreview() {
     target.className = 'schedule-preview schedule-preview-warn';
     return;
   }
-  target.className = 'schedule-preview schedule-preview-ok';
+  const plan = planById(document.getElementById('studentPlan')?.value);
+  const planAllowed = Number(plan?.aulas_semana || 0);
+  const exceedsPlan = planAllowed > 0 && draft.agendas_fixas.length > planAllowed;
+
+  target.className = exceedsPlan ? 'schedule-preview schedule-preview-warn' : 'schedule-preview schedule-preview-ok';
   target.innerHTML = `
     <span>${draft.agendas_fixas.length} dia(s) por semana</span>
+    ${exceedsPlan ? `
+      <div style="margin: 4px 0 8px; padding: 6px 10px; border-radius: 8px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; font-size: 11px; font-weight: 600;">
+        ⚠️ Atenção: ${draft.agendas_fixas.length} dias fixos para o plano "${escapeHTML(plan?.nome || '')}" (${planAllowed}x/semana). O aluno poderá ser salvo normalmente, mas revise o plano para corrigir se necessário.
+      </div>
+    ` : ''}
     <div class="schedule-preview-list">
       ${draft.agendas_fixas.map((schedule) => `
         <div class="schedule-preview-item">
@@ -3193,9 +3202,20 @@ async function respondBooking(id, action, force = false) {
   toast(isExp ? 'Aula experimental aprovada e aluno cadastrado!' : 'Pedido aprovado');
 }
 
+function getStudentScheduleWeeks(student = {}) {
+  const today = todayISO();
+  if (student.pago_ate && student.pago_ate >= today) {
+    const diffDays = Math.ceil((new Date(student.pago_ate + 'T12:00:00Z') - new Date(today + 'T12:00:00Z')) / (1000 * 60 * 60 * 24));
+    return Math.max(1, Math.min(16, Math.ceil(diffDays / 7)));
+  }
+  return 4;
+}
+
 function syncStudentFixedSchedule(student) {
   if (!student?.id || student.status === 'Pausado') return 0;
-  const occurrences = fixedScheduleOccurrences(student, 4);
+  const maxWeeks = getStudentScheduleWeeks(student);
+  const occurrences = fixedScheduleOccurrences(student, maxWeeks)
+    .filter((o) => !student.pago_ate || o.data <= student.pago_ate);
   if (!occurrences.length) return 0;
   let touched = 0;
   occurrences.forEach(({ data: dateIso, horario, turma: group }) => {
@@ -3215,18 +3235,22 @@ function syncStudentFixedSchedule(student) {
         tipo: 'Regular',
         capacidade: 8,
         status: 'Marcada',
-        aluno_ids: [],
+        aluno_ids: [String(student.id)],
         presencas: {},
+        confirmacoes: { [student.id]: 'sim' },
         extra_presentes: []
       };
       state.classes.push(item);
-    }
-    const ids = new Set(classStudentIds(item).map(String));
-    if (!ids.has(String(student.id))) {
-      item.aluno_ids = [...ids, String(student.id)];
-      item.presencas = item.presencas || {};
-      item.presencas[student.id] = item.presencas[student.id] || false;
       touched += 1;
+    } else {
+      const ids = new Set(classStudentIds(item).map(String));
+      if (!ids.has(String(student.id))) {
+        item.aluno_ids = [...ids, String(student.id)];
+        item.presencas = item.presencas || {};
+        item.confirmacoes = item.confirmacoes || {};
+        item.confirmacoes[student.id] = 'sim';
+        touched += 1;
+      }
     }
   });
   return touched;
@@ -3234,7 +3258,9 @@ function syncStudentFixedSchedule(student) {
 
 async function syncStudentFixedScheduleApi(student) {
   if (!student?.id || student.status === 'Pausado') return 0;
-  const occurrences = fixedScheduleOccurrences(student, 4);
+  const maxWeeks = getStudentScheduleWeeks(student);
+  const occurrences = fixedScheduleOccurrences(student, maxWeeks)
+    .filter((o) => !student.pago_ate || o.data <= student.pago_ate);
   if (!occurrences.length) return 0;
   const knownClasses = [...state.classes];
   let touched = 0;
@@ -3257,7 +3283,8 @@ async function syncStudentFixedScheduleApi(student) {
           capacidade: 8,
           status: 'Marcada',
           aluno_ids: [student.id],
-          presencas: {}
+          presencas: {},
+          confirmacoes: { [student.id]: 'sim' }
         })
       });
       if (created.item) knownClasses.push(created.item);
@@ -3271,7 +3298,8 @@ async function syncStudentFixedScheduleApi(student) {
         body: JSON.stringify({
           ...existing,
           aluno_ids: [...ids, String(student.id)],
-          presencas: existing.presencas || {}
+          presencas: existing.presencas || {},
+          confirmacoes: { ...(existing.confirmacoes || {}), [student.id]: 'sim' }
         })
       });
       existing.aluno_ids = [...ids, String(student.id)];
@@ -3337,11 +3365,16 @@ async function saveStudent(event) {
     pago_ate: studentById(id)?.pago_ate || ''
   };
 
+  const planAllowed = Number(plan?.aulas_semana || 0);
+  const exceedsPlan = planAllowed > 0 && scheduleDraft.agendas_fixas.length > planAllowed;
+
   await withModalLoading({
     submitButton,
     modalId: 'studentModal',
     successText: id ? 'Aluno atualizado!' : 'Aluno salvo!',
-    successToast: id ? 'Cadastro do aluno atualizado com sucesso!' : 'Novo aluno cadastrado com sucesso!',
+    successToast: exceedsPlan
+      ? `⚠️ ${id ? 'Aluno atualizado' : 'Aluno salvo'}! Foram definidos ${scheduleDraft.agendas_fixas.length} dias fixos para o plano "${plan.nome}" (${planAllowed}x/sem). Verifique para corrigir se necessário.`
+      : (id ? 'Cadastro do aluno atualizado com sucesso!' : 'Novo aluno cadastrado com sucesso!'),
     operation: async () => {
       if (apiMode) {
         const saved = await api(id ? `/api/students/${id}` : '/api/students', { method: id ? 'PUT' : 'POST', body: JSON.stringify(payload) });

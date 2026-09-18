@@ -168,6 +168,9 @@ function nextMonthKey(month) {
 }
 
 function studentPeriodEnd(student = {}, start = today()) {
+  if (student.pago_ate) {
+    return student.pago_ate >= start ? student.pago_ate : start;
+  }
   const currentDueDate = dueDateForMonth(student, start.slice(0, 7));
   return currentDueDate >= start ? currentDueDate : dueDateForMonth(student, nextMonthKey(start.slice(0, 7)));
 }
@@ -214,6 +217,21 @@ async function scalar(db, sql, params = [], fallback = 0) {
   return item[Object.keys(item)[0]] ?? fallback;
 }
 
+let schemaEnsured = false;
+async function ensureD1Schema(db) {
+  if (schemaEnsured) return;
+  try {
+    await run(db, "ALTER TABLE alunos ADD COLUMN saldo_reposicoes INTEGER DEFAULT 0");
+  } catch (_) {}
+  try {
+    await run(db, "ALTER TABLE alunos ADD COLUMN agendas_fixas TEXT DEFAULT '[]'");
+  } catch (_) {}
+  try {
+    await run(db, "ALTER TABLE alunos ADD COLUMN pago_ate TEXT DEFAULT ''");
+  } catch (_) {}
+  schemaEnsured = true;
+}
+
 function allowedPayload(table, payload = {}, includeId = false) {
   const columns = TABLE_COLUMNS[table] || [];
   return Object.fromEntries(Object.entries(payload).filter(([key, value]) =>
@@ -222,19 +240,53 @@ function allowedPayload(table, payload = {}, includeId = false) {
 }
 
 async function insertRow(db, table, payload, includeId = false) {
-  const clean = allowedPayload(table, payload, includeId);
-  const keys = Object.keys(clean);
+  await ensureD1Schema(db);
+  let clean = allowedPayload(table, payload, includeId);
+  let keys = Object.keys(clean);
   if (!keys.length) throw new Error('Nenhum campo valido');
-  const result = await run(db, `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`, keys.map((key) => clean[key]));
-  return { id: Number(result.meta?.last_row_id || clean.id || 0), changes: Number(result.meta?.changes || 0) };
+  try {
+    const result = await run(db, `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`, keys.map((key) => clean[key]));
+    return { id: Number(result.meta?.last_row_id || clean.id || 0), changes: Number(result.meta?.changes || 0) };
+  } catch (err) {
+    if (String(err.message).includes('saldo_reposicoes') || String(err.message).includes('no such column')) {
+      try {
+        await run(db, 'ALTER TABLE alunos ADD COLUMN saldo_reposicoes INTEGER DEFAULT 0');
+        const retryResult = await run(db, `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`, keys.map((key) => clean[key]));
+        return { id: Number(retryResult.meta?.last_row_id || clean.id || 0), changes: Number(retryResult.meta?.changes || 0) };
+      } catch (_) {
+        delete clean.saldo_reposicoes;
+        keys = Object.keys(clean);
+        const retryResult = await run(db, `INSERT INTO ${table} (${keys.join(', ')}) VALUES (${keys.map(() => '?').join(', ')})`, keys.map((key) => clean[key]));
+        return { id: Number(retryResult.meta?.last_row_id || clean.id || 0), changes: Number(retryResult.meta?.changes || 0) };
+      }
+    }
+    throw err;
+  }
 }
 
 async function updateRow(db, table, id, payload) {
-  const clean = allowedPayload(table, payload);
-  const keys = Object.keys(clean);
+  await ensureD1Schema(db);
+  let clean = allowedPayload(table, payload);
+  let keys = Object.keys(clean);
   if (!keys.length) return { changes: 0 };
-  const result = await run(db, `UPDATE ${table} SET ${keys.map((key) => `${key}=?`).join(', ')} WHERE id=?`, [...keys.map((key) => clean[key]), id]);
-  return { changes: Number(result.meta?.changes || 0) };
+  try {
+    const result = await run(db, `UPDATE ${table} SET ${keys.map((key) => `${key}=?`).join(', ')} WHERE id=?`, [...keys.map((key) => clean[key]), id]);
+    return { changes: Number(result.meta?.changes || 0) };
+  } catch (err) {
+    if (String(err.message).includes('saldo_reposicoes') || String(err.message).includes('no such column')) {
+      try {
+        await run(db, 'ALTER TABLE alunos ADD COLUMN saldo_reposicoes INTEGER DEFAULT 0');
+        const retryResult = await run(db, `UPDATE ${table} SET ${keys.map((key) => `${key}=?`).join(', ')} WHERE id=?`, [...keys.map((key) => clean[key]), id]);
+        return { changes: Number(retryResult.meta?.changes || 0) };
+      } catch (_) {
+        delete clean.saldo_reposicoes;
+        keys = Object.keys(clean);
+        const retryResult = await run(db, `UPDATE ${table} SET ${keys.map((key) => `${key}=?`).join(', ')} WHERE id=?`, [...keys.map((key) => clean[key]), id]);
+        return { changes: Number(retryResult.meta?.changes || 0) };
+      }
+    }
+    throw err;
+  }
 }
 
 async function deleteRow(db, table, id) {
@@ -397,6 +449,31 @@ async function studentClasses(db, request) {
   if (!student) throw new Error('Aluno nao encontrado para esse WhatsApp');
   const start = today();
   const periodEnd = studentPeriodEnd(student, start);
+
+  // Auto-vinculo e aprovacao automatica de aulas para alunos com dia fixo ate periodEnd
+  const fixedList = normalizeFixedSchedules(student);
+  if (fixedList.length > 0 && student.status !== 'Pausado' && periodEnd >= start) {
+    for (const fix of fixedList) {
+      const matchingClasses = await all(db, `
+        SELECT id, data, horario, turma FROM aulas
+        WHERE status != 'Cancelada' AND data BETWEEN ? AND ?
+          AND strftime('%w', data) = ?
+          AND horario = ?
+      `, [start, periodEnd, String(fix.dia), fix.horario]);
+
+      for (const matchCls of matchingClasses) {
+        const existing = await first(db, 'SELECT id, confirmado FROM aula_alunos WHERE aula_id=? AND aluno_id=?', [matchCls.id, student.id]);
+        if (!existing) {
+          await run(db, `
+            INSERT INTO aula_alunos (aula_id, aluno_id, confirmado, confirmado_em, confirmado_professor, confirmado_professor_em, presente)
+            VALUES (?, ?, 'sim', ?, 'sim', ?, 0)
+          `, [matchCls.id, student.id, today(), today()]);
+        } else if (existing.confirmado !== 'sim') {
+          await run(db, "UPDATE aula_alunos SET confirmado='sim', confirmado_em=? WHERE id=?", [today(), existing.id]);
+        }
+      }
+    }
+  }
 
   const week = getWeekRange(url.searchParams.get('semana') || url.searchParams.get('date') || start);
   const plan = student.plano_id ? await first(db, 'SELECT * FROM planos WHERE id=?', [student.plano_id]) : null;

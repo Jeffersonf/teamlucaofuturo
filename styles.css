@@ -893,12 +893,13 @@ textarea::placeholder {
 }
 
 .kpi-grid,
+.kpi-grid-4,
 .finance-summary,
 .report-grid,
 .student-report-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
 }
 
 .finance-summary,
@@ -2903,47 +2904,70 @@ label {
 
   .topbar {
     display: flex !important;
-    flex-direction: column !important;
-    gap: 12px !important;
-    align-items: stretch !important;
-    margin-bottom: 14px !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 52px !important;
+    height: 52px !important;
+    padding: 0 4px !important;
+    margin-bottom: 12px !important;
+    gap: 8px !important;
+  }
+
+  .topbar-heading {
+    display: none !important;
   }
 
   .mobile-top-brand {
-    order: -2 !important;
     display: flex !important;
     align-items: center !important;
-    justify-content: space-between !important;
-    width: 100% !important;
-    padding-bottom: 8px !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+    gap: 8px !important;
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    padding-bottom: 0 !important;
+    border-bottom: none !important;
   }
 
   .mobile-top-brand-left {
     display: flex !important;
     align-items: center !important;
-    gap: 10px !important;
+    gap: 8px !important;
+    min-width: 0 !important;
   }
 
-  .mobile-top-brand small {
-    display: block !important;
+  .mobile-top-brand-left .brand-mark-tl {
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 8px !important;
     font-size: 11px !important;
-    color: var(--muted) !important;
+    flex-shrink: 0 !important;
+  }
+
+  .mobile-top-brand-left strong {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    color: var(--text) !important;
+  }
+
+  .mobile-top-brand-left small {
+    display: none !important;
   }
 
   .mobile-portal-badge {
     display: inline-flex !important;
     align-items: center !important;
     gap: 4px !important;
-    padding: 5px 10px !important;
-    border-radius: 10px !important;
+    padding: 4px 8px !important;
+    border-radius: 8px !important;
     background: rgba(255, 255, 255, 0.05) !important;
     border: 1px solid rgba(255, 255, 255, 0.08) !important;
     color: var(--muted) !important;
     font-size: 11px !important;
     font-weight: 600 !important;
     text-decoration: none !important;
-    transition: all 0.15s ease !important;
+    white-space: nowrap !important;
+    margin-left: auto !important;
   }
 
   .mobile-portal-badge:active {
@@ -2951,53 +2975,34 @@ label {
     color: var(--text) !important;
   }
 
-  .topbar-heading {
-    order: -1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 2px !important;
-  }
-
-  .topbar-heading .eyebrow {
-    display: block !important;
-    font-size: 10px !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.06em !important;
-    text-transform: uppercase !important;
-    color: var(--muted) !important;
-  }
-
-  .topbar h1 {
-    font-size: clamp(22px, 5.5vw, 26px) !important;
-    font-weight: 750 !important;
-    line-height: 1.1 !important;
-    letter-spacing: -0.03em !important;
-    color: var(--text) !important;
-  }
-
   .top-actions {
     display: flex !important;
-    flex-wrap: wrap !important;
     align-items: center !important;
-    gap: 8px !important;
-    width: 100% !important;
+    gap: 6px !important;
+    width: auto !important;
+    flex-shrink: 0 !important;
   }
 
-  .global-search {
-    width: 100% !important;
-    flex: 1 1 100% !important;
-    order: -1 !important;
-  }
-
-  .top-actions > .soft-btn,
+  .global-search,
+  .top-actions #modeStatus,
+  .top-actions #userRoleBadge,
   .top-actions > .primary-btn,
-  .mode-chip {
-    flex: 1 1 110px !important;
-    min-height: 40px !important;
+  .top-actions > [data-open-student] {
+    display: none !important;
   }
 
-  .page:not(#page-dashboard) .panel > .panel-head > div:first-child {
-    display: none;
+  .top-actions > .soft-btn[data-refresh],
+  .top-actions > [data-refresh] {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 28px !important;
+    height: 28px !important;
+    padding: 0 8px !important;
+    font-size: 11px !important;
+    border-radius: 8px !important;
+    flex: none !important;
+    white-space: nowrap !important;
   }
 
   .two-col,
@@ -3028,22 +3033,51 @@ label {
   }
 
   .kpi-grid,
+  .kpi-grid-4,
+  #studentsKpiGrid,
+  #financeKpiGrid,
   .finance-summary,
   .report-grid,
   .student-report-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
   }
 
   .day-command,
   .report-hero,
   .booking-hero {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
+    padding: 14px 16px !important;
+    gap: 12px !important;
+    border-radius: 14px !important;
+  }
+
+  .day-command h2,
+  .report-hero h2,
+  .booking-hero h1 {
+    font-size: 18px !important;
+    line-height: 1.25 !important;
+  }
+
+  .day-command p,
+  .report-hero .meta,
+  .booking-hero p:not(.eyebrow) {
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    margin-top: 2px !important;
   }
 
   .day-command-actions,
   .report-hero .actions {
-    grid-template-columns: 1fr;
-    min-width: 0;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .day-command-actions > button:first-child {
+    grid-column: 1 / -1 !important;
   }
 
   .student-list-head { display: none; }
@@ -3218,8 +3252,8 @@ label {
 .modal-actions { justify-content: flex-end; }
 
 @media (max-width: 760px) {
-  .class-head-actions { align-items: stretch; flex-direction: column; }
-  .class-head-actions > * { width: 100%; }
+  .class-head-actions { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 6px !important; align-items: center !important; }
+  .class-head-actions > * { flex: 1 1 auto !important; font-size: 11px !important; padding-inline: 8px !important; min-height: 32px !important; white-space: nowrap !important; }
   .class-tools { align-items: stretch; flex-direction: column; }
   .class-tools > button { width: 100%; }
   .schedule-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -3261,7 +3295,7 @@ label {
   .day-command h2,
   .booking-hero h1,
   .report-hero h2 {
-    font-size: 32px;
+    font-size: clamp(18px, 4.8vw, 22px) !important;
   }
 
   .panel-head .soft-btn,
@@ -3439,6 +3473,8 @@ label {
   flex-direction: column;
   gap: 22px;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .finance-header-row {
@@ -3563,6 +3599,8 @@ label {
   display: grid;
   grid-template-columns: 2fr 1.1fr 0.9fr;
   gap: 16px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .finance-card {
@@ -3574,6 +3612,9 @@ label {
   flex-direction: column;
   gap: 16px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .finance-card-head {
@@ -3683,6 +3724,9 @@ label {
   flex-direction: column;
   gap: 16px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .finance-table-tabs {
@@ -3832,13 +3876,53 @@ label {
 
 @media (max-width: 1024px) {
   .kpi-grid-4 {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
-  .kpi-grid-4 {
-    grid-template-columns: 1fr;
+  .kpi-grid-4,
+  #financeKpiGrid,
+  #studentsKpiGrid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
+  }
+  .finance-kpi-card {
+    padding: 10px 12px !important;
+    gap: 6px !important;
+    border-radius: 12px !important;
+    min-width: 0 !important;
+  }
+  .finance-kpi-header span {
+    font-size: 11px !important;
+  }
+  .finance-kpi-icon {
+    width: 24px !important;
+    height: 24px !important;
+    flex-shrink: 0 !important;
+  }
+  .finance-kpi-icon svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+  .finance-kpi-value {
+    font-size: clamp(15px, 4.5vw, 19px) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .finance-kpi-footer {
+    flex-wrap: wrap !important;
+    gap: 4px !important;
+    font-size: 10px !important;
+  }
+  .finance-kpi-footer span.meta {
+    font-size: 10px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
   .finance-header-row {
     flex-direction: column;

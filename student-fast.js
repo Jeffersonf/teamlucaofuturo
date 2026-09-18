@@ -934,18 +934,32 @@ function updateGuestNotice() {
   guestSelectedText.textContent = 'Selecione uma data e horário ao lado.';
 }
 
+function getGuestAllowedMonthKeys() {
+  const { dateStr } = nowSP();
+  const currentKey = dateStr.slice(0, 7);
+  const [year, month] = currentKey.split('-').map(Number);
+  const nextDate = new Date(Date.UTC(year, month, 1));
+  const nextKey = nextDate.toISOString().slice(0, 7);
+  return [currentKey, nextKey];
+}
+
+function getGuestMaxDate() {
+  const allowedMonths = getGuestAllowedMonthKeys();
+  const nextKey = allowedMonths[1];
+  const [year, month] = nextKey.split('-').map(Number);
+  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  return `${nextKey}-${String(lastDay).padStart(2, '0')}`;
+}
+
 function renderGuestCalendar() {
   if (!guestCalendar) return;
-  const availableDates = new Set(guestClasses.filter((item) => openSlots(item) > 0).map((item) => item.data));
-  const dates = [...new Set(guestClasses.map((item) => item.data))].sort();
-  if (!dates.length) {
-    guestCalendar.innerHTML = '<p class="text-xs text-zinc-500 text-center py-4">Nenhuma data disponível no momento.</p>';
-    return;
-  }
-  const start = dates[0];
-  const end = dates[dates.length - 1];
+  const { dateStr: todayStr } = nowSP();
+  const maxDate = getGuestMaxDate();
+  const allowedMonths = getGuestAllowedMonthKeys();
+  const filteredClasses = guestClasses.filter((item) => item.data >= todayStr && item.data <= maxDate);
+  const availableDates = new Set(filteredClasses.filter((item) => openSlots(item) > 0).map((item) => item.data));
 
-  guestCalendar.innerHTML = monthKeys(start, end).map((key) => {
+  guestCalendar.innerHTML = allowedMonths.map((key) => {
     const [year, month] = key.split('-').map(Number);
     const firstDay = new Date(Date.UTC(year, month - 1, 1, 12, 0, 0));
     const lastDay = new Date(Date.UTC(year, month, 0, 12, 0, 0)).getUTCDate();
@@ -954,9 +968,10 @@ function renderGuestCalendar() {
     for (let day = 1; day <= lastDay; day += 1) {
       const iso = `${key}-${String(day).padStart(2, '0')}`;
       const hasSpots = availableDates.has(iso);
+      const isPast = iso < todayStr;
       const isSelected = guestDate && guestDate.value === iso;
-      const classes = ['calendar-day', hasSpots ? 'has-available' : '', isSelected ? 'is-selected' : ''].filter(Boolean).join(' ');
-      cells.push(hasSpots
+      const classes = ['calendar-day', hasSpots ? 'has-available' : '', isSelected ? 'is-selected' : '', isPast ? 'out-period' : ''].filter(Boolean).join(' ');
+      cells.push(hasSpots && !isPast
         ? `<button type="button" class="${classes}" data-guest-date="${iso}" aria-label="${escapeHTML(formatDateLong(iso))}"><span>${day}</span><i></i></button>`
         : `<span class="${classes} opacity-25" aria-hidden="true"><span>${day}</span></span>`);
     }
@@ -971,12 +986,15 @@ function renderGuestCalendar() {
 }
 
 async function loadGuestClasses() {
-  setStatus(guestStatus, 'Carregando todas as aulas disponíveis...');
+  setStatus(guestStatus, 'Carregando aulas disponíveis...');
   if (guestDate) guestDate.disabled = true;
   try {
     const response = await fetch('/api/public/classes', { cache: 'no-store' });
     const data = await responseData(response, 'Não foi possível carregar os horários.');
-    guestClasses = data.items || [];
+    const { dateStr: todayStr } = nowSP();
+    const maxDate = getGuestMaxDate();
+    // Restrito exclusivamente ao mes atual e proximo mes
+    guestClasses = (data.items || []).filter((item) => item.data >= todayStr && item.data <= maxDate);
     setupGuestDates();
     guestClassesLoaded = true;
     const availableCount = guestClasses.filter((item) => openSlots(item) > 0).length;
@@ -995,10 +1013,13 @@ async function loadGuestClasses() {
 
 function setupGuestDates() {
   if (!guestDate) return;
-  const dates = [...new Set(guestClasses.map((item) => item.data))].sort();
+  const { dateStr: todayStr } = nowSP();
+  const maxDate = getGuestMaxDate();
+  const allowedClasses = guestClasses.filter((item) => item.data >= todayStr && item.data <= maxDate);
+  const dates = [...new Set(allowedClasses.map((item) => item.data))].sort();
   const prevDate = guestDate.value;
   guestDate.innerHTML = '<option value="">Selecione a data</option>' + dates.map((date) => {
-    const forDate = guestClasses.filter((item) => item.data === date);
+    const forDate = allowedClasses.filter((item) => item.data === date);
     const hasSpots = forDate.some((item) => openSlots(item) > 0);
     return `<option value="${escapeHTML(date)}">${escapeHTML(formatDateLong(date))}${hasSpots ? '' : ' (Lotada)'}</option>`;
   }).join('');

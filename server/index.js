@@ -174,6 +174,9 @@ function dueDateForMonth(student = {}, month = currentMonth()) {
 }
 
 function studentPeriodEnd(student = {}, start = today()) {
+  if (student.pago_ate) {
+    return student.pago_ate >= start ? student.pago_ate : start;
+  }
   const currentDueDate = dueDateForMonth(student, start.slice(0, 7));
   if (currentDueDate >= start) return currentDueDate;
   return dueDateForMonth(student, addMonthsIso(`${start.slice(0, 7)}-01`, 1).slice(0, 7));
@@ -491,6 +494,31 @@ app.get('/api/public/student-classes', (req, res) => {
     if (!student) throw new Error('Aluno nao encontrado para esse WhatsApp');
     const start = today();
     const periodEnd = studentPeriodEnd(student, start);
+
+    // Auto-vinculo e aprovacao automatica de aulas para alunos com dia fixo ate periodEnd
+    const fixedList = normalizeFixedSchedules(student);
+    if (fixedList.length > 0 && student.status !== 'Pausado' && periodEnd >= start) {
+      for (const fix of fixedList) {
+        const matchingClasses = rows(`
+          SELECT id, data, horario, turma FROM aulas
+          WHERE status != 'Cancelada' AND data BETWEEN ? AND ?
+            AND strftime('%w', data) = ?
+            AND horario = ?
+        `, [start, periodEnd, String(fix.dia), fix.horario]);
+
+        for (const matchCls of matchingClasses) {
+          const existing = row('SELECT id, confirmado FROM aula_alunos WHERE aula_id=? AND aluno_id=?', [matchCls.id, student.id]);
+          if (!existing) {
+            run(`
+              INSERT INTO aula_alunos (aula_id, aluno_id, confirmado, confirmado_em, confirmado_professor, confirmado_professor_em, presente)
+              VALUES (?, ?, 'sim', ?, 'sim', ?, 0)
+            `, [matchCls.id, student.id, today(), today()]);
+          } else if (existing.confirmado !== 'sim') {
+            run("UPDATE aula_alunos SET confirmado='sim', confirmado_em=? WHERE id=?", [today(), existing.id]);
+          }
+        }
+      }
+    }
 
     const week = getWeekRange(req.query.semana || req.query.date || start);
     const plan = student.plano_id ? row('SELECT * FROM planos WHERE id=?', [student.plano_id]) : null;
