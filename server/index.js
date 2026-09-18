@@ -530,20 +530,28 @@ app.get('/api/public/student-classes', (req, res) => {
       SELECT ag.id, ag.aula_id, ag.status, ag.criado_em, a.data, a.horario, a.turma, a.tipo
       FROM agendamentos ag JOIN aulas a ON a.id=ag.aula_id
       WHERE ag.status IN ('Pendente', 'Aprovado')
-        AND REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(ag.telefone, ''), '(', ''), ')', ''), '-', ''), ' ', ''), '+', '') LIKE ?
-        AND a.data BETWEEN ? AND ?
+      AND REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(ag.telefone, ''), '(', ''), ')', ''), '-', ''), ' ', ''), '+', '') LIKE ?
+      AND a.data BETWEEN ? AND ?
       ORDER BY a.data, a.horario
     `, [`%${phone.slice(-8)}`, start, periodEnd]) : [];
+
+    const todayDate = today();
+    const planDueDate = student.pago_ate || dueDateForMonth(student, currentMonth());
+    const isExpired = todayDate > planDueDate;
 
     res.json({
       ok: true,
       student: {
         id: student.id,
         nome: student.nome,
+        telefone: student.telefone,
         plano_id: student.plano_id,
         plano_nome: student.plano_nome,
+        mensalidade: student.mensalidade,
         dia_vencimento: student.dia_vencimento,
-        pago_ate: student.pago_ate
+        pago_ate: student.pago_ate,
+        plano_vencido: isExpired,
+        plano_vencimento: planDueDate
       },
       period_start: start,
       period_end: periodEnd,
@@ -635,7 +643,7 @@ app.post('/api/public/student-confirm', (req, res) => {
       ? `${student.nome} removeu a resposta da aula ${classItem?.horario || classId} - ${classItem?.turma || 'Turma'} em ${classItem?.data || ''}.`
       : `${student.nome} respondeu ${confirmValue} na aula ${classItem?.horario || classId} - ${classItem?.turma || 'Turma'} em ${classItem?.data || ''}.`, 'Aluno');
 
-    res.json({ ok: true, item: row('SELECT * FROM aula_alunos WHERE aula_id=? AND aluno_id=?', [classId, student.id]) });
+    res.json({ ok: true, removed: removeResponse, item: row('SELECT * FROM aula_alunos WHERE aula_id=? AND aluno_id=?', [classId, student.id]) });
   } catch (err) {
     jsonError(res, err);
   }
@@ -832,6 +840,20 @@ app.post('/api/students/:id/pay', (req, res) => {
     ]);
     logAction('Pagamento', `${student.nome} pago até ${paidUntil}.`, 'Professor');
     res.json({ ok: true, paidUntil, item: row('SELECT * FROM alunos WHERE id=?', [student.id]) });
+  } catch (err) {
+    jsonError(res, err);
+  }
+});
+
+app.delete('/api/students/:id/pay', (req, res) => {
+  try {
+    const student = row('SELECT * FROM alunos WHERE id=?', [req.params.id]);
+    if (!student) throw new Error('Aluno não encontrado');
+    const reference = String(req.body?.referencia || req.query?.referencia || currentMonth()).slice(0, 7);
+    run('DELETE FROM pagamentos WHERE aluno_id=? AND referencia=?', [student.id, reference]);
+    run('UPDATE alunos SET pago_ate=? WHERE id=?', ['', student.id]);
+    logAction('Pagamento desmarcado', `${student.nome} teve pagamento de ${reference} desmarcado.`, 'Professor');
+    res.json({ ok: true, item: row('SELECT * FROM alunos WHERE id=?', [student.id]) });
   } catch (err) {
     jsonError(res, err);
   }

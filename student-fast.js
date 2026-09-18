@@ -7,6 +7,7 @@ const form = document.getElementById('studentFastForm');
 const phoneInput = document.getElementById('studentFastPhone');
 const searchButton = form.querySelector('button[type="submit"]');
 const studentStatus = document.getElementById('studentFastStatus');
+const dashboardStatus = document.getElementById('studentDashboardStatus');
 const dashboard = document.getElementById('studentDashboard');
 const greeting = document.getElementById('studentGreeting');
 const period = document.getElementById('studentPeriod');
@@ -56,6 +57,23 @@ function setStatus(target, message = '', state = '') {
     target.className = 'p-3.5 rounded-2xl bg-red-950/60 border border-red-800/60 text-red-300 text-xs font-medium block my-3 text-center';
   } else {
     target.className = 'p-3 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 text-xs font-medium block my-3 text-center';
+  }
+}
+
+let statusTimeout = null;
+function showStatus(message = '', state = '', autoClearMs = 4000) {
+  const isDashboardActive = dashboard && !dashboard.hidden;
+  const target = (isDashboardActive && dashboardStatus) ? dashboardStatus : studentStatus;
+  setStatus(target, message, state);
+  if (target === dashboardStatus && studentStatus) setStatus(studentStatus, '');
+  if (statusTimeout) {
+    clearTimeout(statusTimeout);
+    statusTimeout = null;
+  }
+  if (message && state === 'success' && autoClearMs) {
+    statusTimeout = setTimeout(() => {
+      setStatus(target, '');
+    }, autoClearMs);
   }
 }
 
@@ -163,7 +181,7 @@ function renderUpcoming() {
       </div>
       ${responseMarkup(item)}
     </article>
-  `).join('') : '<p class="text-xs text-zinc-500 text-center py-4 bg-zinc-950/30 rounded-2xl border border-zinc-800/40">Não há outras aulas indicadas até o vencimento.</p>';
+  `).join('') : '<p class="text-xs text-zinc-500 text-center py-5 bg-zinc-950/30 rounded-2xl border border-zinc-800/40">Nenhuma aula confirmada no momento. Escolha seu horário na Grade da Semana acima.</p>';
 }
 
 function availableItems() {
@@ -621,7 +639,7 @@ async function findClasses(event) {
   event.preventDefault();
   const phone = phoneInput.value.trim();
   if (phoneDigits(phone).length < 10) {
-    setStatus(studentStatus, 'Informe um WhatsApp válido com DDD.', 'error');
+    showStatus('Informe um WhatsApp válido com DDD.', 'error');
     phoneInput.focus();
     return;
   }
@@ -631,15 +649,15 @@ async function findClasses(event) {
   document.activeElement?.blur();
   dashboard.hidden = true;
   setButtonLoading(searchButton, true, 'Buscando...');
-  setStatus(studentStatus, 'Buscando sua agenda...');
+  showStatus('Buscando sua agenda...', '');
   try {
     await loadAgenda();
     const count = (agendaData.items || []).length;
-    setStatus(studentStatus, count
-      ? `${count} ${count === 1 ? 'aula encontrada' : 'aulas encontradas'} até o vencimento.`
-      : 'Agenda encontrada. Confira também as aulas disponíveis.', 'success');
+    showStatus(count
+      ? `${count} ${count === 1 ? 'aula confirmada encontrada' : 'aulas confirmadas encontradas'} até o vencimento.`
+      : 'Agenda encontrada. Confira a grade semanal para confirmar presenças.', 'success');
   } catch (error) {
-    setStatus(studentStatus, error.message, 'error');
+    showStatus(error.message, 'error');
     dashboard.hidden = true;
   } finally {
     setButtonLoading(searchButton, false);
@@ -647,8 +665,8 @@ async function findClasses(event) {
 }
 
 async function updateConfirmation(classId, value, button) {
-  setButtonLoading(button, true);
-  setStatus(studentStatus, value === 'remover' ? 'Removendo sua resposta...' : 'Salvando sua resposta...');
+  if (button) setButtonLoading(button, true, value === 'remover' ? 'Desmarcando...' : 'Confirmando...');
+  showStatus(value === 'remover' ? 'Desmarcando presença...' : 'Confirmando presença...', '');
   try {
     const response = await fetch('/api/public/student-confirm', {
       method: 'POST',
@@ -657,14 +675,14 @@ async function updateConfirmation(classId, value, button) {
     });
     const data = await responseData(response, 'Não foi possível salvar sua resposta.');
     await loadAgenda();
-    setStatus(studentStatus, value === 'sim'
-      ? 'Presença informada. Agora é só aguardar a confirmação do professor.'
+    showStatus(value === 'sim'
+      ? 'Presença confirmada! Aguarde a liberação do professor.'
       : value === 'nao'
         ? 'Ausência informada ao professor.'
-        : 'Sua resposta foi removida.', 'success');
+        : 'Aula desmarcada com sucesso. Sua vaga foi liberada.', 'success');
   } catch (error) {
-    setButtonLoading(button, false);
-    setStatus(studentStatus, error.message, 'error');
+    if (button) setButtonLoading(button, false);
+    showStatus(error.message, 'error', 6000);
   }
 }
 
@@ -672,7 +690,7 @@ async function requestClass(classId, button) {
   const classItem = availableItems().find((item) => String(item.id) === String(classId));
   if (!classItem) return;
   setButtonLoading(button, true, 'Solicitando...');
-  setStatus(studentStatus, 'Enviando sua solicitação...');
+  showStatus('Enviando sua solicitação...', '');
   try {
     const response = await fetch('/api/public/bookings', {
       method: 'POST',
@@ -695,10 +713,10 @@ async function requestClass(classId, button) {
     }];
     setupAvailableFilters(true);
     renderCalendar();
-    setStatus(studentStatus, 'Solicitação enviada. O professor confirmará pelo WhatsApp.', 'success');
+    showStatus('Solicitação enviada. O professor confirmará pelo WhatsApp.', 'success');
   } catch (error) {
     setButtonLoading(button, false);
-    setStatus(studentStatus, error.message, 'error');
+    showStatus(error.message, 'error', 6000);
   }
 }
 
@@ -968,10 +986,19 @@ if (guestListContainer) {
 
 guestForm.addEventListener('submit', submitGuestBooking);
 
-upcomingList.addEventListener('click', (event) => {
-  const button = event.target.closest('[data-confirm-class]');
-  if (button) updateConfirmation(button.dataset.confirmClass, button.dataset.confirmValue, button);
-});
+if (upcomingList) {
+  upcomingList.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-confirm-class]');
+    if (button && !button.disabled) updateConfirmation(button.dataset.confirmClass, button.dataset.confirmValue, button);
+  });
+}
+
+if (weeklyList) {
+  weeklyList.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-confirm-class]');
+    if (button && !button.disabled) updateConfirmation(button.dataset.confirmClass, button.dataset.confirmValue, button);
+  });
+}
 
 availableList.addEventListener('click', (event) => {
   const button = event.target.closest('[data-book-class]');

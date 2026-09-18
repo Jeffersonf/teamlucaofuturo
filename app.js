@@ -3734,16 +3734,25 @@ async function markPaid(studentId) {
     return;
   }
   if (!confirm(`Marcar ${student.nome} como NAO pago em ${month}?`)) return;
-  if (apiMode) {
-    await api(`/api/students/${studentId}`, { method: 'PUT', body: JSON.stringify({ ...student, pago_ate: '' }) });
-    await loadData();
-  } else {
-    student.pago_ate = '';
-    state.payments = (state.payments || []).filter((item) => !(String(item.aluno_id) === String(student.id) && paymentMonth(item) === month));
-    recordAction('Professor', 'Pagamento reaberto', `${student.nome} foi marcado como nao pago em ${month}.`);
-    saveAndRender();
+  try {
+    if (apiMode) {
+      await api(`/api/students/${studentId}/pay`, {
+        method: 'DELETE',
+        body: JSON.stringify({ referencia: month })
+      }).catch(async () => {
+        await api(`/api/students/${studentId}`, { method: 'PUT', body: JSON.stringify({ ...student, pago_ate: '' }) });
+      });
+      await loadData();
+    } else {
+      student.pago_ate = '';
+      state.payments = (state.payments || []).filter((item) => !(String(item.aluno_id) === String(student.id) && paymentMonth(item) === month));
+      recordAction('Professor', 'Pagamento reaberto', `${student.nome} foi marcado como nao pago em ${month}.`);
+      saveAndRender();
+    }
+    toast('Mensalidade marcada como nao paga');
+  } catch (err) {
+    toast(err.message || 'Erro ao desmarcar pagamento', 'error');
   }
-  toast('Mensalidade marcada como nao paga');
 }
 
 async function savePayment(event) {

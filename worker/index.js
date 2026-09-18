@@ -624,7 +624,7 @@ async function apiHandler(request, env, body) {
       ? `${student.nome} removeu a resposta da aula ${classItem.horario} - ${classItem.turma || 'Turma'} em ${classItem.data}.`
       : `${student.nome} respondeu ${value} na aula ${classItem.horario} - ${classItem.turma || 'Turma'} em ${classItem.data}.`, 'Aluno');
 
-    return json({ ok: true, item: await first(db, 'SELECT * FROM aula_alunos WHERE aula_id=? AND aluno_id=?', [classId, student.id]) });
+    return json({ ok: true, removed: removeResponse, item: await first(db, 'SELECT * FROM aula_alunos WHERE aula_id=? AND aluno_id=?', [classId, student.id]) });
   }
   if (url.pathname === '/api/public/simulate-pix' && method === 'POST') {
     const informedPhone = body.telefone || body.phone || '';
@@ -767,14 +767,22 @@ async function apiHandler(request, env, body) {
     if (method === 'PUT') { const payload = normalizeStudent(body); if (!payload.nome) throw new Error('Informe o nome do aluno'); await updateRow(db, 'alunos', id, payload); const item = await first(db, 'SELECT * FROM alunos WHERE id=?', [id]); await logAction(db, 'Aluno atualizado', `${item?.nome || 'Aluno'} teve cadastro atualizado.`, 'Professor'); return json({ ok: true, item }); }
     if (method === 'DELETE') return json(await deleteRow(db, 'alunos', id));
   }
-  if (path[1] === 'students' && path.length === 4 && path[3] === 'pay' && method === 'POST') {
+  if (path[1] === 'students' && path.length === 4 && path[3] === 'pay') {
     const student = await first(db, 'SELECT * FROM alunos WHERE id=?', [path[2]]); if (!student) throw new Error('Aluno nao encontrado');
-    const reference = String(body.referencia || currentMonth()).slice(0, 7);
-    const due = String(body.vencimento || `${reference}-10`).slice(0, 10);
-    const paidUntil = student.pago_ate && student.pago_ate > due ? student.pago_ate : due;
-    await run(db, 'UPDATE alunos SET pago_ate=? WHERE id=?', [paidUntil, student.id]);
-    await insertRow(db, 'pagamentos', { aluno_id: student.id, referencia: reference, valor: money(body.valor ?? student.mensalidade), vencimento: due, pago_em: String(body.pago_em || today()).slice(0, 10), status: 'PAGO', forma_pagamento: String(body.forma_pagamento || 'Pix'), observacao: String(body.observacao || 'Mensalidade marcada pelo painel') });
-    await logAction(db, 'Pagamento', `${student.nome} pago ate ${paidUntil}.`, 'Professor'); return json({ ok: true, paidUntil, item: await first(db, 'SELECT * FROM alunos WHERE id=?', [student.id]) });
+    const reference = String(body.referencia || url.searchParams.get('referencia') || currentMonth()).slice(0, 7);
+    if (method === 'POST') {
+      const due = String(body.vencimento || `${reference}-10`).slice(0, 10);
+      const paidUntil = student.pago_ate && student.pago_ate > due ? student.pago_ate : due;
+      await run(db, 'UPDATE alunos SET pago_ate=? WHERE id=?', [paidUntil, student.id]);
+      await insertRow(db, 'pagamentos', { aluno_id: student.id, referencia: reference, valor: money(body.valor ?? student.mensalidade), vencimento: due, pago_em: String(body.pago_em || today()).slice(0, 10), status: 'PAGO', forma_pagamento: String(body.forma_pagamento || 'Pix'), observacao: String(body.observacao || 'Mensalidade marcada pelo painel') });
+      await logAction(db, 'Pagamento', `${student.nome} pago ate ${paidUntil}.`, 'Professor'); return json({ ok: true, paidUntil, item: await first(db, 'SELECT * FROM alunos WHERE id=?', [student.id]) });
+    }
+    if (method === 'DELETE') {
+      await run(db, 'DELETE FROM pagamentos WHERE aluno_id=? AND referencia=?', [student.id, reference]);
+      await run(db, 'UPDATE alunos SET pago_ate=? WHERE id=?', ['', student.id]);
+      await logAction(db, 'Pagamento desmarcado', `${student.nome} teve pagamento de ${reference} desmarcado.`, 'Professor');
+      return json({ ok: true, item: await first(db, 'SELECT * FROM alunos WHERE id=?', [student.id]) });
+    }
   }
 
   if (path[1] === 'classes' && path.length === 2) {

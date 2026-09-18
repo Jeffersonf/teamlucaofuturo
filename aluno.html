@@ -146,6 +146,9 @@
       <!-- Dashboard Ativo do Aluno -->
       <div id="studentDashboard" hidden class="w-full space-y-4">
         
+        <!-- Feedback de Ação do Aluno (visível no painel ativo) -->
+        <div id="studentDashboardStatus" role="status" aria-live="polite" class="hidden"></div>
+
         <!-- Header do Aluno: Nome, Plano, Status e Ação de Trocar -->
         <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
           <div class="flex items-center gap-3">
@@ -225,8 +228,8 @@
             <!-- Próximas Aulas Confirmadas (Até o Vencimento) -->
             <section class="bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 shadow-xl">
               <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-zinc-800/60">
-                <h3 class="text-sm font-bold text-white">Minhas Aulas Confirmadas</h3>
-                <span class="text-[10px] text-zinc-500">Período vigente</span>
+                <h3 class="text-sm font-bold text-white">Minha Agenda de Aulas</h3>
+                <span class="text-[10px] text-zinc-500">Aulas do seu plano</span>
               </div>
               <div id="studentUpcomingList" class="space-y-2"></div>
             </section>
