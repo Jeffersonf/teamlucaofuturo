@@ -110,10 +110,10 @@ console.log('   ✅ index.html e aluno.html 100% conformes com o Design System!'
 // 7. Service Worker
 console.log('\n7. Testando service-worker.js...');
 const swContent = fs.readFileSync(path.join(ROOT, 'service-worker.js'), 'utf-8');
-assert.ok(swContent.includes("CACHE_NAME = 'team-lucao-v150'"), 'CACHE_NAME deve ser team-lucao-v150');
-assert.ok(swContent.includes('./styles.css?v=20260918-ds'), 'Cache de styles.css deve ter hash 20260918-ds');
-assert.ok(swContent.includes('./app.js?v=20260918-v1'), 'Cache de app.js deve ter hash 20260918-v1');
-assert.ok(swContent.includes('./student-fast.js?v=20260918-v1'), 'Cache de student-fast.js deve ter hash 20260918-v1');
+assert.ok(swContent.includes("CACHE_NAME = 'team-lucao-v200'"), 'CACHE_NAME deve ser team-lucao-v200');
+assert.ok(swContent.includes('./styles.css?v=20260918-v2'), 'Cache de styles.css deve ter hash 20260918-v2');
+assert.ok(swContent.includes('./app.js?v=20260918-v2'), 'Cache de app.js deve ter hash 20260918-v2');
+assert.ok(swContent.includes('./student-fast.js?v=20260918-v2'), 'Cache de student-fast.js deve ter hash 20260918-v2');
 assert.ok(swContent.includes("addEventListener('install'"), 'Deve conter listener de install');
 console.log('   ✅ service-worker.js atualizado com cache-busting consistente!');
 

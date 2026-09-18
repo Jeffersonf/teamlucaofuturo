@@ -1,15 +1,15 @@
-const CACHE_NAME = 'team-lucao-v150';
+const CACHE_NAME = 'team-lucao-v200';
 const ASSETS = [
   './',
   './index.html',
-  './styles.css?v=20260918-ds',
-  './app.js?v=20260918-v1',
+  './styles.css?v=20260918-v2',
+  './app.js?v=20260918-v2',
   './manifest.webmanifest?v=20260908-ui2',
   './aluno',
   './autorizar',
   './public.css?v=20260908-agenda3',
   './public-theme.js?v=20260908-agenda3',
-  './student-fast.js?v=20260918-v1',
+  './student-fast.js?v=20260918-v2',
   './authorize-fast.js?v=20260908-ui2',
   './assets/team-lucao-logo.png'
 ];

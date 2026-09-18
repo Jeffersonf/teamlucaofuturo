@@ -34,7 +34,7 @@ const PAGE_TITLES = {
   bookings: ['alunos', 'Pedidos de aula'],
   students: ['cadastro', 'Alunos'],
   classes: ['agenda', 'Aulas'],
-  payments: ['financeiro', 'Mensalidades'],
+  payments: ['financeiro', 'Finance Dashboard'],
   waitlist: ['demanda', 'Lista de espera'],
   plans: ['oferta', 'Planos'],
   reports: ['gestão', 'Relatórios'],
@@ -467,7 +467,7 @@ async function loadData({ serverKnown = false } = {}) {
     if (modeStatus) modeStatus.textContent = appConfig.localModeLabel;
     updateSystemNotice();
     restorePage();
-  initSetupGuideCard();
+    if (typeof initSetupGuideCard === 'function') initSetupGuideCard();
     return;
   }
   const modeStatus = document.getElementById('modeStatus');
@@ -3966,7 +3966,7 @@ window.addEventListener('storage', (event) => {
 });
 startActionRefresh();
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-  navigator.serviceWorker.register('./service-worker.js?v=20260908-ui2', { scope: './' }).catch(() => {});
+  navigator.serviceWorker.register('./service-worker.js?v=20260918-v2', { scope: './' }).catch(() => {});
 }
 if (localStorage.getItem(PIN_KEY)) {
   showBooking(false);

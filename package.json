@@ -1,6 +1,6 @@
 {
   "name": "teamlucaofuturo",
-  "version": "0.2.0",
+  "version": "2.0.0",
   "private": true,
   "description": "Evolução SaaS modular para arenas e escolas de futevôlei com multi-tenancy, cobrança Pix e controle de chuvas",
   "scripts": {
