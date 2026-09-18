@@ -35,10 +35,10 @@ function getWeekRange(dateIso = today()) {
     ? new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])))
     : new Date();
   const day = now.getUTCDay();
-  const diffToMon = day === 0 ? -6 : 1 - day;
+  const diffToMon = day === 0 ? 1 : 1 - day;
   now.setUTCDate(now.getUTCDate() + diffToMon);
   const start = now.toISOString().slice(0, 10);
-  now.setUTCDate(now.getUTCDate() + 6);
+  now.setUTCDate(now.getUTCDate() + 5);
   const end = now.toISOString().slice(0, 10);
   return { inicio: start, fim: end };
 }
@@ -484,12 +484,28 @@ async function respondBooking(db, id, body) {
   const classItem = await classWithStudents(db, rawClass);
   if (classItem.aluno_ids.length >= Number(rawClass.capacidade || 8) && !body.force) throw new Error('Aula lotada');
   const phone = digits(booking.telefone);
-  const student = phone ? await first(db, `SELECT * FROM alunos WHERE ${sqlPhone()} LIKE ? LIMIT 1`, [`%${phone.slice(-8)}`]) : null;
+  let student = phone ? await first(db, `SELECT * FROM alunos WHERE ${sqlPhone()} LIKE ? LIMIT 1`, [`%${phone.slice(-8)}`]) : null;
+  const isExperimental = String(booking.observacao || '').toLowerCase().includes('experimental')
+    || String(booking.tipo || '').toLowerCase().includes('experimental')
+    || String(rawClass.turma || '').toLowerCase().includes('experimental');
+
+  if (!student && isExperimental) {
+    const newStudent = await insertRow(db, 'alunos', {
+      nome: booking.nome,
+      telefone: booking.telefone,
+      status: 'Experimental',
+      plano_nome: 'Experimental',
+      nivel: 'Iniciante',
+      observacao: `Aprovado para experimental em ${rawClass.data} ${rawClass.horario}`
+    });
+    student = await first(db, 'SELECT * FROM alunos WHERE id=?', [newStudent.id]);
+  }
+
   if (student) {
     await upsertClassStudents(db, rawClass.id, [...classItem.aluno_ids, student.id], classItem.presencas || {});
   } else {
     const extras = parseList(rawClass.extras);
-    extras.push({ id: `ag${id}`, nome: booking.nome, tipo: 'Solicitado', criado_em: today() });
+    extras.push({ id: `ag${id}`, nome: booking.nome, tipo: isExperimental ? 'Experimental' : 'Solicitado', criado_em: today() });
     await run(db, 'UPDATE aulas SET extras=? WHERE id=?', [JSON.stringify(extras), rawClass.id]);
   }
   await run(db, "UPDATE agendamentos SET status='Aprovado', respondido_em=? WHERE id=?", [today(), id]);
@@ -662,8 +678,12 @@ async function apiHandler(request, env, body) {
       ORDER BY horario, turma
     `, [todayStr]);
 
+    const activeClasses = period === 'tarde'
+      ? classes.filter((c) => c.horario >= '12:00')
+      : classes;
+
     const items = [];
-    for (const c of classes) {
+    for (const c of activeClasses) {
       const links = await all(db, `
         SELECT aa.confirmado, aa.presente, a.nome
         FROM aula_alunos aa

@@ -119,16 +119,20 @@ export function renderClassCalendar(ctx) {
   const target = document.getElementById('classCalendar');
   if (!target) return;
   const index = ctx.getStateIndex();
-  const days = Array.from({ length: 7 }, (_item, i) => ctx.addDaysIso(ctx.todayISO(), i));
-  target.innerHTML = days.map((day) => {
+  const bounds = ctx.weekBounds(ctx.todayISO());
+  // Semana de treinos: Segunda a Sábado (6 dias, Domingo sem aula)
+  const days = Array.from({ length: 6 }, (_item, i) => ctx.addDaysIso(bounds.start, i));
+  const weekdayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+  target.innerHTML = days.map((day, i) => {
     const classes = index.classesByDay.get(day) || [];
+    const weekday = weekdayNames[i] || '';
     return `
       <article class="calendar-day ${day === ctx.todayISO() ? 'today' : ''}">
         <button type="button" data-class-day="${day}">
-          <strong>${ctx.formatDate(day).slice(0, 5)}</strong>
+          <strong>${weekday} ${ctx.formatDate(day).slice(0, 5)}</strong>
           <span>${classes.length} aula(s)</span>
         </button>
-        <div>${classes.slice(0, 3).map((item) => `<small>${ctx.escapeHTML(item.horario)} ${ctx.escapeHTML(item.turma || '')}</small>`).join('')}</div>
+        <div>${classes.slice(0, 4).map((item) => `<small>${ctx.escapeHTML(item.horario)} ${ctx.escapeHTML(item.turma || '')}</small>`).join('')}</div>
       </article>
     `;
   }).join('');

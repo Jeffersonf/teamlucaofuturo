@@ -353,14 +353,88 @@ function ensureSchema() {
 
   const classes = scalar('SELECT COUNT(*) AS total FROM aulas');
   if (!classes) {
-    const result = run('INSERT INTO aulas (data, horario, turma, professor, capacidade, status, observacao) VALUES (?, ?, ?, ?, ?, ?, ?)', [
-      todayIso(), '18:30', 'Iniciantes', 'Jefferson', 8, 'Marcada', 'Treino técnico'
-    ]);
-    const classId = Number(result.lastInsertRowid);
-    rows('SELECT id FROM alunos ORDER BY id LIMIT 2').forEach((student, index) => {
-      run('INSERT INTO aula_alunos (aula_id, aluno_id, presente) VALUES (?, ?, ?)', [classId, student.id, index === 0 ? 1 : 0]);
+    seedOfficialClasses({ weeks: 5, clearExisting: false });
+  }
+}
+
+function getMondayOfCurrentWeek(baseDate = todayIso()) {
+  const [y, m, d] = baseDate.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+  const day = date.getUTCDay();
+  const diffToMon = day === 0 ? 1 : 1 - day;
+  date.setUTCDate(date.getUTCDate() + diffToMon);
+  return date.toISOString().slice(0, 10);
+}
+
+function seedOfficialClasses({ weeks = 5, clearExisting = false } = {}) {
+  if (clearExisting) {
+    run('DELETE FROM aula_alunos');
+    run('DELETE FROM aulas');
+    run('DELETE FROM agendamentos');
+  }
+
+  const startMonday = getMondayOfCurrentWeek();
+  const [sy, sm, sd] = startMonday.split('-').map(Number);
+  const totalDays = Math.max(1, weeks) * 7;
+
+  // Grade Oficial Team Lucão:
+  // Seg a Sex: 08:00, 09:00, 17:30, 18:30, 19:30, 20:30
+  // Sábado: 08:00, 09:00, 10:00, 14:00
+  // Domingo: Sem aula
+  const weekDaySchedule = [
+    { horario: '08:00', turma: 'Iniciante', professor: 'Jefferson', capacidade: 8, observacao: 'Fundamentos e saque' },
+    { horario: '09:00', turma: 'Intermediário', professor: 'Jefferson', capacidade: 8, observacao: 'Ataque e posicionamento' },
+    { horario: '17:30', turma: 'Misto / Geral', professor: 'Jefferson', capacidade: 8, observacao: 'Turma fim de tarde' },
+    { horario: '18:30', turma: 'Iniciante', professor: 'Jefferson', capacidade: 8, observacao: 'Treino técnico' },
+    { horario: '19:30', turma: 'Intermediário', professor: 'Jefferson', capacidade: 8, observacao: 'Jogo e situações de jogo' },
+    { horario: '20:30', turma: 'Avançado / Competitivo', professor: 'Jefferson', capacidade: 8, observacao: 'Ritmo forte de jogo' }
+  ];
+
+  const saturdaySchedule = [
+    { horario: '08:00', turma: 'Treino Geral', professor: 'Jefferson', capacidade: 8, observacao: 'Manhã de sábado' },
+    { horario: '09:00', turma: 'Treino Geral', professor: 'Jefferson', capacidade: 8, observacao: 'Turma matutina' },
+    { horario: '10:00', turma: 'Misto / Aberto', professor: 'Jefferson', capacidade: 8, observacao: 'Treino aberto e dinâmico' },
+    { horario: '14:00', turma: 'Rachão / Jogo', professor: 'Jefferson', capacidade: 8, observacao: 'Jogos e competição' }
+  ];
+
+  const studentOne = row("SELECT id FROM alunos WHERE nome='Ana Souza'");
+  let createdCount = 0;
+
+  for (let i = 0; i < totalDays; i += 1) {
+    const current = new Date(Date.UTC(sy, sm - 1, sd + i, 12, 0, 0));
+    const dayOfWeek = current.getUTCDay(); // 0=Dom, 1=Seg, ..., 6=Sáb
+    if (dayOfWeek === 0) continue; // Domingo NÃO tem aula
+
+    const dateStr = current.toISOString().slice(0, 10);
+    const slots = dayOfWeek === 6 ? saturdaySchedule : weekDaySchedule;
+
+    slots.forEach((slot) => {
+      const existing = row('SELECT id FROM aulas WHERE data=? AND horario=?', [dateStr, slot.horario]);
+      if (!existing) {
+        const result = run('INSERT INTO aulas (data, horario, turma, professor, capacidade, status, observacao) VALUES (?, ?, ?, ?, ?, ?, ?)', [
+          dateStr, slot.horario, slot.turma, slot.professor, slot.capacidade, 'Marcada', slot.observacao
+        ]);
+        createdCount += 1;
+        const newClassId = Number(result.lastInsertRowid);
+        if (studentOne && (slot.horario === '18:30' || slot.horario === '19:30') && (dayOfWeek === 1 || dayOfWeek === 3)) {
+          run('INSERT INTO aula_alunos (aula_id, aluno_id, presente, confirmado) VALUES (?, ?, ?, ?)', [newClassId, studentOne.id, 0, 'sim']);
+        }
+      }
     });
   }
+
+  // Se não houver agendamentos, cria um exemplo de experimental para facilitar visualização
+  const pendingBooking = scalar('SELECT COUNT(*) FROM agendamentos');
+  if (!pendingBooking) {
+    const todayClass = row("SELECT id FROM aulas WHERE data>=? AND horario='18:30' ORDER BY data LIMIT 1", [todayIso()]);
+    if (todayClass) {
+      run("INSERT INTO agendamentos (nome, telefone, aula_id, status, observacao, criado_em) VALUES (?, ?, ?, ?, ?, ?)", [
+        'Rafael Brito', '(15) 99222-0001', todayClass.id, 'Pendente', 'Aula experimental solicitada.', todayIso()
+      ]);
+    }
+  }
+
+  return createdCount;
 }
 
 function stableChecksum(payload) {
@@ -523,6 +597,7 @@ module.exports = {
   rows,
   run,
   scalar,
+  seedOfficialClasses,
   stateSnapshot,
   tableColumns,
   tableResponse,

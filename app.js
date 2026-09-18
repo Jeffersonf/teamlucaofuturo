@@ -661,11 +661,11 @@ function cssToken(value = '') {
 function weekBounds(dateIso = todayISO()) {
   const date = new Date(`${dateIso}T12:00:00`);
   const day = date.getDay();
-  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const diffToMonday = day === 0 ? 1 : 1 - day;
   const start = new Date(date);
   start.setDate(date.getDate() + diffToMonday);
   const end = new Date(start);
-  end.setDate(start.getDate() + 6);
+  end.setDate(start.getDate() + 5);
   return {
     start: start.toISOString().slice(0, 10),
     end: end.toISOString().slice(0, 10)
@@ -1179,6 +1179,7 @@ function getAppContext() {
     applyAppConfig,
     updateSystemNotice,
     addDaysIso,
+    weekBounds,
     sortClass
   };
 }
@@ -1385,6 +1386,20 @@ function bookingStatusTone(status = 'Pendente') {
   return 'warn';
 }
 
+function isExperimentalBooking(booking = {}) {
+  if (!booking) return false;
+  const obs = String(booking.observacao || '').toLowerCase();
+  const tipo = String(booking.tipo || '').toLowerCase();
+  const turma = String(booking.turma || '').toLowerCase();
+  if (obs.includes('experimental') || tipo.includes('experimental') || turma.includes('experimental')) return true;
+  const digits = phoneDigits(booking.telefone);
+  if (digits && state.students) {
+    const student = state.students.find((s) => phoneDigits(s.telefone).endsWith(digits.slice(-8)));
+    if (student && (String(student.status || '').toLowerCase() === 'experimental' || String(student.plano_nome || '').toLowerCase().includes('experimental'))) return true;
+  }
+  return false;
+}
+
 function renderBookings() {
   const target = document.getElementById('bookingList');
   if (!target) return;
@@ -1395,41 +1410,104 @@ function renderBookings() {
   const pending = bookings.filter((item) => (item.status || 'Pendente') === 'Pendente');
   const approved = bookings.filter((item) => item.status === 'Aprovado');
   const rejected = bookings.filter((item) => item.status === 'Recusado');
+  const experimentalsPending = pending.filter((item) => isExperimentalBooking(item));
+  const totalExperimentals = bookings.filter((item) => isExperimentalBooking(item));
+
+  const filterSelect = document.getElementById('bookingFilter');
+  const currentFilter = filterSelect?.value || 'all';
+
   const summary = document.getElementById('bookingSummary');
   if (summary) {
     summary.innerHTML = `
       <article class="mini-stat ${pending.length ? 'kpi-warn' : 'kpi-ok'}"><span>Aguardando</span><strong>${pending.length}</strong></article>
+      <article class="mini-stat ${experimentalsPending.length ? 'kpi-warn' : ''}" style="${experimentalsPending.length ? 'border-color: rgba(245,158,11,0.4);' : ''}"><span>🧪 Experimentais</span><strong style="${experimentalsPending.length ? 'color: #fbbf24;' : ''}">${experimentalsPending.length}</strong></article>
       <article class="mini-stat kpi-ok"><span>Aprovados</span><strong>${approved.length}</strong></article>
-      <article class="mini-stat"><span>Recusados</span><strong>${rejected.length}</strong></article>
       <article class="mini-stat"><span>Total</span><strong>${bookings.length}</strong></article>
     `;
   }
-  target.innerHTML = bookings.length ? bookings.map((booking) => {
+
+  const filteredBookings = bookings.filter((item) => {
+    if (currentFilter === 'experimental') return isExperimentalBooking(item);
+    if (currentFilter === 'regular') return !isExperimentalBooking(item);
+    return true;
+  });
+
+  target.innerHTML = filteredBookings.length ? filteredBookings.map((booking) => {
     const item = bookingClass(booking);
     const status = booking.status || 'Pendente';
     const full = item ? classStudentIds(item).length >= Number(item.capacidade || 8) : false;
+    const isExp = isExperimentalBooking(booking);
     return `
-      <article class="row-card booking-request booking-${cssToken(status)}">
+      <article class="row-card booking-request booking-${cssToken(status)}" style="${isExp ? 'border-left: 3px solid #f59e0b;' : ''}">
         <div class="booking-main">
           <div class="booking-titleline">
-            <h3>${escapeHTML(booking.nome)}</h3>
+            <h3 style="display:flex; align-items:center; gap:8px;">
+              ${escapeHTML(booking.nome)}
+              ${isExp ? '<span class="pill warn" style="font-size:10px; font-weight:700; background:rgba(245,158,11,0.18); color:#fbbf24; border:1px solid rgba(245,158,11,0.35);">🧪 Experimental</span>' : ''}
+            </h3>
             <span class="pill ${bookingStatusTone(status)}">${escapeHTML(status)}</span>
           </div>
           <p class="meta">${escapeHTML(booking.telefone || 'sem WhatsApp')}</p>
-          <p class="booking-class-meta">${item ? `${formatDate(item.data)} as ${item.horario} - ${escapeHTML(item.turma || 'Turma')}` : 'aula removida'}</p>
+          <p class="booking-class-meta">${item ? `${formatDate(item.data)} às ${item.horario} - ${escapeHTML(item.turma || 'Turma')}` : 'aula removida'}</p>
           <div class="pill-row">
+            ${isExp ? '<span class="pill warn">Aula Experimental</span>' : '<span class="pill">Aula Regular</span>'}
             ${item ? `<span class="pill ${full ? 'bad' : 'ok'}">${classStudentIds(item).length}/${item.capacidade || 8} vagas</span>` : ''}
+            ${booking.indicado_por ? `<span class="pill">Indicação: ${escapeHTML(booking.indicado_por)}</span>` : ''}
             ${booking.criado_em ? `<span class="pill">${formatDate(booking.criado_em)}</span>` : ''}
           </div>
-          ${booking.observacao ? `<p class="meta">${escapeHTML(booking.observacao)}</p>` : ''}
+          ${booking.observacao ? `<p class="meta" style="color:var(--text);">${escapeHTML(booking.observacao)}</p>` : ''}
         </div>
         <div class="actions">
           ${booking.telefone ? `<a class="mini-btn" href="${whatsappUrl(booking.telefone, bookingReplyText(booking, item))}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
-          ${status === 'Pendente' ? `<button class="mini-btn" data-booking-action="${booking.id}:approve">Aprovar</button><button class="mini-btn danger-mini" data-booking-action="${booking.id}:reject">Recusar</button>` : ''}
+          ${status === 'Pendente' ? `<button class="mini-btn ${isExp ? 'primary-btn' : ''}" data-booking-action="${booking.id}:approve">${isExp ? 'Aprovar Experimental' : 'Aprovar'}</button><button class="mini-btn danger-mini" data-booking-action="${booking.id}:reject">Recusar</button>` : ''}
         </div>
       </article>
     `;
-  }).join('') : empty('Nenhum pedido de aula ainda.');
+  }).join('') : empty(currentFilter === 'experimental' ? 'Nenhuma solicitação de aula experimental no momento.' : 'Nenhum pedido de aula encontrado.');
+
+  // Renderizar experimentais da lista de espera que ainda não foram agendados
+  const waitlistSection = document.getElementById('bookingWaitlistSection');
+  if (waitlistSection) {
+    const waitlistExp = (state.waitlist || []).filter((item) => {
+      const st = String(item.status || 'Novo');
+      const obs = String(item.observacao || '').toLowerCase();
+      const pref = String(item.preferencia || '').toLowerCase();
+      return ['Novo', 'Contatado', 'Experimental marcado'].includes(st) && (obs.includes('experimental') || pref.includes('experimental') || st === 'Experimental marcado');
+    });
+
+    if (waitlistExp.length && currentFilter !== 'regular') {
+      waitlistSection.innerHTML = `
+        <div style="margin-top: 24px; padding: 16px; border: 1px dashed rgba(245,158,11,0.35); border-radius: 18px; background: rgba(245,158,11,0.04);">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <strong style="display:flex; align-items:center; gap:6px; color:#fbbf24; font-size:14px;">
+              🧪 Experimentais na Fila de Espera (${waitlistExp.length})
+            </strong>
+            <small style="color: var(--muted);">Interessados aguardando confirmação de horário</small>
+          </div>
+          <div class="list" style="gap: 8px;">
+            ${waitlistExp.map((wait) => `
+              <article class="row-card" style="padding: 12px 14px;">
+                <div style="min-width:0; flex:1;">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <strong>${escapeHTML(wait.nome)}</strong>
+                    <span class="pill warn">${escapeHTML(wait.status || 'Novo')}</span>
+                  </div>
+                  <p class="meta">${escapeHTML(wait.telefone || 'sem telefone')} ${wait.preferencia ? `• Pref: ${escapeHTML(wait.preferencia)}` : ''}</p>
+                  ${wait.observacao ? `<p class="meta" style="color:var(--text);">${escapeHTML(wait.observacao)}</p>` : ''}
+                </div>
+                <div class="actions">
+                  ${wait.telefone ? `<a class="mini-btn" href="${whatsappUrl(wait.telefone, `Oi ${wait.nome}! Aqui é do Team Lucão Futevôlei. Vi seu interesse na aula experimental. Vamos agendar seu treino?`)}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
+                  <button class="mini-btn" data-edit-wait="${wait.id}">Agendar Treino</button>
+                </div>
+              </article>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    } else {
+      waitlistSection.innerHTML = '';
+    }
+  }
 }
 
 function nextWaitLead() {
@@ -2456,8 +2534,12 @@ function toggleClassStudent(studentId, checked) {
 }
 
 function bookingReplyText(booking, item) {
-  const classText = item ? `${formatDate(item.data)} as ${item.horario}` : 'a aula solicitada';
-  return `Oi ${booking.nome}, tudo bem? Aqui e do Team Lucão. Recebi seu pedido para ${classText} e vou confirmar por aqui.`;
+  const isExp = isExperimentalBooking(booking);
+  const classText = item ? `${formatDate(item.data)} às ${item.horario}` : 'a aula solicitada';
+  if (isExp) {
+    return `Oi ${booking.nome}, tudo bem? Aqui é do Team Lucão Futevôlei! Recebi sua solicitação para a *Aula Experimental* em ${classText}. Sua vaga está confirmada! Te esperamos na quadra.`;
+  }
+  return `Oi ${booking.nome}, tudo bem? Aqui é do Team Lucão. Recebi seu pedido para ${classText} e confirmei sua vaga!`;
 }
 
 function publicClassLabel(item) {
@@ -2923,19 +3005,35 @@ async function respondBooking(id, action, force = false) {
     return;
   }
   const digits = String(booking.telefone || '').replace(/\D/g, '');
-  const student = digits ? state.students.find((entry) => String(entry.telefone || '').replace(/\D/g, '').endsWith(digits.slice(-8))) : null;
+  const isExp = isExperimentalBooking(booking);
+  let student = digits ? state.students.find((entry) => String(entry.telefone || '').replace(/\D/g, '').endsWith(digits.slice(-8))) : null;
+
+  if (!student && isExp) {
+    student = {
+      id: uid(),
+      nome: booking.nome,
+      telefone: booking.telefone,
+      status: 'Experimental',
+      plano_nome: 'Experimental',
+      nivel: 'Iniciante',
+      observacao: `Cadastrado automaticamente via aprovação de experimental em ${item.data} às ${item.horario}`,
+      criado_em: todayISO()
+    };
+    state.students.push(student);
+  }
+
   if (student && !classStudentIds(item).map(String).includes(String(student.id))) {
     item.aluno_ids = [...classStudentIds(item), student.id];
     item.presencas = item.presencas || {};
     item.presencas[student.id] = item.presencas[student.id] || false;
-  } else {
-    item.extra_presentes = [...classExtras(item), { id: `ag${booking.id}`, nome: booking.nome, tipo: 'Solicitado', criado_em: todayISO() }];
+  } else if (!student) {
+    item.extra_presentes = [...classExtras(item), { id: `ag${booking.id}`, nome: booking.nome, tipo: isExp ? 'Experimental' : 'Solicitado', criado_em: todayISO() }];
   }
   booking.status = 'Aprovado';
   booking.respondido_em = todayISO();
-  recordAction('Professor', 'Pedido aprovado', `${booking.nome} foi aprovado na aula ${item.horario} - ${item.turma || 'Turma'}.`);
+  recordAction('Professor', isExp ? 'Experimental aprovado' : 'Pedido aprovado', `${booking.nome} foi aprovado(a) na aula ${item.horario} - ${item.turma || 'Turma'}.`);
   saveAndRender();
-  toast('Pedido aprovado');
+  toast(isExp ? 'Aula experimental aprovada e aluno cadastrado!' : 'Pedido aprovado');
 }
 
 function syncStudentFixedSchedule(student) {
@@ -3679,6 +3777,7 @@ function bindEvents() {
   document.getElementById('classStatusFilter').addEventListener('change', renderClasses);
   document.getElementById('classStudentSearch')?.addEventListener('input', renderClassChecklistLater);
   document.getElementById('waitStatusFilter').addEventListener('change', renderWaitlist);
+  document.getElementById('bookingFilter')?.addEventListener('change', renderBookings);
   document.getElementById('studentPlan').addEventListener('change', (event) => {
     const plan = planById(event.target.value);
     if (plan) document.getElementById('studentFee').value = plan.preco || '';

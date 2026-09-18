@@ -81,10 +81,10 @@ function getWeekRange(dateIso = today()) {
     ? new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])))
     : new Date();
   const day = now.getUTCDay();
-  const diffToMon = day === 0 ? -6 : 1 - day;
+  const diffToMon = day === 0 ? 1 : 1 - day;
   now.setUTCDate(now.getUTCDate() + diffToMon);
   const start = now.toISOString().slice(0, 10);
-  now.setUTCDate(now.getUTCDate() + 6);
+  now.setUTCDate(now.getUTCDate() + 5);
   const end = now.toISOString().slice(0, 10);
   return { inicio: start, fim: end };
 }
@@ -613,7 +613,11 @@ app.get('/api/public/group-summary', (req, res) => {
       ORDER BY horario, turma
     `, [todayStr]);
 
-    const items = classes.map((c) => {
+    const activeClasses = period === 'tarde'
+      ? classes.filter((c) => c.horario >= '12:00')
+      : classes;
+
+    const items = activeClasses.map((c) => {
       const links = rows(`
         SELECT aa.confirmado, aa.presente, a.nome
         FROM aula_alunos aa
@@ -1135,14 +1139,30 @@ app.post('/api/bookings/:id/respond', (req, res) => {
     const currentIds = classItem.aluno_ids || [];
     if (currentIds.length >= Number(classItem.capacidade || 8) && !req.body.force) throw new Error('Aula lotada');
     const digits = String(booking.telefone || '').replace(/\D/g, '');
-    const student = digits
+    let student = digits
       ? row("SELECT * FROM alunos WHERE REPLACE(REPLACE(REPLACE(REPLACE(telefone, '(', ''), ')', ''), '-', ''), ' ', '') LIKE ?", [`%${digits.slice(-8)}`])
       : null;
+    const isExperimental = String(booking.observacao || '').toLowerCase().includes('experimental')
+      || String(booking.tipo || '').toLowerCase().includes('experimental')
+      || String(classItem.turma || '').toLowerCase().includes('experimental');
+
+    if (!student && isExperimental) {
+      const inserted = insertRow('alunos', {
+        nome: booking.nome,
+        telefone: booking.telefone,
+        status: 'Experimental',
+        plano_nome: 'Experimental',
+        nivel: 'Iniciante',
+        observacao: `Aprovado para experimental em ${classItem.data} ${classItem.horario}`
+      });
+      student = row('SELECT * FROM alunos WHERE id=?', [inserted.id]);
+    }
+
     if (student) {
       upsertClassStudents(classItem.id, [...currentIds, student.id], classItem.presencas || {});
     } else {
       const extras = parseJsonList(classItem.extras);
-      extras.push({ id: `ag${booking.id}`, nome: booking.nome, tipo: 'Solicitado', criado_em: today() });
+      extras.push({ id: `ag${booking.id}`, nome: booking.nome, tipo: isExperimental ? 'Experimental' : 'Solicitado', criado_em: today() });
       run('UPDATE aulas SET extras=? WHERE id=?', [JSON.stringify(extras), classItem.id]);
     }
     run("UPDATE agendamentos SET status='Aprovado', respondido_em=? WHERE id=?", [today(), booking.id]);

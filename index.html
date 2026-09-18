@@ -287,11 +287,19 @@
           <div class="panel-head">
             <div>
               <span>alunos</span>
-              <h2 data-config-page-title="bookingsTitle">Pedidos de aula</h2>
+              <h2 data-config-page-title="bookingsTitle">Pedidos de aula & Experimentais</h2>
+            </div>
+            <div class="filters booking-filters" style="margin: 0;">
+              <select id="bookingFilter" aria-label="Filtrar pedidos">
+                <option value="all">Todas as solicitações</option>
+                <option value="experimental">🧪 Apenas Experimentais</option>
+                <option value="regular">Aulas Regulares</option>
+              </select>
             </div>
           </div>
           <div class="finance-summary" id="bookingSummary"></div>
           <div class="list" id="bookingList"></div>
+          <div id="bookingWaitlistSection"></div>
         </div>
       </section>
 
