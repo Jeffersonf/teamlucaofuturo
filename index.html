@@ -610,212 +610,381 @@
     </main>
 
     <div class="modal-wrap" id="studentModal" role="dialog" aria-modal="true" aria-labelledby="studentModalTitle" aria-hidden="true">
-      <form class="modal" id="studentForm">
-        <button class="close" type="button" aria-label="Fechar aluno" data-close="studentModal">x</button>
-        <h2 id="studentModalTitle">Aluno</h2>
+      <form class="modal wide-modal" id="studentForm">
         <input type="hidden" id="studentId" />
-        <fieldset class="form-group student-form-section student-identity-group">
-          <legend>Identificacao</legend>
-          <label>Nome<input id="studentName" required placeholder="Ex: Ana Souza" /></label>
-          <div class="form-row">
-            <label>Telefone<input id="studentPhone" placeholder="(15) 99999-9999" /></label>
-            <label>Email<input id="studentEmail" type="email" placeholder="aluno@email.com" /></label>
+        <div class="modal-header">
+          <div class="modal-header-info">
+            <span class="modal-badge">Team Lucão • Atletas</span>
+            <h2 id="studentModalTitle">Aluno</h2>
+            <p class="modal-subtitle">Cadastre ou edite os dados, plano e horários de treino do atleta.</p>
           </div>
-        </fieldset>
-        <fieldset class="form-group schedule-group">
-          <legend>Agenda fixa</legend>
-          <div class="schedule-group-head">
-            <p>Informe todos os dias em que o aluno treina. Exemplo: terça e quinta em horários diferentes.</p>
-            <button class="soft-btn schedule-add-btn" type="button" id="addStudentFixedSchedule">+ Adicionar outro dia</button>
-          </div>
-          <div class="fixed-schedule-list" id="studentFixedSchedules"></div>
-          <div class="schedule-preview" id="studentSchedulePreview"></div>
-        </fieldset>
-        <fieldset class="form-group student-form-section">
-          <legend>Plano e operação</legend>
-        <div class="form-row">
-          <label>Plano
-            <select id="studentPlan"></select>
-          </label>
-          <label>Mensalidade<input id="studentFee" type="number" min="0" step="0.01" placeholder="180" /></label>
+          <button class="modal-close-btn close" type="button" aria-label="Fechar aluno" data-close="studentModal">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
         </div>
-        <label>Dia de vencimento<input id="studentDueDay" type="number" min="1" max="31" step="1" placeholder="10" /></label>
-        <label>Nível
-          <select id="studentLevel">
-            <option value="Iniciante">Iniciante</option>
-            <option value="Intermediário">Intermediário</option>
-            <option value="Avançado">Avançado</option>
-            <option value="Kids">Kids</option>
-          </select>
-        </label>
-        <label>Status
-          <select id="studentStatus">
-            <option value="Ativo">Ativo</option>
-            <option value="Experimental">Experimental</option>
-            <option value="Pausado">Pausado</option>
-          </select>
-        </label>
-        <label>Observação<input id="studentNote" placeholder="Restrições, objetivo, responsável..." /></label>
-        </fieldset>
-        <button class="primary-btn modal-save-btn" type="submit">Salvar aluno</button>
+        <div class="modal-body">
+          <!-- Section 1: Dados Pessoais -->
+          <div class="form-section-card">
+            <div class="form-section-head">
+              <span class="form-section-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+                Identificação do Aluno
+              </span>
+            </div>
+            <label>Nome Completo
+              <input id="studentName" required placeholder="Ex: Ana Souza" autocomplete="name" />
+            </label>
+            <div class="form-row">
+              <label>Telefone WhatsApp
+                <input id="studentPhone" placeholder="(15) 99999-9999" type="tel" autocomplete="tel" />
+              </label>
+              <label>E-mail (opcional)
+                <input id="studentEmail" type="email" placeholder="aluno@email.com" autocomplete="email" />
+              </label>
+            </div>
+          </div>
+
+          <!-- Section 2: Plano e Mensalidade -->
+          <div class="form-section-card">
+            <div class="form-section-head">
+              <span class="form-section-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                Plano & Mensalidade
+              </span>
+            </div>
+            <div class="form-row">
+              <label>Plano Escolhido
+                <select id="studentPlan"></select>
+              </label>
+              <label>Mensalidade (R$)
+                <input id="studentFee" type="number" min="0" step="0.01" placeholder="220,00" />
+              </label>
+            </div>
+            <div class="form-row">
+              <label>Dia de Vencimento
+                <input id="studentDueDay" type="number" min="1" max="31" step="1" placeholder="10" />
+              </label>
+              <label>Nível do Atleta
+                <select id="studentLevel">
+                  <option value="Iniciante">Iniciante</option>
+                  <option value="Intermediário">Intermediário</option>
+                  <option value="Avançado">Avançado</option>
+                  <option value="Kids">Kids</option>
+                </select>
+              </label>
+            </div>
+            <label>Status do Aluno
+              <select id="studentStatus">
+                <option value="Ativo">Ativo (Treinando)</option>
+                <option value="Experimental">Experimental (Visitante / Avaliação)</option>
+                <option value="Pausado">Pausado (Trancado)</option>
+              </select>
+            </label>
+          </div>
+
+          <!-- Section 3: Agenda Semanal Fixa -->
+          <div class="form-section-card">
+            <div class="form-section-head">
+              <span class="form-section-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                Horários Fixos de Treino
+              </span>
+              <button class="schedule-add-btn" type="button" id="addStudentFixedSchedule">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Adicionar dia</span>
+              </button>
+            </div>
+            <p style="margin: 0; font-size: 11px; color: #a1a1aa;">Defina os dias e horários em que o atleta treina toda semana na Arena.</p>
+            <div class="fixed-schedule-list" id="studentFixedSchedules"></div>
+            <div class="schedule-preview" id="studentSchedulePreview"></div>
+          </div>
+
+          <!-- Section 4: Observações -->
+          <div class="form-section-card">
+            <div class="form-section-head">
+              <span class="form-section-title">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                Observações & Restrições
+              </span>
+            </div>
+            <label>Anotações do Professor
+              <input id="studentNote" placeholder="Restrições físicas, histórico, objetivos..." />
+            </label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="soft-btn" type="button" data-close="studentModal">Cancelar</button>
+          <button class="primary-btn modal-save-btn" type="submit">
+            <span>Salvar aluno</span>
+          </button>
+        </div>
       </form>
     </div>
 
     <div class="modal-wrap" id="studentReportModal" role="dialog" aria-modal="true" aria-labelledby="studentReportModalTitle" aria-hidden="true">
-      <section class="modal wide-modal">
-        <button class="close" type="button" aria-label="Fechar relatório do aluno" data-close="studentReportModal">x</button>
-        <h2 id="studentReportModalTitle" class="sr-only">Relatório do aluno</h2>
-        <div id="studentReport"></div>
+      <section class="modal wide-modal" style="max-width: 860px;">
+        <div class="modal-header">
+          <div class="modal-header-info">
+            <span class="modal-badge">Ficha do Atleta</span>
+            <h2 id="studentReportModalTitle">Perfil do Aluno</h2>
+            <p class="modal-subtitle">Visão 360° do atleta: frequência, pagamentos e próximas aulas.</p>
+          </div>
+          <button class="modal-close-btn close" type="button" aria-label="Fechar relatório do aluno" data-close="studentReportModal">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="modal-body" id="studentReport"></div>
+        <div class="modal-footer" id="studentReportFooter">
+          <button class="soft-btn" type="button" data-close="studentReportModal">Fechar</button>
+        </div>
       </section>
     </div>
 
     <div class="modal-wrap" id="paymentModal" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle" aria-hidden="true">
       <form class="modal" id="paymentForm">
-        <button class="close" type="button" aria-label="Fechar pagamento" data-close="paymentModal">x</button>
-        <h2 id="paymentModalTitle">Registrar pagamento</h2>
         <input type="hidden" id="paymentStudentId" />
-        <p class="muted payment-modal-student" id="paymentStudentName"></p>
-        <div class="form-row">
-          <label>Referência<input id="paymentReference" type="month" required /></label>
-          <label>Pago em<input id="paymentPaidAt" type="date" required /></label>
+        <div class="modal-header">
+          <div class="modal-header-info">
+            <span class="modal-badge">Financeiro</span>
+            <h2 id="paymentModalTitle">Registrar Pagamento</h2>
+            <p class="modal-subtitle payment-modal-student" id="paymentStudentName"></p>
+          </div>
+          <button class="modal-close-btn close" type="button" aria-label="Fechar pagamento" data-close="paymentModal">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
         </div>
-        <div class="form-row">
-          <label>Valor<input id="paymentValue" type="number" min="0" step="0.01" required /></label>
-          <label>Forma
-            <select id="paymentMethod">
-              <option value="Pix">Pix</option>
-              <option value="Dinheiro">Dinheiro</option>
-              <option value="Cartao">Cartão</option>
-              <option value="Transferencia">Transferência</option>
-              <option value="Outro">Outro</option>
-            </select>
+        <div class="modal-body">
+          <div class="form-row">
+            <label>Mês de Referência
+              <input id="paymentReference" type="month" required />
+            </label>
+            <label>Data do Pagamento
+              <input id="paymentPaidAt" type="date" required />
+            </label>
+          </div>
+          <div class="form-row">
+            <label>Valor Recebido (R$)
+              <input id="paymentValue" type="number" min="0" step="0.01" required />
+            </label>
+            <label>Forma de Pagamento
+              <select id="paymentMethod">
+                <option value="Pix">PIX</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Cartao">Cartão</option>
+                <option value="Transferencia">Transferência</option>
+                <option value="Outro">Outro</option>
+              </select>
+            </label>
+          </div>
+          <label>Observação (opcional)
+            <input id="paymentNote" placeholder="Ex: pago antecipado, desconto, reposição..." />
           </label>
+          <button type="button" class="soft-btn pix-modal-btn" id="btnOpenPixFromPayment" style="margin-top:4px; width:100%; font-weight:600; padding:11px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:8px; background:rgba(220,38,38,0.1); border:1px solid rgba(220,38,38,0.25); color:#ef4444;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 7v7M16 7v7M12 11h4M7 11h1"/></svg>
+            <span>Gerar Cobrança PIX com QR Code</span>
+          </button>
         </div>
-        <label>Observação<input id="paymentNote" placeholder="Ex: pago antecipado, desconto, reposição..." /></label>
-        <button class="primary-btn" type="submit">Confirmar pagamento</button>
-        <button type="button" class="soft-btn pix-modal-btn" id="btnOpenPixFromPayment" style="margin-top:8px; width:100%; font-weight:600; padding:11px; border-radius:12px; display:flex; align-items:center; justify-content:center; gap:8px; background:rgba(220,38,38,0.12); border:1px solid rgba(220,38,38,0.25); color:#ef4444;">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 7v7M16 7v7M12 11h4M7 11h1"/></svg>
-          <span>Gerar Cobrança PIX com QR Code</span>
-        </button>
+        <div class="modal-footer">
+          <button class="soft-btn" type="button" data-close="paymentModal">Cancelar</button>
+          <button class="primary-btn modal-save-btn" type="submit">
+            <span>Confirmar pagamento</span>
+          </button>
+        </div>
       </form>
     </div>
 
     <div class="modal-wrap" id="classModal" role="dialog" aria-modal="true" aria-labelledby="classModalTitle" aria-hidden="true">
-      <form class="modal" id="classForm">
-        <button class="close" type="button" aria-label="Fechar aula" data-close="classModal">x</button>
-        <h2 id="classModalTitle">Aula</h2>
+      <form class="modal wide-modal" id="classForm">
         <input type="hidden" id="classId" />
-        <div class="form-row">
-          <label>Data<input id="classDate" type="date" required /></label>
-          <label>Horário<input id="classTime" type="time" list="classTimeOptions" required /></label>
-        </div>
-        <datalist id="classTimeOptions">
-          <option value="18:30"></option><option value="19:30"></option><option value="20:30"></option>
-          <option value="09:00"></option><option value="10:00"></option><option value="14:00"></option><option value="15:00"></option>
-        </datalist>
-        <label>Turma<input id="classGroup" placeholder="Ex: Iniciantes, Intermediário, Kids" /></label>
-        <label>Professor<input id="classCoach" placeholder="Nome do professor" /></label>
-        <div class="form-row">
-          <label>Tipo
-            <select id="classType">
-              <option value="Regular">Regular</option>
-              <option value="Experimental">Experimental</option>
-              <option value="Reposicao">Reposição</option>
-              <option value="Avulso">Avulso</option>
-              <option value="Evento">Evento</option>
-            </select>
-          </label>
-          <label>Capacidade<input id="classCapacity" type="number" min="1" step="1" placeholder="8" /></label>
-        </div>
-        <div class="form-row">
-          <label>Status
-            <select id="classStatus">
-              <option value="Marcada">Marcada</option>
-              <option value="Confirmada">Confirmada</option>
-              <option value="Finalizada">Finalizada</option>
-              <option value="Cancelada">Cancelada</option>
-            </select>
-          </label>
-          <label>Recorrência
-            <select id="classRecurrence">
-              <option value="weekly">Semanal</option>
-              <option value="once">Uma vez</option>
-            </select>
-          </label>
-        </div>
-        <label class="native-class-select">Alunos da aula<select id="classStudents" multiple></select></label>
-        <div class="class-students-picker">
-          <div class="section-label">Alunos da aula</div>
-          <div class="class-picker-head">
-            <input id="classStudentSearch" aria-label="Buscar aluno para adicionar à aula" placeholder="Buscar aluno para adicionar..." autocomplete="off" />
-            <span id="classStudentCount">0 selecionados</span>
+        <div class="modal-header">
+          <div class="modal-header-info">
+            <span class="modal-badge">Grade de Treinos</span>
+            <h2 id="classModalTitle">Aula</h2>
+            <p class="modal-subtitle">Configure data, horário oficial, turma, professor e lista de alunos.</p>
           </div>
-          <div class="class-student-list" id="classStudentChecklist"></div>
+          <button class="modal-close-btn close" type="button" aria-label="Fechar aula" data-close="classModal">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
         </div>
-        <label>Semanas da recorrência<input id="classRepeatWeeks" type="number" min="1" max="12" step="1" value="4" /></label>
-        <label>Motivo ou aviso da aula<textarea id="classNotice" rows="2" placeholder="Use para cancelamento, troca de horario ou recado para o grupo."></textarea></label>
-        <button class="primary-btn" type="submit">Salvar aula</button>
-        <button type="button" class="soft-btn rain-cancel-btn" id="btnCancelRain" style="display:none; margin-top:8px; width:100%; font-weight:600; padding:11px; border-radius:12px; background:rgba(59,130,246,0.12); border:1px solid rgba(59,130,246,0.25); color:#60a5fa; align-items:center; justify-content:center; gap:8px;">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242M16 14v6M8 14v6M12 16v6"/></svg>
-          <span>Cancelar Aula por Chuva (+1 Crédito p/ Alunos)</span>
-        </button>
+        <div class="modal-body">
+          <div class="form-row">
+            <label>Data do Treino
+              <input id="classDate" type="date" required />
+            </label>
+            <label>Horário Oficial
+              <input id="classTime" type="time" list="classTimeOptions" required />
+            </label>
+          </div>
+          <datalist id="classTimeOptions">
+            <option value="08:00"></option>
+            <option value="09:00"></option>
+            <option value="10:00"></option>
+            <option value="14:00"></option>
+            <option value="17:30"></option>
+            <option value="18:30"></option>
+            <option value="19:30"></option>
+            <option value="20:30"></option>
+          </datalist>
+          <div class="form-row">
+            <label>Turma
+              <input id="classGroup" placeholder="Ex: Iniciantes, Intermediário, Misto" />
+            </label>
+            <label>Professor
+              <input id="classCoach" placeholder="Lucão" />
+            </label>
+          </div>
+          <div class="form-row">
+            <label>Tipo de Treino
+              <select id="classType">
+                <option value="Regular">Regular</option>
+                <option value="Experimental">Experimental</option>
+                <option value="Reposicao">Reposição</option>
+                <option value="Avulso">Avulso</option>
+                <option value="Evento">Evento</option>
+              </select>
+            </label>
+            <label>Capacidade Máxima
+              <input id="classCapacity" type="number" min="1" step="1" placeholder="8" />
+            </label>
+          </div>
+          <div class="form-row">
+            <label>Status
+              <select id="classStatus">
+                <option value="Marcada">Marcada</option>
+                <option value="Confirmada">Confirmada</option>
+                <option value="Finalizada">Finalizada</option>
+                <option value="Cancelada">Cancelada</option>
+              </select>
+            </label>
+            <label>Recorrência
+              <select id="classRecurrence">
+                <option value="weekly">Semanal</option>
+                <option value="once">Apenas esta aula</option>
+              </select>
+            </label>
+          </div>
+          <label class="native-class-select">Alunos da aula
+            <select id="classStudents" multiple></select>
+          </label>
+          <div class="class-students-picker">
+            <div class="section-label">Alunos da aula</div>
+            <div class="class-picker-head">
+              <input id="classStudentSearch" aria-label="Buscar aluno para adicionar à aula" placeholder="Buscar aluno para adicionar..." autocomplete="off" />
+              <span id="classStudentCount">0 selecionados</span>
+            </div>
+            <div class="class-student-list" id="classStudentChecklist"></div>
+          </div>
+          <label>Semanas da recorrência
+            <input id="classRepeatWeeks" type="number" min="1" max="12" step="1" value="4" />
+          </label>
+          <label>Motivo ou aviso da aula
+            <textarea id="classNotice" rows="2" placeholder="Use para cancelamento, troca de horário ou recado para o grupo."></textarea>
+          </label>
+          <button type="button" class="soft-btn rain-cancel-btn" id="btnCancelRain" style="display:none; width:100%; font-weight:600; padding:11px; border-radius:12px; background:rgba(59,130,246,0.12); border:1px solid rgba(59,130,246,0.25); color:#60a5fa; align-items:center; justify-content:center; gap:8px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242M16 14v6M8 14v6M12 16v6"/></svg>
+            <span>Cancelar Aula por Chuva (+1 Crédito p/ Alunos)</span>
+          </button>
+        </div>
+        <div class="modal-footer">
+          <button class="soft-btn" type="button" data-close="classModal">Cancelar</button>
+          <button class="primary-btn modal-save-btn" type="submit">
+            <span>Salvar aula</span>
+          </button>
+        </div>
       </form>
     </div>
 
     <div class="modal-wrap" id="scheduleModal" role="dialog" aria-modal="true" aria-labelledby="scheduleModalTitle" aria-hidden="true">
       <form class="modal wide-modal" id="scheduleForm">
-        <button class="close" type="button" aria-label="Fechar grade" data-close="scheduleModal">x</button>
-        <p class="eyebrow">grade recorrente</p>
-        <h2 id="scheduleModalTitle">Criar horários padrão</h2>
-        <p class="meta">Crie várias semanas de uma vez. Os horários já vêm marcados conforme a grade da Arena e podem ser ajustados antes de salvar.</p>
-        <div class="form-row">
-          <label>Segunda da primeira semana<input id="scheduleStart" type="date" required /></label>
-          <label>Repetir por semanas<input id="scheduleWeeks" type="number" min="1" max="12" step="1" value="4" required /></label>
+        <div class="modal-header">
+          <div class="modal-header-info">
+            <span class="modal-badge">Grade Recorrente</span>
+            <h2 id="scheduleModalTitle">Criar Horários Padrão</h2>
+            <p class="modal-subtitle">Gere semanas automáticas na grade oficial da Arena.</p>
+          </div>
+          <button class="modal-close-btn close" type="button" aria-label="Fechar grade" data-close="scheduleModal">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
         </div>
-        <div class="form-row">
-          <label>Turma padrão<input id="scheduleGroup" value="Turma Arena" placeholder="Ex: Iniciantes" /></label>
-          <label>Professor<input id="scheduleCoach" value="Lucão" placeholder="Nome do professor" /></label>
-        </div>
-        <div class="form-row">
-          <label>Capacidade<input id="scheduleCapacity" type="number" min="1" max="30" value="8" required /></label>
-          <label>Tipo
-            <select id="scheduleType">
-              <option value="Regular">Regular</option>
-              <option value="Experimental">Experimental</option>
-              <option value="Avulso">Avulso</option>
-              <option value="Evento">Evento</option>
-            </select>
+        <div class="modal-body">
+          <div class="form-row">
+            <label>Segunda da primeira semana
+              <input id="scheduleStart" type="date" required />
+            </label>
+            <label>Repetir por semanas
+              <input id="scheduleWeeks" type="number" min="1" max="12" step="1" value="4" required />
+            </label>
+          </div>
+          <div class="form-row">
+            <label>Turma padrão
+              <input id="scheduleGroup" value="Turma Arena" placeholder="Ex: Iniciantes" />
+            </label>
+            <label>Professor
+              <input id="scheduleCoach" value="Lucão" placeholder="Nome do professor" />
+            </label>
+          </div>
+          <div class="form-row">
+            <label>Capacidade
+              <input id="scheduleCapacity" type="number" min="1" max="30" value="8" required />
+            </label>
+            <label>Tipo
+              <select id="scheduleType">
+                <option value="Regular">Regular</option>
+                <option value="Experimental">Experimental</option>
+                <option value="Avulso">Avulso</option>
+                <option value="Evento">Evento</option>
+              </select>
+            </label>
+          </div>
+          <fieldset class="schedule-slots-field">
+            <legend>Horários que serão criados</legend>
+            <div class="schedule-slots" id="scheduleSlots"></div>
+          </fieldset>
+          <label class="check-control schedule-notify-control">
+            <input id="scheduleNotify" type="checkbox" checked /> Preparar mensagem de aviso para o grupo ao terminar
           </label>
         </div>
-        <fieldset class="schedule-slots-field">
-          <legend>Horários que serão criados</legend>
-          <div class="schedule-slots" id="scheduleSlots"></div>
-        </fieldset>
-        <label class="check-control schedule-notify-control"><input id="scheduleNotify" type="checkbox" checked /> Preparar mensagem de aviso para o grupo ao terminar</label>
-        <button class="primary-btn" type="submit">Criar grade</button>
+        <div class="modal-footer">
+          <button class="soft-btn" type="button" data-close="scheduleModal">Cancelar</button>
+          <button class="primary-btn modal-save-btn" type="submit">
+            <span>Criar grade</span>
+          </button>
+        </div>
       </form>
     </div>
 
     <div class="modal-wrap" id="groupMessageModal" role="dialog" aria-modal="true" aria-labelledby="groupMessageModalTitle" aria-hidden="true">
       <form class="modal" id="groupMessageForm">
-        <button class="close" type="button" aria-label="Fechar mensagens" data-close="groupMessageModal">x</button>
-        <p class="eyebrow">comunicação</p>
-        <h2 id="groupMessageModalTitle">Mensagem para o grupo</h2>
-        <p class="meta">Mensagem geral, sem mencionar um aluno específico. Edite antes de copiar ou abrir o WhatsApp.</p>
-        <label>Aula<select id="groupMessageClass"></select></label>
-        <label>Modelo
-          <select id="groupMessageTemplate">
-            <option value="morning_summary">☀️ Resumo do Dia (Manhã - Todas as Aulas)</option>
-            <option value="evening_summary">🌇 Chamada da Noite (Vagas e Alunos)</option>
-            <option value="confirm">Confirmação de aula</option>
-            <option value="reminder">Lembrete de horário</option>
-            <option value="cancel">Aviso de cancelamento</option>
-            <option value="change">Troca de horário</option>
-            <option value="week">Agenda da semana</option>
-          </select>
-        </label>
-        <label>Texto para revisar<textarea id="groupMessageText" rows="9"></textarea></label>
-        <div class="actions modal-actions">
+        <div class="modal-header">
+          <div class="modal-header-info">
+            <span class="modal-badge">Comunicação</span>
+            <h2 id="groupMessageModalTitle">Mensagem para o Grupo</h2>
+            <p class="modal-subtitle">Mensagem geral, sem mencionar um aluno específico.</p>
+          </div>
+          <button class="modal-close-btn close" type="button" aria-label="Fechar mensagens" data-close="groupMessageModal">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <label>Aula
+            <select id="groupMessageClass"></select>
+          </label>
+          <label>Modelo
+            <select id="groupMessageTemplate">
+              <option value="morning_summary">Resumo do Dia (Manhã - Todas as Aulas)</option>
+              <option value="evening_summary">Chamada da Noite (Vagas e Alunos)</option>
+              <option value="confirm">Confirmação de aula</option>
+              <option value="reminder">Lembrete de horário</option>
+              <option value="cancel">Aviso de cancelamento</option>
+              <option value="change">Troca de horário</option>
+              <option value="week">Agenda da semana</option>
+            </select>
+          </label>
+          <label>Texto para revisar
+            <textarea id="groupMessageText" rows="9"></textarea>
+          </label>
+        </div>
+        <div class="modal-footer">
           <button class="soft-btn" type="button" data-copy-group-message>Copiar mensagem</button>
           <a class="primary-btn" id="groupMessageWhatsapp" href="#" target="_blank" rel="noopener">Abrir WhatsApp</a>
         </div>
@@ -824,65 +993,123 @@
 
     <div class="modal-wrap" id="attendanceModal" role="dialog" aria-modal="true" aria-labelledby="attendanceModalTitle" aria-hidden="true">
       <section class="modal">
-        <button class="close" type="button" aria-label="Fechar presenças" data-close="attendanceModal">x</button>
-        <h2 id="attendanceModalTitle">Presenças</h2>
-        <p class="muted" id="attendanceTitle"></p>
-        <div class="attendance-actions">
-          <button class="soft-btn attendance-primary" type="button" id="markAllPresent">Todos presentes</button>
-          <button class="soft-btn attendance-primary" type="button" id="finishAttendance">Finalizar aula</button>
-          <button class="soft-btn" type="button" id="copyAttendance">Copiar resumo</button>
-          <button class="soft-btn attendance-muted" type="button" id="clearAttendance">Limpar</button>
+        <div class="modal-header">
+          <div class="modal-header-info">
+            <span class="modal-badge">Chamada do Treino</span>
+            <h2 id="attendanceModalTitle">Presenças</h2>
+            <p class="modal-subtitle" id="attendanceTitle"></p>
+          </div>
+          <button class="modal-close-btn close" type="button" aria-label="Fechar presenças" data-close="attendanceModal">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
         </div>
-        <form class="extra-attendance" id="extraAttendanceForm">
-          <input id="extraAttendanceName" placeholder="Nome de quem veio sem estar na aula" />
-          <select id="extraAttendanceType" aria-label="Tipo de avulso">
-            <option value="Avulso">Avulso</option>
-            <option value="Reposicao">Reposição</option>
-            <option value="Experimental">Experimental</option>
-            <option value="Visitante">Visitante</option>
-          </select>
-          <button class="soft-btn" type="submit">Adicionar avulso</button>
-        </form>
-        <div class="check-list" id="attendanceList"></div>
-        <div class="section-label">Avulsos / fora da lista</div>
-        <div class="list" id="extraAttendanceList"></div>
+        <div class="modal-body">
+          <div class="attendance-actions">
+            <button class="soft-btn attendance-primary" type="button" id="markAllPresent">Todos presentes</button>
+            <button class="soft-btn attendance-primary" type="button" id="finishAttendance">Finalizar aula</button>
+            <button class="soft-btn" type="button" id="copyAttendance">Copiar resumo</button>
+            <button class="soft-btn attendance-muted" type="button" id="clearAttendance">Limpar</button>
+          </div>
+          <form class="extra-attendance" id="extraAttendanceForm">
+            <input id="extraAttendanceName" placeholder="Nome de quem veio sem estar na aula" />
+            <select id="extraAttendanceType" aria-label="Tipo de avulso">
+              <option value="Avulso">Avulso</option>
+              <option value="Reposicao">Reposição</option>
+              <option value="Experimental">Experimental</option>
+              <option value="Visitante">Visitante</option>
+            </select>
+            <button class="soft-btn" type="submit">Adicionar avulso</button>
+          </form>
+          <div class="check-list" id="attendanceList"></div>
+          <div class="section-label">Avulsos / fora da lista</div>
+          <div class="list" id="extraAttendanceList"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="soft-btn" type="button" data-close="attendanceModal">Fechar</button>
+        </div>
       </section>
     </div>
 
     <div class="modal-wrap" id="planModal" role="dialog" aria-modal="true" aria-labelledby="planModalTitle" aria-hidden="true">
       <form class="modal" id="planForm">
-        <button class="close" type="button" aria-label="Fechar plano" data-close="planModal">x</button>
-        <h2 id="planModalTitle">Plano</h2>
         <input type="hidden" id="planId" />
-        <label>Nome<input id="planName" required placeholder="Ex: 2x semana" /></label>
-        <div class="form-row">
-          <label>Preço<input id="planPrice" type="number" min="0" step="0.01" placeholder="220" /></label>
-          <label>Aulas por semana<input id="planClasses" type="number" min="0" step="1" placeholder="2" /></label>
+        <div class="modal-header">
+          <div class="modal-header-info">
+            <span class="modal-badge">Planos & Mensalidades</span>
+            <h2 id="planModalTitle">Plano</h2>
+            <p class="modal-subtitle">Cadastre ou edite as opções de planos da Arena.</p>
+          </div>
+          <button class="modal-close-btn close" type="button" aria-label="Fechar plano" data-close="planModal">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
         </div>
-        <label>Descrição<input id="planDescription" placeholder="O que inclui..." /></label>
-        <button class="primary-btn" type="submit">Salvar plano</button>
+        <div class="modal-body">
+          <label>Nome do Plano
+            <input id="planName" required placeholder="Ex: 2x semana" />
+          </label>
+          <div class="form-row">
+            <label>Valor Mensal (R$)
+              <input id="planPrice" type="number" min="0" step="0.01" placeholder="220,00" />
+            </label>
+            <label>Aulas por Semana
+              <input id="planClasses" type="number" min="0" step="1" placeholder="2" />
+            </label>
+          </div>
+          <label>Descrição do que inclui
+            <input id="planDescription" placeholder="Ex: 2 treinos semanais + reposição" />
+          </label>
+        </div>
+        <div class="modal-footer">
+          <button class="soft-btn" type="button" data-close="planModal">Cancelar</button>
+          <button class="primary-btn modal-save-btn" type="submit">
+            <span>Salvar plano</span>
+          </button>
+        </div>
       </form>
     </div>
 
     <div class="modal-wrap" id="waitlistModal" role="dialog" aria-modal="true" aria-labelledby="waitlistModalTitle" aria-hidden="true">
       <form class="modal" id="waitlistForm">
-        <button class="close" type="button" aria-label="Fechar lista de espera" data-close="waitlistModal">x</button>
-        <h2 id="waitlistModalTitle">Lista de espera</h2>
         <input type="hidden" id="waitId" />
-        <label>Nome<input id="waitName" required placeholder="Ex: Carla Mendes" /></label>
-        <label>Telefone<input id="waitPhone" placeholder="(15) 99999-9999" /></label>
-        <label>Preferência<input id="waitPreference" placeholder="Noite, kids, iniciante..." /></label>
-        <label>Status
-          <select id="waitStatus">
-            <option value="Novo">Novo</option>
-            <option value="Contatado">Contatado</option>
-            <option value="Experimental marcado">Experimental marcado</option>
-            <option value="Convertido">Convertido</option>
-            <option value="Perdido">Perdido</option>
-          </select>
-        </label>
-        <label>Observação<input id="waitNote" placeholder="Detalhes do contato" /></label>
-        <button class="primary-btn" type="submit">Salvar interessado</button>
+        <div class="modal-header">
+          <div class="modal-header-info">
+            <span class="modal-badge">Captação & Leads</span>
+            <h2 id="waitlistModalTitle">Lista de Espera</h2>
+            <p class="modal-subtitle">Cadastre interessados para novas turmas ou experimentais.</p>
+          </div>
+          <button class="modal-close-btn close" type="button" aria-label="Fechar lista de espera" data-close="waitlistModal">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="modal-body">
+          <label>Nome
+            <input id="waitName" required placeholder="Ex: Carla Mendes" />
+          </label>
+          <label>Telefone WhatsApp
+            <input id="waitPhone" placeholder="(15) 99999-9999" />
+          </label>
+          <label>Preferência de Horário / Nível
+            <input id="waitPreference" placeholder="Noite, manhã, kids, iniciante..." />
+          </label>
+          <label>Status do Contato
+            <select id="waitStatus">
+              <option value="Novo">Novo</option>
+              <option value="Contatado">Contatado</option>
+              <option value="Experimental marcado">Experimental marcado</option>
+              <option value="Convertido">Convertido</option>
+              <option value="Perdido">Perdido</option>
+            </select>
+          </label>
+          <label>Observações
+            <input id="waitNote" placeholder="Detalhes do contato, histórico..." />
+          </label>
+        </div>
+        <div class="modal-footer">
+          <button class="soft-btn" type="button" data-close="waitlistModal">Cancelar</button>
+          <button class="primary-btn modal-save-btn" type="submit">
+            <span>Salvar interessado</span>
+          </button>
+        </div>
       </form>
     </div>
 

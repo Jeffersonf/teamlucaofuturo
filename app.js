@@ -1875,10 +1875,12 @@ function fixedScheduleRow(schedule = {}, index = 0) {
       <label>Horário
         <input class="student-fixed-time" type="time" list="classTimeOptions" value="${escapeHTML(schedule.horario || '')}" aria-label="Horário fixo ${index + 1}" />
       </label>
-      <label class="fixed-schedule-group-field">Turma
-        <input class="student-fixed-group" value="${escapeHTML(schedule.turma || '')}" placeholder="Ex: Iniciantes 18h" aria-label="Turma fixa ${index + 1}" />
+      <label class="fixed-schedule-group-field">Turma (opcional)
+        <input class="student-fixed-group" value="${escapeHTML(schedule.turma || '')}" placeholder="Ex: Iniciante" aria-label="Turma fixa ${index + 1}" />
       </label>
-      <button class="icon-btn fixed-schedule-remove" type="button" data-remove-fixed-schedule aria-label="Remover este dia" title="Remover este dia">×</button>
+      <button class="icon-btn fixed-schedule-remove" type="button" data-remove-fixed-schedule aria-label="Remover este dia" title="Remover este dia">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+      </button>
     </div>
   `;
 }
@@ -2028,8 +2030,57 @@ function openSchedule() {
   openModal('scheduleModal');
 }
 
+async function withModalLoading({ submitButton, modalId, operation, successText = 'Salvo com sucesso!', successToast = 'Salvo com sucesso!' }) {
+  if (submitButton?.disabled) return;
+  const originalHtml = submitButton?.innerHTML || '';
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.classList.add('btn-loading');
+    submitButton.innerHTML = `
+      <svg class="spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+      </svg>
+      <span>Salvando no servidor...</span>
+    `;
+  }
+  try {
+    await operation();
+    if (submitButton) {
+      submitButton.classList.remove('btn-loading');
+      submitButton.classList.add('btn-saved');
+      submitButton.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        <span>${escapeHTML(successText)}</span>
+      `;
+      await new Promise((resolve) => setTimeout(resolve, 400));
+    }
+    if (modalId) closeModal(modalId);
+    if (successToast) toast(successToast, 'ok');
+  } catch (err) {
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.classList.remove('btn-loading');
+      submitButton.classList.remove('btn-saved');
+      submitButton.innerHTML = originalHtml;
+    }
+    throw err;
+  } finally {
+    if (submitButton) {
+      setTimeout(() => {
+        submitButton.disabled = false;
+        submitButton.classList.remove('btn-loading');
+        submitButton.classList.remove('btn-saved');
+        submitButton.innerHTML = originalHtml;
+      }, 450);
+    }
+  }
+}
+
 async function saveSchedule(event) {
   event.preventDefault();
+  const submitButton = event.currentTarget.querySelector('button[type="submit"]') || event.submitter;
   const start = mondayOfIso(document.getElementById('scheduleStart').value || todayISO());
   const weeks = Math.min(12, Math.max(1, Number(document.getElementById('scheduleWeeks').value || 1)));
   const group = document.getElementById('scheduleGroup').value.trim() || 'Turma Arena';
@@ -2041,7 +2092,7 @@ async function saveSchedule(event) {
     const separator = raw.indexOf(':');
     return { day: Number(raw.slice(0, separator)), time: raw.slice(separator + 1) };
   });
-  if (!selectedSlots.length) throw new Error('Selecione pelo menos um horario');
+  if (!selectedSlots.length) throw new Error('Selecione pelo menos um horário');
   const created = [];
   for (let week = 0; week < weeks; week += 1) {
     for (const slot of selectedSlots) {
@@ -2056,7 +2107,7 @@ async function saveSchedule(event) {
         tipo: type,
         capacidade: capacity,
         status: 'Marcada',
-        observacao: 'Criada pela grade padrao.',
+        observacao: 'Criada pela grade padrão.',
         aluno_ids: [],
         presencas: {},
         extra_presentes: []
@@ -2069,15 +2120,23 @@ async function saveSchedule(event) {
       }
     }
   }
-  if (!apiMode) {
-    state.classes.push(...created);
-    recordAction('Professor', 'Grade criada', `${created.length} aulas criadas na grade padrao.`);
-    saveAndRender();
-  } else {
-    await loadData();
-  }
-  closeModal('scheduleModal');
-  toast(created.length ? `${created.length} aulas criadas na grade` : 'A grade ja estava criada');
+
+  await withModalLoading({
+    submitButton,
+    modalId: 'scheduleModal',
+    successText: 'Grade gerada!',
+    successToast: created.length ? `${created.length} aulas criadas na grade com sucesso!` : 'A grade padrão já estava criada.',
+    operation: async () => {
+      if (!apiMode) {
+        state.classes.push(...created);
+        recordAction('Professor', 'Grade criada', `${created.length} aulas criadas na grade padrão.`);
+        saveAndRender();
+      } else {
+        await loadData();
+      }
+    }
+  });
+
   if (created.length && document.getElementById('scheduleNotify').checked) openGroupMessage(created[0].id);
 }
 
@@ -3147,6 +3206,7 @@ async function syncStudentScheduleAction(studentId) {
 
 async function saveStudent(event) {
   event.preventDefault();
+  const submitButton = event.currentTarget.querySelector('button[type="submit"]') || event.submitter;
   const id = document.getElementById('studentId').value;
   const plan = planById(document.getElementById('studentPlan').value);
   const scheduleRows = studentFormScheduleRows();
@@ -3178,27 +3238,35 @@ async function saveStudent(event) {
     observacao: document.getElementById('studentNote').value.trim(),
     pago_ate: studentById(id)?.pago_ate || ''
   };
-  if (apiMode) {
-    const saved = await api(id ? `/api/students/${id}` : '/api/students', { method: id ? 'PUT' : 'POST', body: JSON.stringify(payload) });
-    await loadData();
-    const linked = await syncStudentFixedScheduleApi(saved.item || { ...payload, id });
-    if (linked) await loadData();
-  } else {
-    const next = { ...payload, id: id || uid() };
-    const index = state.students.findIndex((student) => String(student.id) === String(next.id));
-    if (index >= 0) state.students[index] = next;
-    else state.students.push(next);
-    const linked = syncStudentFixedSchedule(next);
-    recordAction('Professor', id ? 'Aluno atualizado' : 'Aluno cadastrado', `${next.nome} ${id ? 'teve cadastro atualizado' : 'foi cadastrado'}${linked ? ` e vinculado a ${linked} aula(s).` : '.'}`);
-    saveAndRender();
-    if (linked) toast(`${linked} aula(s) vinculada(s)`);
-  }
-  closeModal('studentModal');
-  toast('Aluno salvo');
+
+  await withModalLoading({
+    submitButton,
+    modalId: 'studentModal',
+    successText: id ? 'Aluno atualizado!' : 'Aluno salvo!',
+    successToast: id ? 'Cadastro do aluno atualizado com sucesso!' : 'Novo aluno cadastrado com sucesso!',
+    operation: async () => {
+      if (apiMode) {
+        const saved = await api(id ? `/api/students/${id}` : '/api/students', { method: id ? 'PUT' : 'POST', body: JSON.stringify(payload) });
+        await loadData();
+        const linked = await syncStudentFixedScheduleApi(saved.item || { ...payload, id });
+        if (linked) await loadData();
+      } else {
+        const next = { ...payload, id: id || uid() };
+        const index = state.students.findIndex((student) => String(student.id) === String(next.id));
+        if (index >= 0) state.students[index] = next;
+        else state.students.push(next);
+        const linked = syncStudentFixedSchedule(next);
+        recordAction('Professor', id ? 'Aluno atualizado' : 'Aluno cadastrado', `${next.nome} ${id ? 'teve cadastro atualizado' : 'foi cadastrado'}${linked ? ` e vinculado a ${linked} aula(s).` : '.'}`);
+        saveAndRender();
+        if (linked) toast(`${linked} aula(s) vinculada(s)`);
+      }
+    }
+  });
 }
 
 async function saveClass(event) {
   event.preventDefault();
+  const submitButton = event.currentTarget.querySelector('button[type="submit"]') || event.submitter;
   const id = document.getElementById('classId').value;
   const alunoIds = [...document.getElementById('classStudents').selectedOptions].map((option) => option.value);
   const previous = classById(id);
@@ -3225,31 +3293,39 @@ async function saveClass(event) {
     presencas: index === 0 ? payload.presencas : {},
     extra_presentes: index === 0 ? payload.extra_presentes : []
   }));
-  if (apiMode) {
-    if (id) await api(`/api/classes/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
-    else {
-      for (const item of classPayloads) {
-        await api('/api/classes', { method: 'POST', body: JSON.stringify(item) });
+
+  await withModalLoading({
+    submitButton,
+    modalId: 'classModal',
+    successText: id ? 'Aula atualizada!' : (repeatWeeks > 1 ? `${repeatWeeks} aulas criadas!` : 'Aula salva!'),
+    successToast: id ? 'Aula atualizada com sucesso!' : (repeatWeeks > 1 ? `${repeatWeeks} aulas criadas na grade!` : 'Aula salva com sucesso!'),
+    operation: async () => {
+      if (apiMode) {
+        if (id) await api(`/api/classes/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+        else {
+          for (const item of classPayloads) {
+            await api('/api/classes', { method: 'POST', body: JSON.stringify(item) });
+          }
+        }
+        await loadData();
+      } else {
+        if (id) {
+          const next = { ...payload, id };
+          const index = state.classes.findIndex((item) => String(item.id) === String(next.id));
+          if (index >= 0) state.classes[index] = next;
+        } else {
+          classPayloads.forEach((item) => state.classes.push({ ...item, id: uid() }));
+        }
+        recordAction('Professor', id ? 'Aula atualizada' : 'Aula criada', `${payload.horario} - ${payload.turma || 'Turma'} em ${formatDate(payload.data)}.`);
+        saveAndRender();
       }
     }
-    await loadData();
-  } else {
-    if (id) {
-      const next = { ...payload, id };
-      const index = state.classes.findIndex((item) => String(item.id) === String(next.id));
-      if (index >= 0) state.classes[index] = next;
-    } else {
-      classPayloads.forEach((item) => state.classes.push({ ...item, id: uid() }));
-    }
-    recordAction('Professor', id ? 'Aula atualizada' : 'Aula criada', `${payload.horario} - ${payload.turma || 'Turma'} em ${formatDate(payload.data)}.`);
-    saveAndRender();
-  }
-  closeModal('classModal');
-  toast(repeatWeeks > 1 ? `${repeatWeeks} aulas criadas` : 'Aula salva');
+  });
 }
 
 async function savePlan(event) {
   event.preventDefault();
+  const submitButton = event.currentTarget.querySelector('button[type="submit"]') || event.submitter;
   const id = document.getElementById('planId').value;
   const payload = {
     nome: document.getElementById('planName').value.trim(),
@@ -3258,22 +3334,30 @@ async function savePlan(event) {
     descricao: document.getElementById('planDescription').value.trim(),
     ativo: 1
   };
-  if (apiMode) {
-    await api(id ? `/api/tables/planos/${id}` : '/api/tables/planos', { method: id ? 'PUT' : 'POST', body: JSON.stringify(payload) });
-    await loadData();
-  } else {
-    const next = { ...payload, id: id || uid() };
-    const index = state.plans.findIndex((plan) => String(plan.id) === String(next.id));
-    if (index >= 0) state.plans[index] = next;
-    else state.plans.push(next);
-    saveAndRender();
-  }
-  closeModal('planModal');
-  toast('Plano salvo');
+
+  await withModalLoading({
+    submitButton,
+    modalId: 'planModal',
+    successText: id ? 'Plano atualizado!' : 'Plano criado!',
+    successToast: id ? 'Plano atualizado com sucesso!' : 'Novo plano cadastrado com sucesso!',
+    operation: async () => {
+      if (apiMode) {
+        await api(id ? `/api/tables/planos/${id}` : '/api/tables/planos', { method: id ? 'PUT' : 'POST', body: JSON.stringify(payload) });
+        await loadData();
+      } else {
+        const next = { ...payload, id: id || uid() };
+        const index = state.plans.findIndex((plan) => String(plan.id) === String(next.id));
+        if (index >= 0) state.plans[index] = next;
+        else state.plans.push(next);
+        saveAndRender();
+      }
+    }
+  });
 }
 
 async function saveWaitlist(event) {
   event.preventDefault();
+  const submitButton = event.currentTarget.querySelector('button[type="submit"]') || event.submitter;
   const id = document.getElementById('waitId').value;
   const payload = {
     nome: document.getElementById('waitName').value.trim(),
@@ -3282,19 +3366,26 @@ async function saveWaitlist(event) {
     status: document.getElementById('waitStatus').value,
     observacao: document.getElementById('waitNote').value.trim()
   };
-  if (apiMode) {
-    await api(id ? `/api/waitlist/${id}` : '/api/waitlist', { method: id ? 'PUT' : 'POST', body: JSON.stringify(payload) });
-    await loadData();
-  } else {
-    const next = { ...payload, id: id || uid(), data_cadastro: state.waitlist.find((item) => String(item.id) === String(id))?.data_cadastro || todayISO() };
-    const index = state.waitlist.findIndex((item) => String(item.id) === String(next.id));
-    if (index >= 0) state.waitlist[index] = next;
-    else state.waitlist.unshift(next);
-    recordAction('Professor', id ? 'Espera atualizada' : 'Interessado cadastrado', `${next.nome} entrou/atualizou a lista de espera.`);
-    saveAndRender();
-  }
-  closeModal('waitlistModal');
-  toast('Interessado salvo');
+
+  await withModalLoading({
+    submitButton,
+    modalId: 'waitlistModal',
+    successText: id ? 'Contato atualizado!' : 'Interessado salvo!',
+    successToast: id ? 'Contato atualizado com sucesso!' : 'Interessado salvo na lista de espera!',
+    operation: async () => {
+      if (apiMode) {
+        await api(id ? `/api/waitlist/${id}` : '/api/waitlist', { method: id ? 'PUT' : 'POST', body: JSON.stringify(payload) });
+        await loadData();
+      } else {
+        const next = { ...payload, id: id || uid(), data_cadastro: state.waitlist.find((item) => String(item.id) === String(id))?.data_cadastro || todayISO() };
+        const index = state.waitlist.findIndex((item) => String(item.id) === String(next.id));
+        if (index >= 0) state.waitlist[index] = next;
+        else state.waitlist.unshift(next);
+        recordAction('Professor', id ? 'Espera atualizada' : 'Interessado cadastrado', `${next.nome} entrou/atualizou a lista de espera.`);
+        saveAndRender();
+      }
+    }
+  });
 }
 
 function openAttendance(classId) {
@@ -3459,9 +3550,7 @@ async function markPaid(studentId) {
 
 async function savePayment(event) {
   event.preventDefault();
-  const submitButton = event.currentTarget.querySelector('button[type="submit"]');
-  const originalButtonText = submitButton?.textContent || 'Confirmar pagamento';
-  if (submitButton?.disabled) return;
+  const submitButton = event.currentTarget.querySelector('button[type="submit"]') || event.submitter;
   const studentId = document.getElementById('paymentStudentId').value;
   const student = studentById(studentId);
   if (!student) return;
@@ -3471,50 +3560,46 @@ async function savePayment(event) {
   const value = Number(document.getElementById('paymentValue').value || student.mensalidade || 0);
   const method = document.getElementById('paymentMethod').value || 'Pix';
   const note = document.getElementById('paymentNote').value.trim();
-  if (submitButton) {
-    submitButton.disabled = true;
-    submitButton.textContent = 'Salvando...';
-  }
-  try {
-    if (apiMode) {
-      await api(`/api/students/${studentId}/pay`, {
-        method: 'POST',
-        body: JSON.stringify({
+
+  await withModalLoading({
+    submitButton,
+    modalId: 'paymentModal',
+    successText: 'Pagamento confirmado!',
+    successToast: `Pagamento de ${student.nome} (${month}) confirmado com sucesso!`,
+    operation: async () => {
+      if (apiMode) {
+        await api(`/api/students/${studentId}/pay`, {
+          method: 'POST',
+          body: JSON.stringify({
+            referencia: month,
+            vencimento: paidUntil,
+            pago_em: paidAt,
+            valor: value,
+            forma_pagamento: method,
+            observacao: note
+          })
+        });
+        await loadData({ serverKnown: true });
+      } else {
+        student.pago_ate = student.pago_ate && student.pago_ate > paidUntil ? student.pago_ate : paidUntil;
+        state.payments = state.payments || [];
+        state.payments.unshift({
+          id: uid(),
+          aluno_id: student.id,
+          aluno_nome: student.nome,
           referencia: month,
+          valor: value,
           vencimento: paidUntil,
           pago_em: paidAt,
-          valor: value,
+          status: 'PAGO',
           forma_pagamento: method,
           observacao: note
-        })
-      });
-      await loadData({ serverKnown: true });
-    } else {
-      student.pago_ate = student.pago_ate && student.pago_ate > paidUntil ? student.pago_ate : paidUntil;
-      state.payments = state.payments || [];
-      state.payments.unshift({
-        id: uid(),
-        aluno_id: student.id,
-        aluno_nome: student.nome,
-        referencia: month,
-        valor: value,
-        vencimento: paidUntil,
-        pago_em: paidAt,
-        status: 'PAGO',
-        forma_pagamento: method,
-        observacao: note
-      });
-      recordAction('Professor', 'Pagamento', `${student.nome} pagou ${money.format(value)} via ${method} em ${month}.`);
-      saveAndRender();
+        });
+        recordAction('Professor', 'Pagamento', `${student.nome} pagou ${money.format(value)} via ${method} em ${month}.`);
+        saveAndRender();
+      }
     }
-    closeModal('paymentModal');
-    toast('Pagamento salvo e tela atualizada');
-  } finally {
-    if (submitButton) {
-      submitButton.disabled = false;
-      submitButton.textContent = originalButtonText;
-    }
-  }
+  });
 }
 
 async function duplicateClass(id) {

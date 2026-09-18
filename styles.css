@@ -1476,9 +1476,8 @@ label {
 .login-wall { z-index: 105; }
 .booking-wall { z-index: 110; background: var(--bg); backdrop-filter: none; }
 
-.login-box,
-.modal {
-  width: min(620px, 100%);
+.login-box {
+  width: min(440px, 100%);
   max-height: calc(100vh - 32px);
   overflow: auto;
   padding: 24px;
@@ -1486,53 +1485,572 @@ label {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 24px;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  display: grid;
+  gap: 14px;
+  justify-items: stretch;
 }
 
 .modal {
   position: relative;
-  display: grid;
-  gap: 14px;
+  width: min(640px, 100%);
+  max-height: min(90vh, 880px);
+  background: #18181b;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
 }
 
-.wide-modal { width: min(980px, 100%); }
+.modal.legacy-grid {
+  display: grid;
+  gap: 14px;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.wide-modal { width: min(920px, 100%); }
 
 .modal h2,
 .login-copy h2 {
   color: var(--text);
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.15;
   letter-spacing: -0.02em;
 }
 
+/* Modern Modal Structure (Linear / Shadcn Style) */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: #18181b;
+  flex-shrink: 0;
+}
+
+.modal-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.modal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ef4444;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f4f4f5;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.modal-subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: #a1a1aa;
+}
+
+.modal-close-btn,
 .close {
-  position: sticky;
-  top: 0;
-  justify-self: end;
-  z-index: 2;
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 32px;
   height: 32px;
-  border: 1px solid var(--line);
   border-radius: 10px;
-  background: var(--surface-2);
-  color: var(--muted);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #a1a1aa;
   cursor: pointer;
   transition: all 0.15s ease;
-  font-size: 13px;
-  line-height: 1;
+  flex-shrink: 0;
+  padding: 0;
+  position: static;
 }
 
+.modal-close-btn:hover,
 .close:hover {
-  background: var(--surface-3);
-  color: var(--text);
-  border-color: var(--line-strong);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
-.login-box {
+/* Modal Body */
+.modal-body {
+  padding: 20px 24px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1 1 auto;
+  overscroll-behavior: contain;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+}
+
+/* Modal Footer */
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: #18181b;
+  flex-shrink: 0;
+}
+
+/* Form Section Card (Anti-AI-Slop container) */
+.form-section-card {
+  background: #141417;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-section-card:hover {
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+.form-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #a1a1aa;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-section-title svg {
+  color: #ef4444;
+  flex-shrink: 0;
+}
+
+/* Fixed Schedule Row in Student Modal */
+.fixed-schedule-row {
   display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 8px;
+  align-items: end;
+  background: #18181b;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.fixed-schedule-remove {
+  height: 44px;
+  width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.fixed-schedule-remove:hover {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.schedule-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #ef4444;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  border-radius: 10px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.schedule-add-btn:hover {
+  background: rgba(220, 38, 38, 0.16);
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+/* Saving & Loading States */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.spin {
+  animation: spin 0.75s linear infinite;
+}
+
+.btn-loading {
+  opacity: 0.85 !important;
+  pointer-events: none !important;
+  cursor: wait !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+.btn-saved {
+  background: #10b981 !important;
+  border-color: #10b981 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+/* ATHLETE PROFILE (FICHA DO ALUNO) */
+.athlete-profile-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.athlete-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px;
+  background: #141417;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 20px;
+}
+
+.athlete-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.28);
+  flex-shrink: 0;
+}
+
+.athlete-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.athlete-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: #f4f4f5;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.athlete-contacts {
+  display: flex;
+  align-items: center;
   gap: 14px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: #a1a1aa;
+}
+
+.athlete-contact-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #a1a1aa;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.athlete-contact-link:hover {
+  color: #f4f4f5;
+}
+
+.athlete-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.athlete-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #d4d4d8;
+}
+
+.athlete-badge.status-ativo {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.25);
+  color: #34d399;
+}
+
+.athlete-badge.status-experimental {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: #fbbf24;
+}
+
+.athlete-badge.status-pausado {
+  background: rgba(113, 113, 122, 0.1);
+  border-color: rgba(113, 113, 122, 0.25);
+  color: #a1a1aa;
+}
+
+.status-dot-6px {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.status-dot-6px.green { background: #10b981; box-shadow: 0 0 6px rgba(16, 185, 129, 0.6); }
+.status-dot-6px.amber { background: #f59e0b; box-shadow: 0 0 6px rgba(245, 158, 11, 0.6); }
+.status-dot-6px.red { background: #ef4444; box-shadow: 0 0 6px rgba(239, 68, 68, 0.6); }
+.status-dot-6px.gray { background: #71717a; }
+
+/* Payment status banner in athlete profile */
+.athlete-pay-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  flex-wrap: wrap;
+}
+
+.athlete-pay-banner.paid {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.22);
+}
+
+.athlete-pay-banner.pending {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.athlete-pay-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.athlete-pay-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.athlete-pay-banner.paid .athlete-pay-icon {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.athlete-pay-banner.pending .athlete-pay-icon {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.athlete-pay-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f4f4f5;
+  margin: 0;
+}
+
+.athlete-pay-sub {
+  font-size: 12px;
+  color: #a1a1aa;
+  margin: 0;
+}
+
+.athlete-pay-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Linear KPI Grid */
+.athlete-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.athlete-kpi-card {
+  background: #141417;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.athlete-kpi-card:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.athlete-kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #71717a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.athlete-kpi-val {
+  font-size: 20px;
+  font-weight: 800;
+  color: #f4f4f5;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.athlete-kpi-sub {
+  font-size: 11px;
+  color: #a1a1aa;
+  line-height: 1.3;
+}
+
+/* Athlete Sections: Classes, Attendance, Payments */
+.athlete-section {
+  background: #141417;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.athlete-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f4f4f5;
+  letter-spacing: -0.01em;
+}
+
+.athlete-section-title svg {
+  color: #ef4444;
+}
+
+.athlete-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.athlete-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #18181b;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 13px;
+}
+
+.athlete-item-row:hover {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.athlete-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.athlete-item-main strong {
+  color: #f4f4f5;
+  font-size: 13px;
+}
+
+.athlete-item-main small {
+  color: #a1a1aa;
+  font-size: 11px;
+}
+
+.athlete-two-col {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .athlete-two-col { grid-template-columns: 1fr; }
+  .athlete-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .athlete-hero { flex-direction: column; text-align: center; }
+  .athlete-contacts, .athlete-badges { justify-content: center; }
+  .fixed-schedule-row { grid-template-columns: 1fr; }
+}
   justify-items: stretch;
 }
 
@@ -2375,8 +2893,14 @@ label {
   .modal {
     width: 100%;
     max-height: calc(100dvh - 22px);
-    border-radius: 16px 16px 0 0;
+    border-radius: 20px 20px 0 0;
+    padding: 0;
+  }
+  .modal.legacy-grid {
     padding: 14px 14px calc(20px + env(safe-area-inset-bottom));
+  }
+  .modal-footer {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
   }
 }
 
