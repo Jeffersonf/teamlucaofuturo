@@ -508,6 +508,32 @@
                 <label>Texto online<textarea id="settingsOnlineNoticeText" data-settings-field="onlineNoticeText" required></textarea></label>
                 <label>Texto local<textarea id="settingsLocalNoticeText" data-settings-field="localNoticeText" required></textarea></label>
               </fieldset>
+              <fieldset class="form-group">
+                <legend>Configuração Pix da Arena (Recebimento Oficial)</legend>
+                <div class="form-row">
+                  <label>Chave Pix Oficial
+                    <input id="settingsPixKey" placeholder="Ex: 15999998888 ou lucao@futevolei.com.br" />
+                  </label>
+                  <label>Tipo de Chave
+                    <select id="settingsPixType">
+                      <option value="telefone">Telefone (Celular)</option>
+                      <option value="email">E-mail</option>
+                      <option value="cpf">CPF</option>
+                      <option value="cnpj">CNPJ</option>
+                      <option value="aleatoria">Chave Aleatória (EVP)</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="form-row">
+                  <label>Beneficiário / Titular
+                    <input id="settingsPixBeneficiary" placeholder="Team Lucão Futevôlei" />
+                  </label>
+                  <label>Cidade
+                    <input id="settingsPixCity" placeholder="Sorocaba" />
+                  </label>
+                </div>
+                <p class="meta" style="margin-top: 4px; color: var(--muted);">Usado para gerar o código Pix Copia e Cola para cobranças automáticas no WhatsApp.</p>
+              </fieldset>
               <div class="settings-actions">
                 <button class="soft-btn" type="button" data-settings-reset>Descartar alterações</button>
                 <button class="primary-btn" type="submit">Salvar ajustes</button>

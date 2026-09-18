@@ -4,6 +4,12 @@ import { openPixModal } from './modules/pix.js';
 import { loadArenas } from './modules/arenas.js';
 import { api, detectServer } from './modules/api.js';
 import { showToast } from './modules/toast.js';
+import { renderDashboard as renderDashboardModule, renderKpis as renderKpisModule, renderTodayClasses as renderTodayClassesModule, renderPending as renderPendingModule, renderDashboardActions as renderDashboardActionsModule, renderFocusStrip as renderFocusStripModule } from './modules/dashboard.js';
+import { renderClasses as renderClassesModule, renderClassSummary as renderClassSummaryModule, renderClassesTodayPlanner as renderClassesTodayPlannerModule, renderClassCalendar as renderClassCalendarModule, openAttendance as openAttendanceModule } from './modules/classes.js';
+import { renderStudents as renderStudentsModule, studentCard as studentCardModule, openStudent as openStudentModule, openStudentReport as openStudentReportModule } from './modules/students.js';
+import { renderPayments as renderPaymentsModule, openDirectPix as openDirectPixModule, openPayment as openPaymentModule } from './modules/payments.js';
+import { renderSettings as renderSettingsModule, syncSettingsForm as syncSettingsFormModule, readSettingsForm as readSettingsFormModule, updateSettingsPreview as updateSettingsPreviewModule, saveSettings as saveSettingsModule, resetSettingsForm as resetSettingsFormModule } from './modules/settings.js';
+import { whatsappUrl, openWhatsApp, sendClassConfirmation, sendPixPaymentRequest, sendExperimentalWelcome, sendClassCancellationNotice, sendPaymentReceipt } from './modules/whatsapp.js';
 
 'use strict';
 
@@ -931,12 +937,6 @@ function signedDaysBetween(dateIso, endIso = todayISO()) {
   return Math.floor((end - start) / 86400000);
 }
 
-function whatsappUrl(phone, text = '') {
-  const digits = phoneDigits(phone);
-  if (!digits) return '';
-  const withCountry = digits.length <= 11 ? `55${digits}` : digits;
-  return `https://wa.me/${withCountry}${text ? `?text=${encodeURIComponent(text)}` : ''}`;
-}
 
 function toast(message, type = 'info') {
   showToast(message, type);
@@ -986,64 +986,28 @@ function setTheme(theme, { persist = true } = {}) {
   if (document.getElementById('themePicker')) renderSettings({ syncForm: false });
 }
 
-function renderSettings({ syncForm = true } = {}) {
-  const picker = document.getElementById('themePicker');
-  if (!picker) return;
-  const current = 'dark';
-  const renderTheme = (item) => `
-    <button class="theme-choice ${item.id === current ? 'is-active' : ''}" type="button" role="option" aria-selected="${item.id === current}" data-theme-choice="${item.id}">
-      <span class="theme-choice-preview" aria-hidden="true">
-        <i style="--theme-swatch:${item.swatches[0]}"></i><i style="--theme-swatch:${item.swatches[1]}"></i><i style="--theme-swatch:${item.swatches[2]}"></i>
-      </span>
-      <span class="theme-choice-copy"><strong>${item.label}</strong><small>${item.description}</small></span>
-      <span class="theme-choice-check" aria-hidden="true">${item.id === current ? '✓' : ''}</span>
-    </button>`;
-  picker.innerHTML = `<div class="theme-choice-grid">${THEME_OPTIONS.map(renderTheme).join('')}</div>`;
-  if (syncForm) syncSettingsForm();
-  updateSettingsPreview();
+function renderSettings(opts) {
+  renderSettingsModule(getAppContext(), opts);
 }
 
 function syncSettingsForm() {
-  document.querySelectorAll('[data-settings-field]').forEach((field) => {
-    const value = appConfig[field.dataset.settingsField] || '';
-    field.value = value;
-  });
+  syncSettingsFormModule(getAppContext());
 }
 
 function readSettingsForm() {
-  const next = { ...appConfig };
-  document.querySelectorAll('[data-settings-field]').forEach((field) => {
-    next[field.dataset.settingsField] = field.value.trim();
-  });
-  return next;
+  return readSettingsFormModule(getAppContext());
 }
 
 function updateSettingsPreview() {
-  const getValue = (id, fallback) => document.getElementById(id)?.value.trim() || fallback;
-  const brand = getValue('settingsBrandName', appConfig.brandName);
-  const subtitle = getValue('settingsBrandSubtitle', appConfig.brandSubtitle);
-  const title = getValue('settingsDashboardTitle', appConfig.dashboardTitle);
-  const description = getValue('settingsPublicDescription', appConfig.publicDescription);
-  document.querySelectorAll('[data-preview-brand]').forEach((element) => { element.textContent = brand; });
-  document.querySelectorAll('[data-preview-subtitle]').forEach((element) => { element.textContent = subtitle; });
-  document.querySelectorAll('[data-preview-title]').forEach((element) => { element.textContent = title; });
-  document.querySelectorAll('[data-preview-description]').forEach((element) => { element.textContent = description; });
+  updateSettingsPreviewModule(getAppContext());
 }
 
 function saveSettings(event) {
-  event.preventDefault();
-  appConfig = readSettingsForm();
-  localStorage.setItem(CONFIG_KEY, JSON.stringify(appConfig));
-  applyAppConfig();
-  updateSystemNotice();
-  renderSettings();
-  toast('Ajustes salvos neste navegador');
+  saveSettingsModule(getAppContext(), event);
 }
 
 function resetSettingsForm() {
-  syncSettingsForm();
-  updateSettingsPreview();
-  toast('Alterações descartadas');
+  resetSettingsFormModule(getAppContext());
 }
 
 function clearSettings() {
@@ -1142,13 +1106,88 @@ function updatePerformanceMode() {
   document.documentElement.dataset.perf = mobile || reducedMotion ? 'lite' : 'full';
 }
 
+function getAppContext() {
+  return {
+    state,
+    stateVersion,
+    appConfig,
+    setAppConfig: (cfg) => { appConfig = cfg; },
+    CONFIG_KEY,
+    PIN_KEY,
+    THEME_OPTIONS,
+    LIST_PAGE_SIZE,
+    studentVisibleLimit,
+    paymentVisibleLimit,
+    money,
+    todayISO,
+    currentMonth,
+    selectedPaymentMonth,
+    formatDate,
+    escapeHTML,
+    empty,
+    shouldRender,
+    getStateIndex,
+    classStudents,
+    classExtras,
+    classType,
+    extraType,
+    classById,
+    studentById,
+    classConfirmationStats,
+    confirmationLabel,
+    classOperationStatus,
+    classStatusActions,
+    cssToken,
+    weeklyAttendanceCount,
+    planWeeklyTarget,
+    fixedSchedules,
+    fixedScheduleText,
+    fixedScheduleOccurrences,
+    hasFixedSchedule,
+    studentNextAction,
+    studentRecentActions,
+    isPaid,
+    isPaidForMonth,
+    dueDay,
+    paymentUrgency,
+    paymentPriority,
+    sortedPaymentStudents,
+    studentChargeText,
+    sortedActions,
+    actionRow,
+    actionFocusRow,
+    reportClassLine,
+    attendanceSummary,
+    nextClass,
+    nextWaitLead,
+    classRow,
+    paymentRow,
+    rosterPerson,
+    openModal,
+    closeModal,
+    setActiveAttendanceClassId: (id) => { activeAttendanceClassId = id; },
+    toast,
+    whatsappUrl,
+    whatsappShareUrl,
+    classShareText,
+    openPixModal,
+    loadData,
+    renderPlanOptions,
+    renderStudentFixedScheduleRows,
+    renderStudentSchedulePreview,
+    applyAppConfig,
+    updateSystemNotice,
+    addDaysIso,
+    sortClass
+  };
+}
+
 function renderDashboard() {
-  renderFocusStrip();
-  renderKpis();
-  renderQuickActions();
-  renderTodayClasses();
-  renderPending();
-  renderDashboardActions();
+  renderDashboardModule(getAppContext());
+}
+
+function renderFocusStrip() {
+  renderFocusStripModule(getAppContext());
 }
 
 function renderPage(page = currentPage()) {
@@ -1175,29 +1214,7 @@ function render() {
 }
 
 function renderKpis() {
-  const index = getStateIndex();
-  const active = state.students.filter((s) => s.status === 'Ativo').length;
-  const todayClasses = index.todayClasses;
-  const expectedToday = todayClasses.reduce((sum, item) => sum + classStudents(item).length, 0);
-  const presentToday = todayClasses.reduce((sum, item) => (
-    sum + classStudents(item).filter((student) => item.presencas?.[student.aluno_id || student.id] || student.presente).length
-  ), 0);
-  const pendingStudents = index.pendingStudents;
-  const pendingBookings = index.pendingBookings.length;
-  const pendingValue = pendingStudents.reduce((sum, student) => sum + Number(student.mensalidade || 0), 0);
-  const items = [
-    ['Aulas hoje', todayClasses.length, `${expectedToday} previstos`, todayClasses.length ? '' : 'ok'],
-    ['Presenças', `${presentToday}/${expectedToday || 0}`, expectedToday ? 'marcadas hoje' : 'sem lista hoje', expectedToday && presentToday < expectedToday ? 'warn' : 'ok'],
-    ['Pedidos', pendingBookings, pendingBookings ? 'aprovar agora' : 'sem pedido aberto', pendingBookings ? 'warn' : 'ok'],
-    ['A receber', pendingStudents.length, pendingStudents.length ? money.format(pendingValue) : `${active} alunos ativos`, pendingStudents.length ? 'bad' : 'ok']
-  ];
-  document.getElementById('kpiGrid').innerHTML = items.map(([label, value, detail, tone]) => `
-    <article class="kpi ${tone ? `kpi-${tone}` : ''}">
-      <span>${label}</span>
-      <strong>${value}</strong>
-      <small>${escapeHTML(detail)}</small>
-    </article>
-  `).join('');
+  renderKpisModule(getAppContext());
 }
 
 function nextClass() {
@@ -1209,30 +1226,15 @@ function nextClass() {
 }
 
 function renderQuickActions() {
-  document.getElementById('quickActions').innerHTML = '';
+  renderQuickActionsModule(getAppContext());
 }
 
 function renderTodayClasses() {
-  const classes = getStateIndex().todayClasses;
-  document.getElementById('todayClasses').innerHTML = classes.length ? classes.map(classRow).join('') : empty('Nenhuma aula marcada para hoje.');
+  renderTodayClassesModule(getAppContext());
 }
 
 function renderPending() {
-  const students = getStateIndex().pendingStudents;
-  const visible = students.slice(0, 5);
-  document.getElementById('pendingList').innerHTML = students.length ? `
-    ${visible.map((student) => `
-      <article class="row-card">
-        <div>
-          <button class="link-title compact-title" type="button" data-report-student="${student.id}">${escapeHTML(student.nome)}</button>
-          <p class="meta">${escapeHTML(student.plano_nome || 'sem plano')} - ${money.format(Number(student.mensalidade || 0))}</p>
-          <div class="pill-row"><span class="pill bad">pagamento pendente</span></div>
-        </div>
-        <div class="actions"><button class="mini-btn" data-pay="${student.id}">Marcar pago</button></div>
-      </article>
-    `).join('')}
-    ${students.length > visible.length ? `<button class="soft-btn dashboard-more-btn" type="button" data-action="quick-pending">Ver ${students.length - visible.length} restante(s)</button>` : ''}
-  ` : empty('Sem pendências por enquanto.');
+  renderPendingModule(getAppContext());
 }
 
 function actionRow(item) {
@@ -1267,10 +1269,7 @@ function groupedActionRows(items) {
 }
 
 function renderDashboardActions() {
-  const target = document.getElementById('dashboardActions');
-  if (!target) return;
-  const items = sortedActions(6);
-  target.innerHTML = items.length ? items.map(actionRow).join('') : empty('Nenhuma acao registrada ainda.');
+  renderDashboardActionsModule(getAppContext());
 }
 
 function renderActions() {
@@ -1314,34 +1313,7 @@ function renderActions() {
 }
 
 function renderStudents() {
-  const query = document.getElementById('studentSearch').value.trim().toLowerCase();
-  const status = document.getElementById('studentStatusFilter').value;
-  const payment = document.getElementById('studentPaymentFilter').value;
-  const signature = `${stateVersion}|${query}|${status}|${payment}|${studentVisibleLimit}`;
-  if (!shouldRender('students', signature)) return;
-  const students = state.students.filter((student) => {
-    const haystack = `${student.nome} ${student.telefone} ${student.plano_nome} ${student.nivel} ${student.status}`.toLowerCase();
-    const matchesQuery = haystack.includes(query);
-    const matchesStatus = !status || student.status === status;
-    const matchesPayment = !payment || (payment === 'paid' ? isPaid(student) : !isPaid(student));
-    return matchesQuery && matchesStatus && matchesPayment;
-  });
-  const visible = students.slice(0, studentVisibleLimit);
-  document.getElementById('studentGrid').innerHTML = students.length ? `
-    <div class="student-list-head" aria-hidden="true">
-      <span>Aluno</span>
-      <span>Plano</span>
-      <span>Agenda</span>
-      <span>Pagamento</span>
-      <span>Ações</span>
-    </div>
-    ${visible.map(studentCard).join('')}
-    ${students.length > visible.length ? `
-      <button class="soft-btn list-more-btn" type="button" data-action="students-more">
-        Mostrar mais ${Math.min(LIST_PAGE_SIZE, students.length - visible.length)} de ${students.length - visible.length}
-      </button>
-    ` : ''}
-  ` : empty('Nenhum aluno encontrado.');
+  renderStudentsModule(getAppContext());
 }
 
 function renderGlobalResults() {
@@ -1399,20 +1371,7 @@ function openGlobalResult(action) {
 }
 
 function renderClasses() {
-  const date = document.getElementById('classDateFilter').value;
-  const type = document.getElementById('classTypeFilter')?.value || '';
-  const status = document.getElementById('classStatusFilter')?.value || '';
-  const signature = `${stateVersion}|${date}|${type}|${status}`;
-  if (!shouldRender('classes', signature)) return;
-  const classes = [...state.classes].filter((item) => (
-    (!date || item.data === date)
-    && (!type || classType(item) === type)
-    && (!status || (item.status || 'Marcada') === status)
-  )).sort(sortClass);
-  renderClassesTodayPlanner();
-  renderClassCalendar();
-  renderClassSummary(classes);
-  document.getElementById('classList').innerHTML = classes.length ? classes.map(classRow).join('') : empty('Crie a primeira aula da agenda.');
+  renderClassesModule(getAppContext());
 }
 
 function bookingClass(booking) {
@@ -1490,212 +1449,24 @@ function waitPriority(item = {}) {
   return { label: status, className: '', rank: 3, age };
 }
 
-function renderFocusStrip() {
-  const target = document.getElementById('focusStrip');
-  if (!target) return;
-  const index = getStateIndex();
-  const next = nextClass();
-  const todayClasses = index.todayClasses;
-  const pending = index.activeStudents.filter((student) => !isPaidForMonth(student, currentMonth()));
-  const pendingValue = pending.reduce((sum, student) => sum + Number(student.mensalidade || 0), 0);
-  const lead = nextWaitLead();
-  const pendingBookings = index.pendingBookings;
-  const nextStudents = next ? classStudents(next) : [];
-  const nextPresent = next ? nextStudents.filter((student) => next.presencas?.[student.aluno_id || student.id] || student.presente).length : 0;
-  const briefTitle = next ? `${next.horario} - ${next.turma || 'Turma'}` : 'Sem aula marcada';
-  const briefText = next ? `${formatDate(next.data)} - ${nextStudents.length}/${next.capacidade || 8} previstos - ${nextPresent}/${nextStudents.length || 0} presentes` : 'Crie a primeira aula do dia para iniciar a operação.';
-  target.innerHTML = `
-    <section class="day-command focus-${next ? 'live' : 'ok'}">
-      <div class="day-command-main">
-        <span class="eyebrow">agora</span>
-        <h2>${escapeHTML(briefTitle)}</h2>
-        <p>${escapeHTML(briefText)}</p>
-        <div class="pill-row">
-          <span class="pill">${todayClasses.length} aula(s) hoje</span>
-          <span class="pill ${pendingBookings.length ? 'warn' : 'ok'}">${pendingBookings.length} pedido(s)</span>
-          <span class="pill ${pending.length ? 'bad' : 'ok'}">${pending.length ? money.format(pendingValue) : 'financeiro em dia'}</span>
-        </div>
-      </div>
-      <div class="day-command-actions">
-        <button class="primary-btn" type="button" data-focus-action="next-class">${next ? 'Abrir presenca' : 'Criar aula'}</button>
-        <button class="soft-btn" type="button" data-focus-action="bookings">Pedidos</button>
-        <button class="soft-btn" type="button" data-focus-action="${lead ? `wait:${lead.id}` : 'waitlist'}">Espera</button>
-      </div>
-    </section>
-  `;
-}
 
 function renderClassSummary(classes) {
-  const target = document.getElementById('classSummary');
-  if (!target) return;
-  const future = classes.filter((item) => item.data >= todayISO() && item.status !== 'Cancelada').length;
-  const experimental = classes.filter((item) => classType(item) === 'Experimental').length;
-  const repos = classes.filter((item) => classType(item) === 'Reposicao').length;
-  const avulsos = classes.reduce((sum, item) => sum + classExtras(item).filter((extra) => ['Avulso', 'Reposicao', 'Experimental', 'Visitante'].includes(extraType(extra))).length, 0);
-  target.innerHTML = `
-    <article class="mini-stat"><span>Filtradas</span><strong>${classes.length}</strong></article>
-    <article class="mini-stat"><span>Futuras</span><strong>${future}</strong></article>
-    <article class="mini-stat"><span>Experimentais</span><strong>${experimental}</strong></article>
-    <article class="mini-stat"><span>Reposicoes</span><strong>${repos}</strong></article>
-    <article class="mini-stat"><span>Fora da lista</span><strong>${avulsos}</strong></article>
-  `;
+  renderClassSummaryModule(getAppContext(), classes);
 }
 
 function renderClassesTodayPlanner() {
-  const target = document.getElementById('classesTodayPlanner');
-  if (!target) return;
-  const classes = getStateIndex().todayClasses;
-  const expected = classes.reduce((sum, item) => sum + classStudents(item).length, 0);
-  const present = classes.reduce((sum, item) => sum + classStudents(item).filter((student) => item.presencas?.[student.aluno_id || student.id] || student.presente).length, 0);
-  const extrasTotal = classes.reduce((sum, item) => sum + classExtras(item).length, 0);
-  const confirmedToday = classes.reduce((sum, item) => sum + classConfirmationStats(item).yes, 0);
-  const declinedToday = classes.reduce((sum, item) => sum + classConfirmationStats(item).no, 0);
-  const attentionTotal = classes.filter((item) => classOperationStatus(item)[0] !== 'ok').length;
-  const summary = `
-    <article class="today-summary">
-      <span>Resumo de hoje</span>
-      <strong>${classes.length} aula(s)</strong>
-      <small>${expected} previstos - ${confirmedToday} confirmados - ${declinedToday} não vão - ${present} presentes - ${extrasTotal} fora da lista - ${attentionTotal} atenção</small>
-    </article>
-  `;
-  target.innerHTML = classes.length ? `${summary}${classes.map((item) => {
-    const enrolled = classStudents(item);
-    const extras = classExtras(item);
-    const capacity = Number(item.capacidade || 8);
-    const presentCount = enrolled.filter((student) => item.presencas?.[student.aluno_id || student.id] || student.presente).length;
-    const confirmation = classConfirmationStats(item);
-    const [operationTone, operationLabel] = classOperationStatus(item);
-    return `
-      <article class="today-class class-${cssToken(item.status || 'Marcada')} type-${cssToken(classType(item))}">
-        <div class="today-class-head">
-          <div class="class-timebox">
-            <span>${escapeHTML(item.horario)}</span>
-            <small>${escapeHTML(classType(item))}</small>
-          </div>
-          <div class="class-main">
-            <strong>${escapeHTML(item.turma || 'Turma')}</strong>
-            <span>${escapeHTML(item.professor || 'Professor não informado')}</span>
-            <div class="pill-row">
-              <span class="pill ${operationTone}">${escapeHTML(operationLabel)}</span>
-              <span class="pill">${enrolled.length}/${capacity} previstos</span>
-              <span class="pill ok">${confirmation.yes} vão</span>
-              ${confirmation.no ? `<span class="pill bad">${confirmation.no} não vão</span>` : ''}
-              ${confirmation.open ? `<span class="pill warn">${confirmation.open} sem resposta</span>` : ''}
-              <span class="pill ${presentCount >= enrolled.length && enrolled.length ? 'ok' : 'warn'}">${presentCount}/${enrolled.length} presentes</span>
-              ${extras.length ? `<span class="pill warn">${extras.length} fora da lista</span>` : ''}
-              <span class="pill">${escapeHTML(item.status || 'Marcada')}</span>
-            </div>
-          </div>
-          <div class="actions">
-            <button class="mini-btn" data-attendance="${item.id}">Presenças</button>
-            ${classStatusActions(item)}
-            <a class="mini-btn" href="${whatsappShareUrl(classShareText(item))}" target="_blank" rel="noopener">WhatsApp</a>
-            <button class="mini-btn" data-open-group-message="${item.id}">Avisar grupo</button>
-            <button class="mini-btn" data-copy-class="${item.id}">Copiar</button>
-          </div>
-        </div>
-        <div class="roster-list">
-          ${enrolled.map((student) => rosterPerson(student, item.data, Boolean(item.presencas?.[student.aluno_id || student.id] || student.presente))).join('')}
-          ${extras.map((extra) => `<span class="roster-person extra"><strong>${escapeHTML(extra.nome || extra)}</strong><small>${escapeHTML(extraType(extra))}</small></span>`).join('')}
-        </div>
-      </article>
-    `;
-  }).join('')}` : empty('Nenhuma aula marcada para hoje.');
+  renderClassesTodayPlannerModule(getAppContext());
 }
 
 function renderClassCalendar() {
-  const target = document.getElementById('classCalendar');
-  if (!target) return;
-  const index = getStateIndex();
-  const days = Array.from({ length: 7 }, (_item, index) => addDaysIso(todayISO(), index));
-  target.innerHTML = days.map((day) => {
-    const classes = index.classesByDay.get(day) || [];
-    return `
-      <article class="calendar-day ${day === todayISO() ? 'today' : ''}">
-        <button type="button" data-class-day="${day}">
-          <strong>${formatDate(day).slice(0, 5)}</strong>
-          <span>${classes.length} aula(s)</span>
-        </button>
-        <div>${classes.slice(0, 3).map((item) => `<small>${escapeHTML(item.horario)} ${escapeHTML(item.turma || '')}</small>`).join('')}</div>
-      </article>
-    `;
-  }).join('');
+  renderClassCalendarModule(getAppContext());
 }
 
-function renderPayments() {
-  const monthInput = document.getElementById('paymentMonth');
-  if (monthInput && !monthInput.value) monthInput.value = currentMonth();
-  const month = monthInput?.value || currentMonth();
-  const query = document.getElementById('paymentSearch')?.value.trim().toLowerCase() || '';
-  const filter = document.getElementById('paymentStatusFilter')?.value || '';
-  const signature = `${stateVersion}|${month}|${query}|${filter}|${paymentVisibleLimit}`;
-  if (!shouldRender('payments', signature)) return;
-  const index = getStateIndex();
-  const monthPayments = index.paymentsByMonth.get(month) || [];
-  const paidThisMonth = monthPayments.reduce((sum, item) => sum + Number(item.valor || 0), 0);
-  const activeStudents = index.activeStudents;
-  const pending = activeStudents.filter((student) => !isPaidForMonth(student, month));
-  const overdue = pending.filter((student) => paymentUrgency(student, month).days > 0);
-  const dueSoon = pending.filter((student) => {
-    const days = paymentUrgency(student, month).days;
-    return days <= 0 && days >= -3;
-  });
-  const expected = activeStudents.reduce((sum, student) => sum + Number(student.mensalidade || 0), 0);
-  const receiveRate = expected ? Math.round((paidThisMonth / expected) * 100) : 0;
-  const priorityStudents = sortedPaymentStudents(month).filter((student) => !isPaidForMonth(student, month));
-  const priorityTarget = document.getElementById('paymentPriority');
-  if (priorityTarget) {
-    priorityTarget.innerHTML = priorityStudents.length ? `
-      <div class="payment-priority-head">
-        <div>
-          <span class="section-label">cobrar primeiro</span>
-          <strong>${priorityStudents.length} pendente(s)</strong>
-        </div>
-        <button class="mini-btn" type="button" data-action="quick-pending">Copiar lista</button>
-      </div>
-      <div class="payment-priority-grid">
-        ${priorityStudents.slice(0, 3).map((student) => {
-          const urgency = paymentUrgency(student, month);
-          const priority = paymentPriority(student, month);
-          return `
-            <article class="payment-priority-card">
-              <div>
-                <button class="link-title compact-title" type="button" data-report-student="${student.id}">${escapeHTML(student.nome)}</button>
-                <p class="meta">${money.format(Number(student.mensalidade || 0))} - ${escapeHTML(urgency.label)}</p>
-                <span class="pill ${priority.className}">${escapeHTML(priority.label)}</span>
-              </div>
-              <div class="actions">
-                ${student.telefone ? `<a class="mini-btn" href="${whatsappUrl(student.telefone, studentChargeText(student, month))}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
-                <button class="mini-btn" data-copy-charge="${student.id}">Copiar</button>
-                <button class="mini-btn" data-pay="${student.id}">Pago</button>
-              </div>
-            </article>
-          `;
-        }).join('')}
-      </div>
-    ` : '';
-  }
-  document.getElementById('financeSummary').innerHTML = `
-    <article class="mini-stat kpi-ok payment-secondary"><span>Recebido no mês</span><strong>${money.format(paidThisMonth)}</strong></article>
-    <article class="mini-stat payment-secondary"><span>Previsao do mes</span><strong>${money.format(expected)}</strong></article>
-    <article class="mini-stat payment-secondary ${receiveRate >= 80 ? 'kpi-ok' : pending.length ? 'kpi-warn' : ''}"><span>Recebimento</span><strong>${receiveRate}%</strong></article>
-    <article class="mini-stat ${pending.length ? 'kpi-bad' : 'kpi-ok'}"><span>Pendências</span><strong>${pending.length}</strong></article>
-    <article class="mini-stat ${overdue.length ? 'kpi-bad' : 'kpi-ok'}"><span>Atrasadas</span><strong>${overdue.length}</strong></article>
-    <article class="mini-stat ${dueSoon.length ? 'kpi-warn' : ''}"><span>Cobrar agora</span><strong>${dueSoon.length}</strong></article>
-    <article class="mini-stat ${pending.length ? 'kpi-bad' : 'kpi-ok'}"><span>A receber</span><strong>${money.format(pending.reduce((sum, student) => sum + Number(student.mensalidade || 0), 0))}</strong></article>
-  `;
-  const visibleStudents = sortedPaymentStudents(month).filter((student) => {
-    const haystack = `${student.nome} ${student.telefone} ${student.plano_nome}`.toLowerCase();
-    const matchesQuery = !query || haystack.includes(query);
-    const matchesFilter = !filter || (filter === 'paid' ? isPaidForMonth(student, month) : !isPaidForMonth(student, month));
-    return matchesQuery && matchesFilter;
-  });
-  const visiblePaymentStudents = visibleStudents.slice(0, paymentVisibleLimit);
-  const rows = visiblePaymentStudents.map((student) => {
-    const paid = isPaidForMonth(student, month);
-    const urgency = paymentUrgency(student, month);
-    const priority = paymentPriority(student, month);
-    return `
+function paymentRow(student, month) {
+  const paid = isPaidForMonth(student, month);
+  const urgency = paymentUrgency(student, month);
+  const priority = paymentPriority(student, month);
+  return `
     <article class="row-card payment-row ${paid ? 'payment-paid' : 'payment-pending'}">
       <div>
         <button class="link-title compact-title" type="button" data-report-student="${student.id}">${escapeHTML(student.nome)}</button>
@@ -1715,23 +1486,10 @@ function renderPayments() {
       </div>
     </article>
   `;
-  });
-  const history = monthPayments.slice(0, 8).map((item) => `
-    <article class="row-card compact-row">
-      <div>
-        <h3>${escapeHTML(item.aluno_nome || 'Pagamento')}</h3>
-        <p class="meta">${money.format(Number(item.valor || 0))} - ${formatDate(item.pago_em)} - ${escapeHTML(item.forma_pagamento || 'manual')}${item.observacao ? ` - ${escapeHTML(item.observacao)}` : ''}</p>
-      </div>
-    </article>
-  `);
-  const morePaymentsButton = visibleStudents.length > visiblePaymentStudents.length ? `
-    <button class="soft-btn list-more-btn" type="button" data-action="payments-more">
-      Mostrar mais ${Math.min(LIST_PAGE_SIZE, visibleStudents.length - visiblePaymentStudents.length)} de ${visibleStudents.length - visiblePaymentStudents.length}
-    </button>
-  ` : '';
-  document.getElementById('paymentList').innerHTML = rows.length
-    ? `${rows.join('')}${morePaymentsButton}${history.length ? `<div class="section-label">Histórico recente</div>${history.join('')}` : ''}`
-    : empty('Cadastre alunos para acompanhar mensalidades.');
+}
+
+function renderPayments() {
+  renderPaymentsModule(getAppContext());
 }
 
 function renderPlans() {
@@ -1897,38 +1655,7 @@ function renderReports() {
 }
 
 function studentCard(student) {
-  const message = `Oi ${student.nome}, tudo bem? Aqui é do Team Lucão.`;
-  const weekly = weeklyAttendanceCount(student.id);
-  const target = planWeeklyTarget(student);
-  const paid = isPaid(student);
-  const schedule = fixedScheduleText(student);
-  return `
-    <article class="student-row status-${cssToken(student.status || 'Ativo')} payment-${paid ? 'paid' : 'pending'}">
-      <div class="student-main">
-        <button class="link-title compact-title" type="button" data-report-student="${student.id}">${escapeHTML(student.nome)}</button>
-        <p class="meta">${escapeHTML(student.telefone || 'sem telefone')} - vence dia ${dueDay(student)}</p>
-      </div>
-      <div class="student-plan">
-        <strong>${escapeHTML(student.plano_nome || 'Sem plano')}</strong>
-        <p class="meta">${money.format(Number(student.mensalidade || 0))}/mês - ${escapeHTML(student.nivel || 'Iniciante')}</p>
-        <span class="pill ${student.status === 'Ativo' ? 'ok' : student.status === 'Experimental' ? 'warn' : ''}">${escapeHTML(student.status || 'Ativo')}</span>
-      </div>
-      <div class="student-frequency">
-        <strong>${weekly}/${target || '-'}</strong>
-        <p class="meta">${escapeHTML(schedule)}</p>
-      </div>
-      <div class="student-payment">
-        <span class="pill ${paid ? 'ok' : 'bad'}">${paid ? 'em dia' : 'pendente'}</span>
-        <p class="meta">${paid ? `pago até ${formatDate(student.pago_ate)}` : 'sem registro do mês'}</p>
-      </div>
-      <div class="actions student-actions">
-        ${student.telefone ? `<a class="mini-btn" href="${whatsappUrl(student.telefone, message)}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
-        ${!paid ? `<button class="mini-btn" style="color:#ef4444; border-color:rgba(220,38,38,0.3); background:rgba(220,38,38,0.08);" data-pix-charge="${student.id}">PIX</button>` : ''}
-        <button class="mini-btn" data-edit-student="${student.id}">Editar</button>
-        <button class="mini-btn" data-pay="${student.id}">${paid ? 'Desmarcar' : 'Dar Baixa'}</button>
-      </div>
-    </article>
-  `;
+  return studentCardModule(getAppContext(), student);
 }
 
 function classRow(item) {
@@ -2139,106 +1866,11 @@ function renderStudentSchedulePreview() {
 }
 
 function openStudent(id = '') {
-  const student = studentById(id) || {};
-  document.getElementById('studentId').value = student.id || '';
-  document.getElementById('studentName').value = student.nome || '';
-  document.getElementById('studentPhone').value = student.telefone || '';
-  document.getElementById('studentEmail').value = student.email || '';
-  renderPlanOptions(student.plano_id || '');
-  document.getElementById('studentFee').value = student.mensalidade || '';
-  document.getElementById('studentDueDay').value = student.dia_vencimento || student.vencimento_dia || 10;
-  document.getElementById('studentLevel').value = student.nivel || '';
-  document.getElementById('studentStatus').value = student.status || 'Ativo';
-  document.getElementById('studentNote').value = student.observacao || '';
-  renderStudentFixedScheduleRows(fixedSchedules(student));
-  renderStudentSchedulePreview();
-  openModal('studentModal');
+  openStudentModule(getAppContext(), id);
 }
 
 function openStudentReport(id) {
-  const student = studentById(id);
-  if (!student) return;
-  const summary = attendanceSummary(id);
-  const weekly = weeklyAttendanceCount(id);
-  const target = planWeeklyTarget(student);
-  const nextClasses = summary.history.filter((item) => item.data >= todayISO()).slice(0, 6);
-  const recentClasses = [...summary.history].filter((item) => item.data < todayISO()).reverse().slice(0, 6);
-  const payments = (state.payments || [])
-    .filter((item) => String(item.aluno_id) === String(id))
-    .sort((a, b) => String(b.pago_em || b.vencimento || '').localeCompare(String(a.pago_em || a.vencimento || '')))
-    .slice(0, 6);
-  const paid = isPaid(student);
-  const plan = `${escapeHTML(student.plano_nome || 'sem plano')} - ${money.format(Number(student.mensalidade || 0))}/mes`;
-  const scheduleText = fixedScheduleText(student);
-  const fixedOccurrences = fixedScheduleOccurrences(student, 4);
-  const nextAction = studentNextAction(student, weekly, target, nextClasses);
-  const recentActions = studentRecentActions(student, 5);
-  document.getElementById('studentReport').innerHTML = `
-    <div class="report-hero student-profile ${paid ? 'payment-paid' : 'payment-pending'}">
-      <div>
-        <span class="section-label">Relatorio do aluno</span>
-        <h2>${escapeHTML(student.nome)}</h2>
-        <p class="meta">${escapeHTML(student.telefone || 'sem telefone')} - ${plan} - vence dia ${dueDay(student)}</p>
-        <div class="pill-row">
-          <span class="pill ${student.status === 'Ativo' ? 'ok' : student.status === 'Experimental' ? 'warn' : ''}">${escapeHTML(student.status || 'Ativo')}</span>
-          <span class="pill ${nextAction.className}">${escapeHTML(nextAction.label)}</span>
-          <span class="pill">${escapeHTML(student.nivel || 'sem nivel')}</span>
-          <span class="pill ${paid ? 'ok' : 'bad'}">${paid ? 'pagamento em dia' : 'pagamento pendente'}</span>
-          <span class="pill">${weekly}/${target || '-'} na semana</span>
-        </div>
-      </div>
-      <div class="actions">
-        ${student.telefone ? `<a class="mini-btn" href="${whatsappUrl(student.telefone, `Oi ${student.nome}, tudo bem? Aqui e do Team Lucão.`)}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
-        <button class="mini-btn" data-sync-student="${student.id}">Agenda fixa</button>
-        <button class="mini-btn" data-edit-student="${student.id}">Editar</button>
-        <button class="mini-btn" data-pay="${student.id}">${paid ? 'Nao pago' : 'Pago'}</button>
-      </div>
-    </div>
-    <div class="report-grid student-report-grid">
-      <article class="mini-stat"><span>Semana atual</span><strong>${weekly}/${target || '-'}</strong></article>
-      <article class="mini-stat ${nextAction.className ? `kpi-${nextAction.className}` : ''}"><span>Acao sugerida</span><strong>${escapeHTML(nextAction.label)}</strong><small>${escapeHTML(nextAction.detail)}</small></article>
-        <article class="mini-stat"><span>Presenças</span><strong>${summary.present}/${summary.enrolled}</strong></article>
-      <article class="mini-stat"><span>Comparecimento</span><strong>${summary.rate}%</strong></article>
-      <article class="mini-stat ${paid ? 'kpi-ok' : 'kpi-bad'}"><span>Pagamento</span><strong>${paid ? 'Em dia' : 'Pendente'}</strong></article>
-    </div>
-    <article class="row-card compact-row schedule-report-card">
-      <div>
-        <h3>Agenda fixa</h3>
-        <p class="meta">${escapeHTML(scheduleText)}${fixedOccurrences[0] ? ` - próxima em ${formatDate(fixedOccurrences[0].data)} às ${escapeHTML(fixedOccurrences[0].horario)}` : ''}</p>
-        ${fixedOccurrences.length ? `<div class="schedule-preview-dates report-dates">${fixedOccurrences.map((item) => `<small>${formatDate(item.data)} · ${escapeHTML(item.horario)}</small>`).join('')}</div>` : ''}
-      </div>
-      <div class="actions">
-        <button class="mini-btn" data-sync-student="${student.id}">${hasFixedSchedule(student) ? 'Criar próximas aulas' : 'Definir agenda'}</button>
-      </div>
-    </article>
-    ${student.observacao ? `<p class="report-note">${escapeHTML(student.observacao)}</p>` : ''}
-    <section class="student-report-section">
-      <div class="section-label">Ações recentes</div>
-      <div class="student-action-list">
-        ${recentActions.length ? recentActions.map(actionFocusRow).join('') : empty('Nenhuma ação recente ligada a este aluno.')}
-      </div>
-    </section>
-    <div class="two-col report-columns">
-      <section>
-        <div class="section-label">Proximas aulas previstas</div>
-        <div class="list">${nextClasses.length ? nextClasses.map((item) => reportClassLine(item, false, id)).join('') : empty('Nenhuma próxima aula vinculada.')}</div>
-      </section>
-      <section>
-        <div class="section-label">Historico recente</div>
-        <div class="list">${recentClasses.length ? recentClasses.map((item) => reportClassLine(item, true, id)).join('') : empty('Sem histórico de aulas.')}</div>
-      </section>
-    </div>
-    <div class="section-label">Pagamentos recentes</div>
-    <div class="list">${payments.length ? payments.map((item) => `
-      <article class="row-card compact-row">
-        <div>
-          <h3>${money.format(Number(item.valor || 0))}</h3>
-          <p class="meta">${escapeHTML(item.referencia || '')} - ${formatDate(item.pago_em || item.vencimento)} - ${escapeHTML(item.forma_pagamento || 'manual')}${item.observacao ? ` - ${escapeHTML(item.observacao)}` : ''}</p>
-        </div>
-      </article>
-    `).join('') : empty('Sem pagamento registrado neste histórico.')}</div>
-  `;
-  openModal('studentReportModal');
+  openStudentReportModule(getAppContext(), id);
 }
 
 function reportClassLine(item, showPresence = false, studentId = '') {
@@ -3502,64 +3134,7 @@ async function saveWaitlist(event) {
 }
 
 function openAttendance(classId) {
-  const item = classById(classId);
-  if (!item) return;
-  activeAttendanceClassId = classId;
-  const enrolled = classStudents(item);
-  const ids = enrolled.map((student) => student.aluno_id || student.id);
-  const extras = classExtras(item);
-  const presentCount = ids.filter((id) => item.presencas?.[id] || item.presencas?.[String(id)]).length;
-  const confirmation = classConfirmationStats(item);
-  const absentLikely = enrolled.filter((student) => (student.confirmado || student.confirmacao) === 'nao').length;
-  const pendingTeacher = confirmation.pendingTeacher;
-  document.getElementById('attendanceTitle').innerHTML = `
-    <span>${formatDate(item.data)} as ${escapeHTML(item.horario)} - ${escapeHTML(item.turma || 'Turma')}</span>
-    <strong>${presentCount}/${ids.length} presentes</strong>
-    <small>${escapeHTML(classType(item))} - ${escapeHTML(item.status || 'Marcada')}</small>
-    <div class="attendance-title-pills">
-      <span class="pill ok">${confirmation.yes} vão</span>
-      ${absentLikely ? `<span class="pill bad">${absentLikely} não vão</span>` : ''}
-      ${pendingTeacher ? `<span class="pill warn">${pendingTeacher} aguardando professor</span>` : ''}
-      <span class="pill warn">${confirmation.open} sem resposta</span>
-      ${extras.length ? `<span class="pill warn">${extras.length} fora da lista</span>` : ''}
-    </div>
-  `;
-  document.getElementById('attendanceList').innerHTML = enrolled.map((student) => {
-    const id = student.aluno_id || student.id;
-    const fullStudent = studentById(id) || student;
-    const present = Boolean(item.presencas?.[id] || item.presencas?.[String(id)] || student.presente);
-    const [confirmClass, confirmText] = confirmationLabel(student.confirmado || student.confirmacao || '');
-    const teacherConfirmed = student.confirmado_professor === 'sim';
-    const phone = fullStudent.telefone || student.telefone || '';
-    return `
-    <div class="check-item ${present ? 'checked-in' : ''} ${confirmClass === 'bad' ? 'likely-absent' : ''}">
-      <div>
-        <strong>${escapeHTML(student.nome)}</strong>
-        <p class="meta">${escapeHTML(fullStudent.plano_nome || student.plano_nome || 'sem plano')} - ${weeklyAttendanceCount(id, item.data)}/${planWeeklyTarget(fullStudent) || '-'} na semana</p>
-        <div class="pill-row">
-          <span class="pill ${confirmClass}">${confirmText}</span>
-          ${teacherConfirmed ? '<span class="pill ok">professor confirmou</span>' : student.confirmado === 'sim' ? `<button class="pill confirm-teacher-button" type="button" data-confirm-student="${item.id}:${id}">Confirmar indicacao</button>` : ''}
-          ${phone ? `<a class="pill" href="${whatsappUrl(phone, `Oi ${student.nome}, tudo bem? Aqui é do Team Lucão. Você confirma a aula de hoje às ${item.horario}?`)}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
-        </div>
-      </div>
-      <button class="mini-btn ${present ? 'present' : ''}" data-toggle-attendance="${item.id}:${id}">
-        ${present ? 'Presente' : 'Marcar'}
-      </button>
-    </div>
-  `;
-  }).join('') || empty('Nenhum aluno vinculado a esta aula.');
-  document.getElementById('extraAttendanceList').innerHTML = extras.length ? extras.map((extra, index) => `
-    <article class="row-card compact-row">
-      <div>
-        <h3>${escapeHTML(extra.nome || extra)}</h3>
-        <p class="meta">${escapeHTML(extraType(extra))} - fora da lista prevista</p>
-      </div>
-      <div class="actions">
-        <button class="mini-btn danger-mini" data-remove-extra="${item.id}:${index}">Remover</button>
-      </div>
-    </article>
-  `).join('') : empty('Nenhum avulso marcado.');
-  openModal('attendanceModal');
+  openAttendanceModule(getAppContext(), classId);
 }
 
 async function saveClassItem(item) {
@@ -3680,49 +3255,11 @@ async function confirmStudentAttendance(classId, studentId, action = 'approve') 
 }
 
 function openDirectPix(studentId) {
-  const student = studentById(studentId);
-  if (!student) return;
-  const month = selectedPaymentMonth();
-  openPixModal({
-    studentId: student.id,
-    studentName: student.nome,
-    studentPhone: student.telefone,
-    amount: Number(student.mensalidade || 0),
-    reference: month,
-    getAdminPin: () => localStorage.getItem(PIN_KEY),
-    showToast: toast,
-    refreshCallback: () => loadData()
-  });
+  openDirectPixModule(getAppContext(), studentId);
 }
 
 function openPayment(studentId) {
-  const student = studentById(studentId);
-  if (!student) return;
-  const month = selectedPaymentMonth();
-  document.getElementById('paymentStudentId').value = student.id;
-  document.getElementById('paymentStudentName').textContent = `${student.nome} - ${escapeHTML(student.plano_nome || 'sem plano')}`;
-  document.getElementById('paymentReference').value = month;
-  document.getElementById('paymentPaidAt').value = todayISO();
-  document.getElementById('paymentValue').value = Number(student.mensalidade || 0).toFixed(2);
-  document.getElementById('paymentMethod').value = 'Pix';
-  document.getElementById('paymentNote').value = '';
-  const btnPix = document.getElementById('btnOpenPixFromPayment');
-  if (btnPix) {
-    btnPix.onclick = () => {
-      closeModal('paymentModal');
-      openPixModal({
-        studentId: student.id,
-        studentName: student.nome,
-        studentPhone: student.telefone,
-        amount: Number(student.mensalidade || 0),
-        reference: month,
-        getAdminPin: () => localStorage.getItem(PIN_KEY),
-        showToast: toast,
-        refreshCallback: () => loadData()
-      });
-    };
-  }
-  openModal('paymentModal');
+  openPaymentModule(getAppContext(), studentId);
 }
 
 async function markPaid(studentId) {

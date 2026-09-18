@@ -245,7 +245,7 @@ function scheduleAutomaticBackups() {
 
 function requirePin(req, res, next) {
   if (!req.path.startsWith('/api/')) return next();
-  if (req.path === '/api/login' || req.path.startsWith('/api/public/')) return next();
+  if (req.path === '/api/login' || req.path.startsWith('/api/public/') || req.path === '/api/webhooks/pix' || (req.path === '/api/pix/config' && req.method === 'GET')) return next();
   const pin = String(req.get('x-admin-pin') || req.query.pin || '').trim();
   const validPins = new Set(['1209', '2222', '1111', ADMIN_PIN, TEACHER_PIN]);
   if (validPins.has(pin)) {
@@ -1279,6 +1279,124 @@ app.post('/api/pix/simulate-payment', (req, res) => {
       mensagem: `Pagamento Pix de ${student.nome} confirmado com sucesso!`,
       paidUntil,
       student: row('SELECT * FROM alunos WHERE id=?', [student.id])
+    });
+  } catch (err) {
+    jsonError(res, err);
+  }
+});
+
+app.get('/api/pix/config', (_req, res) => {
+  try {
+    const arena = row('SELECT * FROM arenas ORDER BY id LIMIT 1') || {};
+    res.json({
+      ok: true,
+      chave_pix: arena.chave_pix || '',
+      tipo_chave: arena.tipo_chave_pix || 'telefone',
+      beneficiario: arena.responsavel || arena.nome || 'Team Lucão Futevôlei',
+      cidade: 'Sorocaba'
+    });
+  } catch (err) {
+    jsonError(res, err);
+  }
+});
+
+app.post('/api/pix/config', (req, res) => {
+  try {
+    const chave = String(req.body.chave_pix || req.body.chave || '').trim();
+    const tipo = String(req.body.tipo_chave || req.body.tipo || 'telefone').trim();
+    const beneficiario = String(req.body.beneficiario || req.body.responsavel || '').trim();
+    const cidade = String(req.body.cidade || 'Sorocaba').trim();
+
+    const arena = row('SELECT * FROM arenas ORDER BY id LIMIT 1');
+    if (arena) {
+      run('UPDATE arenas SET chave_pix=?, tipo_chave_pix=?, responsavel=COALESCE(?, responsavel) WHERE id=?', [
+        chave, tipo, beneficiario || null, arena.id
+      ]);
+    } else {
+      insertRow('arenas', {
+        slug: 'team-lucao',
+        nome: beneficiario || 'Team Lucão Futevôlei',
+        responsavel: beneficiario || 'Lucão',
+        chave_pix: chave,
+        tipo_chave_pix: tipo
+      });
+    }
+    logAction('Configuração Pix', `Chave Pix atualizada para ${chave} (${tipo}).`, 'Professor');
+    res.json({ ok: true, chave_pix: chave, tipo_chave: tipo, beneficiario, cidade });
+  } catch (err) {
+    jsonError(res, err);
+  }
+});
+
+app.post('/api/webhooks/pix', (req, res) => {
+  try {
+    const body = req.body || {};
+    const pixItem = Array.isArray(body.pix) ? body.pix[0] : (body.pix || body);
+    const txid = String(body.txid || body.txId || pixItem.txid || body.identificador || '').trim();
+    const amount = moneyNumber(body.valor || body.value || body.amount || pixItem.valor || 0);
+    let studentId = Number(body.aluno_id || body.studentId || body.alunoId || pixItem.aluno_id || 0);
+    const phone = phoneDigits(body.telefone || body.phone || body.pagador?.telefone || body.payer?.phone || pixItem.telefone || pixItem.phone || pixItem.pagador?.telefone || pixItem.payer?.phone || '');
+    const payerName = String(body.pagador?.nome || body.payer?.name || body.nome || pixItem.pagador?.nome || pixItem.payer?.name || pixItem.nome || '').trim();
+    let reference = String(body.referencia || currentMonth()).slice(0, 7);
+
+    if (!studentId && txid) {
+      const match = /^TLF(\d+?)(\d{6})$/i.exec(txid) || /^TLF(\d+)$/i.exec(txid);
+      if (match && Number(match[1])) {
+        studentId = Number(match[1]);
+        if (match[2] && !body.referencia) {
+          reference = `${match[2].slice(0, 4)}-${match[2].slice(4, 6)}`;
+        }
+      }
+    }
+
+    let student = null;
+    if (studentId) {
+      student = row('SELECT * FROM alunos WHERE id=?', [studentId]);
+    } else if (phone.length >= 8) {
+      student = findStudentByPhone(phone);
+    } else if (payerName) {
+      student = row('SELECT * FROM alunos WHERE LOWER(TRIM(nome)) = ?', [payerName.toLowerCase()]);
+    }
+
+    if (!student) {
+      logAction('Pix Webhook Pendente', `Pix de R$ ${amount.toFixed(2)} recebido (TxID: ${txid || 'N/A'}), mas nenhum aluno correspondente foi identificado.`, 'Sistema');
+      return res.json({
+        ok: true,
+        received: true,
+        status: 'PENDENTE_CONCILIACAO',
+        mensagem: 'Pagamento recebido. Aluno não identificado para baixa automática.'
+      });
+    }
+
+    const finalAmount = amount > 0 ? amount : moneyNumber(student.mensalidade);
+    const monthDueDate = String(req.body.vencimento || dueDateForMonth(student, reference)).slice(0, 10);
+    const paidUntil = student.pago_ate && student.pago_ate > monthDueDate ? student.pago_ate : monthDueDate;
+    const paidAt = today();
+
+    run('UPDATE alunos SET pago_ate=? WHERE id=?', [paidUntil, student.id]);
+    run('INSERT INTO pagamentos (aluno_id, referencia, valor, vencimento, pago_em, status, forma_pagamento, observacao) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', [
+      student.id,
+      reference,
+      finalAmount,
+      monthDueDate,
+      paidAt,
+      'PAGO',
+      'Pix Webhook',
+      txid ? `TxID: ${txid}` : 'Baixa automática via Webhook Pix'
+    ]);
+
+    logAction('Pix Recebido', `Webhook Pix confirmou pagamento de R$ ${finalAmount.toFixed(2)} para ${student.nome} (${reference}).`, 'Sistema');
+
+    return res.json({
+      ok: true,
+      received: true,
+      status: 'CONFIRMADO',
+      aluno_id: student.id,
+      aluno_nome: student.nome,
+      valor: finalAmount,
+      referencia: reference,
+      pago_ate: paidUntil,
+      item: row('SELECT * FROM alunos WHERE id=?', [student.id])
     });
   } catch (err) {
     jsonError(res, err);

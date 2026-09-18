@@ -545,9 +545,109 @@ async function apiHandler(request, env, body) {
     return json({ ok: true, role: 'admin' });
   }
 
-  const isPublic = url.pathname.startsWith('/api/public/');
+  const isPublic = url.pathname.startsWith('/api/public/') || url.pathname === '/api/webhooks/pix' || (url.pathname === '/api/pix/config' && method === 'GET');
   if (!isPublic && url.pathname !== '/api/login') {
     if (!isValidPin(request.headers.get('x-admin-pin'))) return json({ ok: false, error: 'PIN invalido' }, 401);
+  }
+
+  if (url.pathname === '/api/webhooks/pix' && method === 'POST') {
+    const pixItem = Array.isArray(body.pix) ? body.pix[0] : (body.pix || body);
+    const txid = String(body.txid || body.txId || pixItem.txid || body.identificador || '').trim();
+    const amount = money(body.valor || body.value || body.amount || pixItem.valor || 0);
+    let studentId = Number(body.aluno_id || body.studentId || body.alunoId || pixItem.aluno_id || 0);
+    const phone = digits(body.telefone || body.phone || body.pagador?.telefone || body.payer?.phone || pixItem.telefone || pixItem.phone || pixItem.pagador?.telefone || pixItem.payer?.phone || '');
+    const payerName = String(body.pagador?.nome || body.payer?.name || body.nome || pixItem.pagador?.nome || pixItem.payer?.name || pixItem.nome || '').trim();
+    let reference = String(body.referencia || currentMonth()).slice(0, 7);
+
+    if (!studentId && txid) {
+      const match = /^TLF(\d+?)(\d{6})$/i.exec(txid) || /^TLF(\d+)$/i.exec(txid);
+      if (match && Number(match[1])) {
+        studentId = Number(match[1]);
+        if (match[2] && !body.referencia) {
+          reference = `${match[2].slice(0, 4)}-${match[2].slice(4, 6)}`;
+        }
+      }
+    }
+
+    let student = null;
+    if (studentId) {
+      student = await first(db, 'SELECT * FROM alunos WHERE id=?', [studentId]);
+    } else if (phone.length >= 8) {
+      student = await findStudent(db, phone);
+    } else if (payerName) {
+      student = await first(db, 'SELECT * FROM alunos WHERE LOWER(TRIM(nome)) = ?', [payerName.toLowerCase()]);
+    }
+
+    if (!student) {
+      await logAction(db, 'Pix Webhook Pendente', `Pix de R$ ${amount.toFixed(2)} recebido (TxID: ${txid || 'N/A'}), mas nenhum aluno correspondente foi identificado.`, 'Sistema');
+      return json({
+        ok: true,
+        received: true,
+        status: 'PENDENTE_CONCILIACAO',
+        mensagem: 'Pagamento recebido. Aluno não identificado para baixa automática.'
+      });
+    }
+
+    const finalAmount = amount > 0 ? amount : money(student.mensalidade);
+    const monthDueDate = String(body.vencimento || dueDateForMonth(student, reference)).slice(0, 10);
+    const paidUntil = student.pago_ate && student.pago_ate > monthDueDate ? student.pago_ate : monthDueDate;
+    const paidAt = today();
+
+    await run(db, 'UPDATE alunos SET pago_ate=? WHERE id=?', [paidUntil, student.id]);
+    await insertRow(db, 'pagamentos', {
+      aluno_id: student.id,
+      referencia: reference,
+      valor: finalAmount,
+      vencimento: monthDueDate,
+      pago_em: paidAt,
+      status: 'PAGO',
+      forma_pagamento: 'Pix Webhook',
+      observacao: txid ? `TxID: ${txid}` : 'Baixa automática via Webhook Pix'
+    });
+
+    await logAction(db, 'Pix Recebido', `Webhook Pix confirmou pagamento de R$ ${finalAmount.toFixed(2)} para ${student.nome} (${reference}).`, 'Sistema');
+
+    return json({
+      ok: true,
+      received: true,
+      status: 'CONFIRMADO',
+      aluno_id: student.id,
+      aluno_nome: student.nome,
+      valor: finalAmount,
+      referencia: reference,
+      pago_ate: paidUntil,
+      item: await first(db, 'SELECT * FROM alunos WHERE id=?', [student.id])
+    });
+  }
+
+  if (url.pathname === '/api/pix/config') {
+    if (method === 'GET') {
+      await run(db, 'CREATE TABLE IF NOT EXISTS configuracoes (chave TEXT PRIMARY KEY, valor TEXT)');
+      const rowChave = await first(db, "SELECT valor FROM configuracoes WHERE chave='chave_pix'");
+      const rowTipo = await first(db, "SELECT valor FROM configuracoes WHERE chave='tipo_chave'");
+      const rowBeneficiario = await first(db, "SELECT valor FROM configuracoes WHERE chave='beneficiario'");
+      const rowCidade = await first(db, "SELECT valor FROM configuracoes WHERE chave='cidade'");
+      return json({
+        ok: true,
+        chave_pix: rowChave?.valor || 'arena@futevolei.com.br',
+        tipo_chave: rowTipo?.valor || 'telefone',
+        beneficiario: rowBeneficiario?.valor || 'Team Lucão Futevôlei',
+        cidade: rowCidade?.valor || 'Sorocaba'
+      });
+    }
+    if (method === 'POST') {
+      await run(db, 'CREATE TABLE IF NOT EXISTS configuracoes (chave TEXT PRIMARY KEY, valor TEXT)');
+      const chave = String(body.chave_pix || body.chave || '').trim();
+      const tipo = String(body.tipo_chave || body.tipo || 'telefone').trim();
+      const beneficiario = String(body.beneficiario || body.responsavel || 'Team Lucão Futevôlei').trim();
+      const cidade = String(body.cidade || 'Sorocaba').trim();
+      await run(db, "INSERT OR REPLACE INTO configuracoes (chave, valor) VALUES ('chave_pix', ?)", [chave]);
+      await run(db, "INSERT OR REPLACE INTO configuracoes (chave, valor) VALUES ('tipo_chave', ?)", [tipo]);
+      await run(db, "INSERT OR REPLACE INTO configuracoes (chave, valor) VALUES ('beneficiario', ?)", [beneficiario]);
+      await run(db, "INSERT OR REPLACE INTO configuracoes (chave, valor) VALUES ('cidade', ?)", [cidade]);
+      await logAction(db, 'Configuração Pix', `Chave Pix atualizada para ${chave} (${tipo}).`, 'Professor');
+      return json({ ok: true, chave_pix: chave, tipo_chave: tipo, beneficiario, cidade });
+    }
   }
 
   if (url.pathname === '/api/public/classes' && method === 'GET') return json({ ok: true, items: await publicClasses(db) });

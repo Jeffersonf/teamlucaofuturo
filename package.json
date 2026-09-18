@@ -10,7 +10,7 @@
     "static": "npx serve .",
     "build:cloudflare": "node scripts/build-cloudflare.mjs",
     "deploy:cloudflare": "node scripts/build-cloudflare.mjs && npx wrangler pages deploy .cloudflare-public --project-name=teamlucaofuturo",
-    "check": "node --check app.js && node --check student-fast.js && node --check modules/roles.js && node --check modules/rain.js && node --check modules/pix.js && node --check modules/arenas.js && node --check modules/api.js && node --check modules/toast.js && node --check server/db.js && node --check server/pix.js && node --check server/index.js && node --check worker/index.js"
+    "check": "node --check app.js && node --check student-fast.js && node --check modules/roles.js && node --check modules/rain.js && node --check modules/pix.js && node --check modules/arenas.js && node --check modules/api.js && node --check modules/toast.js && node --check modules/whatsapp.js && node --check modules/dashboard.js && node --check modules/classes.js && node --check modules/students.js && node --check modules/payments.js && node --check modules/settings.js && node --check server/db.js && node --check server/pix.js && node --check server/index.js && node --check worker/index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

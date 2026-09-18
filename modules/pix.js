@@ -1,4 +1,5 @@
 // modules/pix.js - Gestão e Cobrança com Pix Dinâmico e QR Code
+import { sendPixPaymentRequest } from './whatsapp.js';
 
 function crc16(str) {
   let crc = 0xFFFF;
@@ -176,15 +177,7 @@ export async function openPixModal({ studentId, studentName, studentPhone, amoun
     // Botão de enviar via WhatsApp
     const btnWhatsapp = document.getElementById('btnSharePixWhatsapp');
     btnWhatsapp.onclick = () => {
-      const cleanPhone = String(studentPhone || '').replace(/\D/g, '');
-      const msg = encodeURIComponent(
-        `Olá, ${data.aluno_nome}! ⚽\n\n` +
-        `Segue o código Pix para pagamento da mensalidade (${data.referencia}) no valor de R$ ${Number(data.valor).toFixed(2)}:\n\n` +
-        `${data.pix_code}\n\n` +
-        `Basta copiar o código acima e colar no seu app de banco. A confirmação é automática! 👊`
-      );
-      const url = cleanPhone.length >= 10 ? `https://wa.me/55${cleanPhone}?text=${msg}` : `https://wa.me/?text=${msg}`;
-      window.open(url, '_blank');
+      sendPixPaymentRequest({ nome: data.aluno_nome, telefone: studentPhone, mensalidade: data.valor }, data);
     };
 
     // Abrir o modal
