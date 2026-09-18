@@ -206,7 +206,10 @@
               <span>cadastro</span>
               <h2 data-config-page-title="studentsTitle">Alunos</h2>
             </div>
-            <button class="soft-btn" type="button" data-open-student>+ Novo aluno</button>
+            <div style="display:flex; gap:8px;">
+              <button class="soft-btn" type="button" data-export-students>Exportar CSV</button>
+              <button class="primary-btn" type="button" data-open-student>+ Novo aluno</button>
+            </div>
           </div>
           <input class="search" id="studentSearch" aria-label="Buscar aluno, telefone ou plano" placeholder="Buscar aluno, telefone ou plano..." />
           <div class="filters student-filters">
@@ -295,6 +298,10 @@
               <span>financeiro</span>
               <h2 data-config-page-title="paymentsTitle">Mensalidades</h2>
             </div>
+            <button class="soft-btn" type="button" data-export-payments style="display:flex; align-items:center; gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              Exportar CSV
+            </button>
           </div>
           <div class="finance-summary payment-summary" id="financeSummary"></div>
           <div class="filters payment-filters">
@@ -355,6 +362,10 @@
               <span>gestão</span>
               <h2 data-config-page-title="reportsTitle">Relatórios rápidos</h2>
             </div>
+            <button class="soft-btn" type="button" data-export-payments-history style="display:flex; align-items:center; gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+              Exportar Pagamentos (CSV)
+            </button>
           </div>
           <div class="report-grid" id="reportGrid"></div>
           <div class="operation-report" id="operationReport"></div>
@@ -533,6 +544,9 @@
                   </label>
                 </div>
                 <p class="meta" style="margin-top: 4px; color: var(--muted);">Usado para gerar o código Pix Copia e Cola para cobranças automáticas no WhatsApp.</p>
+                <div style="margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: rgba(234, 179, 8, 0.08); border: 1px solid rgba(234, 179, 8, 0.2); font-size: 12px; line-height: 1.5; color: #fef08a;">
+                  <strong style="color:#fbbf24;">⚠️ Lembrete sobre Baixa Automática / Webhooks:</strong> Em contas de Pessoa Física (ex: Nubank PF, Itaú PF), os bancos não disponibilizam webhooks públicos. Para que o sistema dê baixa automática no segundo exato em que o aluno pagar, cadastre o webhook (<code>https://teamlucaofuturo.pages.dev/api/webhooks/pix</code>) em uma conta PJ com API Pix (Asaas, EFI/Gerencianet, Cora ou Mercado Pago). Em contas PF, use a cobrança por WhatsApp com 1 clique e dê baixa manual ao receber o comprovante.
+                </div>
               </fieldset>
               <div class="settings-actions">
                 <button class="soft-btn" type="button" data-settings-reset>Descartar alterações</button>

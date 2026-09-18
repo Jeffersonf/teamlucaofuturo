@@ -10,6 +10,7 @@ import { renderStudents as renderStudentsModule, studentCard as studentCardModul
 import { renderPayments as renderPaymentsModule, openDirectPix as openDirectPixModule, openPayment as openPaymentModule } from './modules/payments.js';
 import { renderSettings as renderSettingsModule, syncSettingsForm as syncSettingsFormModule, readSettingsForm as readSettingsFormModule, updateSettingsPreview as updateSettingsPreviewModule, saveSettings as saveSettingsModule, resetSettingsForm as resetSettingsFormModule } from './modules/settings.js';
 import { whatsappUrl, openWhatsApp, sendClassConfirmation, sendPixPaymentRequest, sendExperimentalWelcome, sendClassCancellationNotice, sendPaymentReceipt } from './modules/whatsapp.js';
+import { exportMonthlyPaymentsCsv, exportStudentsCsv, exportPaymentHistoryCsv } from './modules/export.js';
 
 'use strict';
 
@@ -2487,9 +2488,12 @@ async function renderPublicBooking() {
   select.disabled = !classes.length;
   select.innerHTML = classes.length
     ? classes.map((item) => {
-      const available = Number(item.inscritos ?? classStudentIds(item).length) < Number(item.capacidade || 8);
+      const used = Number(item.inscritos ?? classStudentIds(item).length);
+      const capacity = Number(item.capacidade || 8);
+      const freeSlots = Math.max(0, capacity - used);
+      const available = freeSlots > 0;
       const waiting = Number(item.espera || 0);
-      return `<option value="${escapeHTML(item.id)}" ${available ? '' : 'disabled style="color: var(--muted);"'} data-full="${available ? '0' : '1'}">${escapeHTML(publicClassLabel(item))}${available ? ` (${capacity - used} vagas)` : ` - lotada (indisponível)`}</option>`;
+      return `<option value="${escapeHTML(item.id)}" ${available ? '' : 'disabled style="color: var(--muted);"'} data-full="${available ? '0' : '1'}">${escapeHTML(publicClassLabel(item))}${available ? ` (${freeSlots} vagas)` : ` - lotada (indisponível)`}</option>`;
     }).join('')
     : '<option value="">Sem horário disponível</option>';
   list.innerHTML = classes.length ? classes.map((item) => {
@@ -3493,6 +3497,16 @@ function bindEvents() {
   document.querySelectorAll('[data-backup]').forEach((button) => button.addEventListener('click', () => downloadBackup().catch((err) => toast(err.message))));
   document.querySelectorAll('[data-copy-pending]').forEach((button) => button.addEventListener('click', () => copyPendingCharges().catch((err) => toast(err.message))));
   document.querySelectorAll('[data-server-backup]').forEach((button) => button.addEventListener('click', () => createServerBackup().catch((err) => toast(err.message))));
+  document.querySelectorAll('[data-export-payments]').forEach((button) => button.addEventListener('click', () => {
+    const month = document.getElementById('paymentMonth')?.value || currentMonth();
+    exportMonthlyPaymentsCsv(getAppContext(), month);
+  }));
+  document.querySelectorAll('[data-export-students]').forEach((button) => button.addEventListener('click', () => {
+    exportStudentsCsv(getAppContext());
+  }));
+  document.querySelectorAll('[data-export-payments-history]').forEach((button) => button.addEventListener('click', () => {
+    exportPaymentHistoryCsv(getAppContext());
+  }));
   document.getElementById('settingsForm')?.addEventListener('submit', saveSettings);
   document.getElementById('themePicker')?.addEventListener('click', (event) => {
     const target = event.target.closest('[data-theme-choice]');

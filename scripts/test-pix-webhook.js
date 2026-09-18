@@ -5,7 +5,18 @@ const ROOT = path.resolve(__dirname, '..');
 const PORT = 3099;
 
 async function runTest() {
-  console.log('--- TESTE PIX WEBHOOK & CONFIG ---');
+  console.log('================================================================');
+  console.log('📌 AVISO IMPORTANTE SOBRE O WEBHOOK PIX (PRODUÇÃO X TESTE):');
+  console.log('1. Contas bancárias comuns de Pessoa Física (ex: Nubank PF, Itaú PF)');
+  console.log('   NÃO possuem webhooks públicos para notificar sites na internet.');
+  console.log('2. A baixa 100% automática em tempo real só é possível vinculando');
+  console.log('   o webhook (POST /api/webhooks/pix) a uma conta PJ com API Pix');
+  console.log('   (ex: Asaas, EFI/Gerencianet, Cora, Mercado Pago ou Inter PJ).');
+  console.log('3. Para contas PF comuns, o fluxo oficial da arena é:');
+  console.log('   Disparo de cobrança via WhatsApp (1 clique) e baixa manual');
+  console.log('   no painel ao receber o comprovante.');
+  console.log('================================================================\n');
+  console.log('--- INICIANDO TESTES DO ENDPOINT DE WEBHOOK & CONFIG ---');
   const server = spawn(process.execPath, ['server/index.js'], {
     cwd: ROOT,
     env: { ...process.env, PORT: String(PORT), DB_PATH: ':memory:' },
