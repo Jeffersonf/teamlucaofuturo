@@ -45,7 +45,7 @@ const DEFAULT_APP_CONFIG = Object.freeze({
   brandName: 'Team Lucão',
   brandShort: 'Team Lucão',
   brandSubtitle: 'gestão da escola',
-  dashboardEyebrow: 'operação de hoje',
+  dashboardEyebrow: 'Dashboards',
   dashboardTitle: 'Painel do dia',
   actionsTitle: 'Central de ações',
   bookingsTitle: 'Pedidos de aula',
@@ -951,6 +951,27 @@ function updateTopbar(page) {
   if (eyebrowEl) eyebrowEl.textContent = eyebrow;
   if (categoryEl) categoryEl.textContent = eyebrow;
   if (titleEl) titleEl.textContent = title;
+
+  const topbarBtn = document.getElementById('topbarPrimaryBtn');
+  if (topbarBtn) {
+    if (page === 'students') {
+      topbarBtn.textContent = '+ Novo aluno';
+      topbarBtn.dataset.topbarAction = 'open-student';
+      topbarBtn.setAttribute('data-open-student', '');
+    } else if (page === 'plans') {
+      topbarBtn.textContent = '+ Novo plano';
+      topbarBtn.dataset.topbarAction = 'open-plan';
+      topbarBtn.removeAttribute('data-open-student');
+    } else if (page === 'waitlist') {
+      topbarBtn.textContent = '+ Nova fila';
+      topbarBtn.dataset.topbarAction = 'open-waitlist';
+      topbarBtn.removeAttribute('data-open-student');
+    } else {
+      topbarBtn.textContent = '+ Nova aula';
+      topbarBtn.dataset.topbarAction = 'open-class';
+      topbarBtn.removeAttribute('data-open-student');
+    }
+  }
 }
 
 function applyAppConfig() {
@@ -1140,6 +1161,7 @@ function getAppContext() {
     confirmationLabel,
     classOperationStatus,
     classStatusActions,
+    classDropdownStatusAction,
     cssToken,
     weeklyAttendanceCount,
     planWeeklyTarget,
@@ -1831,6 +1853,20 @@ function studentCard(student) {
   return studentCardModule(getAppContext(), student);
 }
 
+function classDropdownStatusAction(item) {
+  const id = escapeHTML(item.id);
+  if (item.status === 'Finalizada') {
+    return `<button type="button" class="dropdown-item" data-class-status="${id}:Marcada"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg><span>Reabrir aula</span></button>`;
+  }
+  if (item.status === 'Cancelada') {
+    return `<button type="button" class="dropdown-item" data-class-status="${id}:Marcada"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg><span>Reativar aula</span></button>`;
+  }
+  if (item.status === 'Confirmada') {
+    return `<button type="button" class="dropdown-item" data-class-status="${id}:Finalizada"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>Finalizar aula</span></button>`;
+  }
+  return `<button type="button" class="dropdown-item" data-class-status="${id}:Confirmada"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>Confirmar aula</span></button>`;
+}
+
 function classRow(item) {
   const enrolled = classStudents(item);
   const present = enrolled.filter((student) => item.presencas?.[student.aluno_id || student.id] || student.presente).length;
@@ -1838,6 +1874,7 @@ function classRow(item) {
   const confirmation = classConfirmationStats(item);
   const [operationTone, operationLabel] = classOperationStatus(item);
   const isToday = item.data === todayISO();
+  const id = escapeHTML(item.id);
   return `
     <article class="row-card class-row class-${cssToken(item.status || 'Marcada')} type-${cssToken(classType(item))}" style="${isToday ? 'border-left: 3px solid #dc2626;' : ''}">
       <div>
@@ -1865,12 +1902,39 @@ function classRow(item) {
         ` : ''}
       </div>
       <div class="actions">
-        <a class="mini-btn" href="${whatsappShareUrl(classShareText(item))}" target="_blank" rel="noopener">WhatsApp</a>
-        <button class="mini-btn" data-attendance="${item.id}">Presenças</button>
-        ${classStatusActions(item)}
-        <button class="mini-btn" data-copy-class="${item.id}">Copiar</button>
-        <button class="mini-btn" data-open-group-message="${item.id}">Avisar</button>
-        <button class="mini-btn" data-edit-class="${item.id}">Editar</button>
+        <button class="mini-btn primary-mini" data-attendance="${item.id}" title="Lista de chamada e presenças">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Presenças</span>
+        </button>
+        <a class="mini-btn" href="${whatsappShareUrl(classShareText(item))}" target="_blank" rel="noopener" title="Compartilhar no WhatsApp">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          <span>WhatsApp</span>
+        </a>
+        <details class="action-dropdown">
+          <summary class="mini-btn icon-btn" title="Mais opções da aula" aria-label="Mais opções da aula">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/><circle cx="5" cy="12" r="1.5" fill="currentColor"/></svg>
+          </summary>
+          <div class="dropdown-menu">
+            ${classDropdownStatusAction(item)}
+            <button type="button" class="dropdown-item" data-open-group-message="${id}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span>Avisar turma</span>
+            </button>
+            <button type="button" class="dropdown-item" data-copy-class="${id}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Copiar detalhes</span>
+            </button>
+            <button type="button" class="dropdown-item" data-edit-class="${id}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+              <span>Editar aula</span>
+            </button>
+            <div class="dropdown-divider"></div>
+            <button type="button" class="dropdown-item danger" data-cancel-class="${id}">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              <span>Cancelar aula</span>
+            </button>
+          </div>
+        </details>
       </div>
     </article>
   `;
@@ -4036,6 +4100,34 @@ function bindEvents() {
     if (!target) return;
     toggleClassStudent(target.value, target.checked);
   });
+
+  const topbarBtn = document.getElementById('topbarPrimaryBtn');
+  if (topbarBtn) {
+    topbarBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const action = topbarBtn.dataset.topbarAction;
+      if (action === 'open-class') openClass();
+      else if (action === 'open-student') openStudent();
+      else if (action === 'open-plan') openPlan();
+      else if (action === 'open-waitlist') openWaitlist();
+      else openClass();
+    });
+  }
+
+  document.addEventListener('click', (event) => {
+    if (!event.target.closest('.action-dropdown')) {
+      document.querySelectorAll('.action-dropdown[open]').forEach((el) => el.removeAttribute('open'));
+    } else if (event.target.closest('.dropdown-item')) {
+      event.target.closest('.action-dropdown')?.removeAttribute('open');
+    }
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+      document.querySelectorAll('.action-dropdown[open]').forEach((el) => el.removeAttribute('open'));
+    }
+  });
+
   document.body.addEventListener('click', (event) => {
     const target = event.target.closest('[data-action],[data-report-student],[data-edit-student],[data-sync-student],[data-edit-class],[data-duplicate-class],[data-class-status],[data-cancel-class],[data-copy-class],[data-open-group-message],[data-copy-report],[data-edit-plan],[data-attendance],[data-toggle-attendance],[data-confirm-student],[data-pay],[data-pix-charge],[data-copy-charge],[data-edit-wait],[data-wait-status],[data-convert-wait],[data-remove-extra],[data-class-day],[data-more-page],[data-more-action],[data-booking-action]');
     if (!target) return;

@@ -13,7 +13,12 @@ async function run() {
     stdio: ['ignore', 'pipe', 'pipe']
   });
 
-  await new Promise((r) => setTimeout(r, 1600));
+  await new Promise((resolve) => {
+    server.stdout.on('data', (d) => {
+      if (d.toString().includes('running') || d.toString().includes('3088') || d.toString().includes('http')) resolve();
+    });
+    setTimeout(resolve, 3000);
+  });
   const browser = await chromium.launch({ channel: 'msedge', headless: true });
 
   try {

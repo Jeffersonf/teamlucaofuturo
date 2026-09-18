@@ -96,11 +96,39 @@ export function renderClassesTodayPlanner(ctx) {
             </div>
           </div>
           <div class="actions">
-            <button class="mini-btn" data-attendance="${item.id}">Presenças</button>
-            ${ctx.classStatusActions(item)}
-            <a class="mini-btn" href="${ctx.whatsappShareUrl(ctx.classShareText(item))}" target="_blank" rel="noopener">WhatsApp</a>
-            <button class="mini-btn" data-open-group-message="${item.id}">Avisar grupo</button>
-            <button class="mini-btn" data-copy-class="${item.id}">Copiar</button>
+            <button class="mini-btn primary-mini" data-attendance="${item.id}" title="Lista de chamada e presenças">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>Presenças</span>
+            </button>
+            <a class="mini-btn" href="${ctx.whatsappShareUrl(ctx.classShareText(item))}" target="_blank" rel="noopener" title="Compartilhar no WhatsApp">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+              <span>WhatsApp</span>
+            </a>
+            <details class="action-dropdown">
+              <summary class="mini-btn icon-btn" title="Mais opções da aula" aria-label="Mais opções da aula">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/><circle cx="5" cy="12" r="1.5" fill="currentColor"/></svg>
+              </summary>
+              <div class="dropdown-menu">
+                ${ctx.classDropdownStatusAction ? ctx.classDropdownStatusAction(item) : ''}
+                <button type="button" class="dropdown-item" data-open-group-message="${item.id}">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  <span>Avisar turma</span>
+                </button>
+                <button type="button" class="dropdown-item" data-copy-class="${item.id}">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                  <span>Copiar detalhes</span>
+                </button>
+                <button type="button" class="dropdown-item" data-edit-class="${item.id}">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+                  <span>Editar aula</span>
+                </button>
+                <div class="dropdown-divider"></div>
+                <button type="button" class="dropdown-item danger" data-cancel-class="${item.id}">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                  <span>Cancelar aula</span>
+                </button>
+              </div>
+            </details>
           </div>
         </div>
         <div class="roster-list">

@@ -52,13 +52,13 @@ async function testAll() {
     const bookingsView = await page.evaluate(() => {
       const title = document.querySelector('#page-bookings h2')?.textContent;
       const filterExists = !!document.getElementById('bookingFilter');
-      const stats = Array.from(document.querySelectorAll('#bookingSummary .mini-stat')).map(s => ({
-        label: s.querySelector('span')?.textContent,
-        val: s.querySelector('strong')?.textContent
+      const stats = Array.from(document.querySelectorAll('#bookingSummary .mini-stat, #bookingSummary .kpi-card')).map(s => ({
+        label: s.querySelector('span, .kpi-card-label')?.textContent,
+        val: s.querySelector('strong, .kpi-card-value')?.textContent
       }));
       const requests = Array.from(document.querySelectorAll('#bookingList .booking-request')).map(r => ({
         nome: r.querySelector('h3')?.textContent?.trim(),
-        hasExperimentalBadge: r.innerHTML.includes('🧪 Experimental'),
+        hasExperimentalBadge: r.innerHTML.includes('Experimental'),
         classMeta: r.querySelector('.booking-class-meta')?.textContent
       }));
       return { title, filterExists, stats, requests };
