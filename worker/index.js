@@ -63,6 +63,25 @@ function today() {
   }).format(new Date());
 }
 
+function nowTimeSP() {
+  return new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).format(new Date());
+}
+
+function isClassPast(dateStr, timeStr) {
+  const todayStr = today();
+  if (!dateStr) return false;
+  if (dateStr < todayStr) return true;
+  if (dateStr === todayStr && timeStr) {
+    return String(timeStr).slice(0, 5) <= nowTimeSP();
+  }
+  return false;
+}
+
 function addDaysIso(value, days = 0) {
   const date = new Date(`${value}T12:00:00Z`);
   date.setUTCDate(date.getUTCDate() + Number(days || 0));
@@ -293,14 +312,15 @@ async function findStudent(db, value) {
 }
 
 async function publicClasses(db) {
-  return all(db, `
+  const items = await all(db, `
     SELECT a.id, a.data, a.horario, a.turma, a.tipo, a.professor, a.capacidade,
       a.status,
       (SELECT COUNT(*) FROM aula_alunos aa WHERE aa.aula_id=a.id) AS inscritos,
       (SELECT COUNT(*) FROM lista_espera w WHERE w.aula_id=a.id AND w.status IN ('Novo', 'Contatado', 'Experimental marcado')) AS espera
     FROM aulas a WHERE a.status != 'Cancelada' AND a.data >= ?
-    ORDER BY a.data, a.horario LIMIT 40
+    ORDER BY a.data, a.horario LIMIT 60
   `, [today()]);
+  return items.filter((item) => !isClassPast(item.data, item.horario)).slice(0, 40);
 }
 
 async function studentClasses(db, request) {
@@ -352,7 +372,7 @@ async function studentClasses(db, request) {
     ORDER BY a.data, a.horario LIMIT 60
   `, [student.id, start, periodEnd]);
 
-  const available = await all(db, `
+  const rawAvailable = await all(db, `
     SELECT a.id, a.data, a.horario, a.turma, a.tipo, a.professor, a.capacidade, a.status,
       (SELECT COUNT(*) FROM aula_alunos WHERE aula_id=a.id) AS inscritos
     FROM aulas a
@@ -363,6 +383,7 @@ async function studentClasses(db, request) {
       AND NOT EXISTS (SELECT 1 FROM aula_alunos linked WHERE linked.aula_id=a.id AND linked.aluno_id=?)
     ORDER BY a.data, a.horario, a.turma LIMIT 60
   `, [start, periodEnd, student.id]);
+  const available = rawAvailable.filter((item) => !isClassPast(item.data, item.horario));
 
   const phone = digits(informedPhone);
   const requests = phone.length >= 8 ? await all(db, `
@@ -371,8 +392,12 @@ async function studentClasses(db, request) {
     WHERE ag.status IN ('Pendente', 'Aprovado')
       AND ${sqlPhone('ag.telefone')} LIKE ?
       AND a.data BETWEEN ? AND ?
+      AND NOT EXISTS (
+        SELECT 1 FROM aula_alunos aa
+        WHERE aa.aula_id=ag.aula_id AND aa.aluno_id=? AND aa.confirmado='sim'
+      )
     ORDER BY a.data, a.horario
-  `, [`%${phone.slice(-8)}`, start, periodEnd]) : [];
+  `, [`%${phone.slice(-8)}`, start, periodEnd, student.id]) : [];
 
   const todayDate = today();
   let planDueDate = '';
@@ -536,10 +561,17 @@ async function apiHandler(request, env, body) {
   if (url.pathname === '/api/public/bookings' && method === 'POST') {
     const classItem = await first(db, 'SELECT * FROM aulas WHERE id=?', [body.aula_id]);
     if (!classItem) throw new Error('Aula nao encontrada');
-    if (classItem.status === 'Cancelada' || classItem.data < today()) throw new Error('Essa aula nao esta disponivel');
+    if (classItem.status === 'Cancelada' || isClassPast(classItem.data, classItem.horario)) {
+      throw new Error('Essa aula ja passou ou nao esta disponivel');
+    }
     const phone = digits(body.telefone);
     if (phone.length < 8) throw new Error('Informe pelo menos 8 numeros do WhatsApp');
     if (!String(body.nome || '').trim()) throw new Error('Informe seu nome');
+    const existingStudent = await findStudent(db, phone);
+    if (existingStudent) {
+      const alreadyConfirmed = await first(db, "SELECT id FROM aula_alunos WHERE aula_id=? AND aluno_id=? AND confirmado='sim'", [classItem.id, existingStudent.id]);
+      if (alreadyConfirmed) throw new Error('Você já está confirmado nesta aula');
+    }
     const duplicate = await first(db, `SELECT id FROM agendamentos WHERE aula_id=? AND status IN ('Pendente', 'Aprovado') AND ${sqlPhone()} LIKE ? LIMIT 1`, [classItem.id, `%${phone.slice(-8)}`]);
     if (duplicate) throw new Error('Ja existe um pedido para esse WhatsApp nessa aula');
     const enrolled = await scalar(db, 'SELECT COUNT(*) AS total FROM aula_alunos WHERE aula_id=?', [classItem.id]);
@@ -560,8 +592,8 @@ async function apiHandler(request, env, body) {
     if (!student) throw new Error('Aluno nao encontrado para esse WhatsApp');
     const classId = Number(body.aula_id || body.class_id || 0);
     const classItem = await first(db, 'SELECT * FROM aulas WHERE id=?', [classId]);
-    if (!classItem || classItem.status === 'Cancelada' || String(classItem.data || '') < today()) {
-      throw new Error('Essa aula nao esta mais disponivel para confirmacao');
+    if (!classItem || classItem.status === 'Cancelada' || isClassPast(classItem.data, classItem.horario)) {
+      throw new Error('Essa aula ja começou ou nao esta mais disponivel para confirmacao');
     }
 
     const responseValue = String(body.confirmado ?? body.confirmation ?? '').toLowerCase();
@@ -618,6 +650,12 @@ async function apiHandler(request, env, body) {
         classId,
         student.id
       ]);
+    }
+
+    if (value === 'sim') {
+      await run(db, "UPDATE agendamentos SET status='Aprovado', respondido_em=? WHERE aula_id=? AND " + sqlPhone('telefone') + " LIKE ?", [today(), classId, `%${digits(student.telefone).slice(-8)}`]);
+    } else if (removeResponse) {
+      await run(db, "UPDATE agendamentos SET status='Cancelado', respondido_em=? WHERE aula_id=? AND " + sqlPhone('telefone') + " LIKE ?", [today(), classId, `%${digits(student.telefone).slice(-8)}`]);
     }
 
     await logAction(db, removeResponse ? 'Resposta do aluno removida' : 'Confirmacao aluno', removeResponse

@@ -82,23 +82,13 @@ async function runTest() {
     const [y, m, d] = today.split('-').map(Number);
     const dt = new Date(Date.UTC(y, m - 1, d));
     const day = dt.getUTCDay();
-    let monStr, tueStr, wedStr;
-    if (day >= 1 && day <= 5) {
-      const d1 = new Date(Date.UTC(y, m - 1, d));
-      monStr = d1.toISOString().slice(0, 10);
-      d1.setUTCDate(d1.getUTCDate() + 1);
-      tueStr = d1.toISOString().slice(0, 10);
-      d1.setUTCDate(d1.getUTCDate() + 1);
-      wedStr = d1.toISOString().slice(0, 10);
-    } else {
-      const daysToNextMon = ((8 - day) % 7) || 7;
-      const d1 = new Date(Date.UTC(y, m - 1, d + daysToNextMon));
-      monStr = d1.toISOString().slice(0, 10);
-      d1.setUTCDate(d1.getUTCDate() + 1);
-      tueStr = d1.toISOString().slice(0, 10);
-      d1.setUTCDate(d1.getUTCDate() + 1);
-      wedStr = d1.toISOString().slice(0, 10);
-    }
+    const daysToNextMon = ((8 - day) % 7) || 7;
+    const d1 = new Date(Date.UTC(y, m - 1, d + daysToNextMon));
+    monStr = d1.toISOString().slice(0, 10);
+    d1.setUTCDate(d1.getUTCDate() + 1);
+    tueStr = d1.toISOString().slice(0, 10);
+    d1.setUTCDate(d1.getUTCDate() + 1);
+    wedStr = d1.toISOString().slice(0, 10);
 
     const class1 = await req('/api/classes', {
       method: 'POST',
@@ -153,7 +143,7 @@ async function runTest() {
       method: 'POST',
       body: JSON.stringify({ telefone: '988881111', aula_id: class1.item.id, confirmado: 'remover' })
     });
-    const lookupAfterRemove = await req('/api/public/student-classes?telefone=988881111', { public: true });
+    const lookupAfterRemove = await req(`/api/public/student-classes?telefone=988881111&semana=${monStr}`, { public: true });
     console.log('Quota after remove:', lookupAfterRemove.semana);
     if (lookupAfterRemove.semana.confirmadas !== 0) {
       throw new Error('Confirmadas should be 0 after remove');
@@ -188,7 +178,7 @@ async function runTest() {
       method: 'POST',
       body: JSON.stringify({ telefone: '988882222', aula_id: class2.item.id, confirmado: 'sim' })
     });
-    const lookup2x = await req('/api/public/student-classes?telefone=988882222', { public: true });
+    const lookup2x = await req(`/api/public/student-classes?telefone=988882222&semana=${monStr}`, { public: true });
     console.log('Student 2x quota:', lookup2x.semana);
     if (lookup2x.semana.limite !== 2 || lookup2x.semana.confirmadas !== 2) {
       throw new Error(`Expected limite=2, confirmadas=2, got ${JSON.stringify(lookup2x.semana)}`);

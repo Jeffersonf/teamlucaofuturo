@@ -325,37 +325,28 @@
 
     <!-- ========================================== -->
     <!-- PAINEL GUEST: AGENDAR EXPERIMENTAL         -->
-    <!-- Usabilidade focada: Escolha direta na tela -->
+    <!-- Dados do Aluno à Esquerda | Agenda à Direita -->
     <!-- ========================================== -->
     <section id="guestPanel" hidden class="w-full">
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         
-        <!-- Lista de Aulas com Vagas Livres (Esquerda / Destaque Principal) -->
-        <div id="guestScheduleSection" class="lg:col-span-7 bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 sm:p-6 shadow-xl">
-          <div class="flex items-center justify-between mb-4 pb-3 border-b border-zinc-800/60">
-            <div>
-              <h2 class="text-base font-bold text-white">Escolha um Horário</h2>
-              <p class="text-xs text-zinc-400 mt-0.5">Toque na aula que deseja agendar</p>
-            </div>
-            <span class="text-[10px] font-semibold text-zinc-500 uppercase">Aulas com vaga</span>
+        <!-- ESQUERDA: Formulário com Dados do Aluno (lg:col-span-5) -->
+        <div class="lg:col-span-5 bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 sm:p-6 shadow-xl lg:sticky lg:top-20">
+          <div class="mb-4 pb-3 border-b border-zinc-800/60">
+            <h2 class="text-base font-bold text-white">Dados do Aluno</h2>
+            <p class="text-xs text-zinc-400 mt-0.5">Preencha seus dados para agendar a aula</p>
           </div>
 
-          <div id="guestClassesList" class="space-y-2"></div>
-        </div>
-
-        <!-- Formulário Rápido de Agendamento (Direita) -->
-        <div class="lg:col-span-5 bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 sm:p-6 shadow-xl lg:sticky lg:top-20">
-          <h2 class="text-base font-bold text-white mb-1">Confirmar Agendamento</h2>
-          <p id="guestSelectedNotice" class="text-xs text-zinc-400 mb-4">Selecione uma aula na lista ao lado.</p>
+          <!-- Resumo da Aula Escolhida -->
+          <div id="guestSelectedNotice" class="p-3.5 rounded-2xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-400 mb-4 flex items-center gap-2.5">
+            <svg class="w-4 h-4 text-zinc-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="guestSelectedText">Selecione uma data e horário ao lado.</span>
+          </div>
 
           <form id="guestBookingForm" class="space-y-3.5">
-            <!-- Campos Ocultos preenchidos pelo clique no card de aula -->
-            <select id="guestDate" required class="hidden"></select>
-            <select id="guestTime" required class="hidden"></select>
-
             <div>
-              <label for="guestName" class="block text-xs font-semibold text-zinc-300 mb-1">Seu Nome</label>
-              <input id="guestName" type="text" autocomplete="name" autocapitalize="words" autocorrect="off" spellcheck="false" enterkeyhint="next" placeholder="Ex: Lucas Ferreira" required class="w-full px-3.5 py-3 sm:py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-base sm:text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-red-500 transition-all">
+              <label for="guestName" class="block text-xs font-semibold text-zinc-300 mb-1">Nome Completo</label>
+              <input id="guestName" type="text" autocomplete="name" autocapitalize="words" enterkeyhint="next" placeholder="Ex: Lucas Ferreira" required class="w-full px-3.5 py-3 sm:py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-base sm:text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-red-500 transition-all">
             </div>
 
             <div>
@@ -365,16 +356,67 @@
 
             <div>
               <label for="guestReferral" class="block text-xs font-medium text-zinc-400 mb-1">Quem indicou? (Opcional)</label>
-              <input id="guestReferral" type="text" autocapitalize="words" enterkeyhint="done" placeholder="Ex: Nome de um aluno" class="w-full px-3.5 py-3 sm:py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-base sm:text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-red-500 transition-all">
+              <input id="guestReferral" type="text" autocapitalize="words" enterkeyhint="done" placeholder="Ex: Nome de um aluno ou professor" class="w-full px-3.5 py-3 sm:py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-base sm:text-xs text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-red-500 transition-all">
             </div>
 
             <button id="guestSubmitButton" type="submit" class="w-full py-3.5 bg-red-600 hover:bg-red-500 text-white font-bold text-xs rounded-xl transition-all shadow-md shadow-red-600/25 active:scale-95 flex items-center justify-center gap-1.5 mt-2 min-h-[44px]">
-              <span>Confirmar Minha Aula</span>
+              <span>Agendar Aula Experimental</span>
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
             </button>
           </form>
 
           <p id="guestStatus" role="status" aria-live="polite" class="hidden mt-3"></p>
+        </div>
+
+        <!-- DIREITA: Datas para Escolher, Calendário, Seletor Data/Hora & Próximas Aulas (lg:col-span-7) -->
+        <div class="lg:col-span-7 space-y-5">
+          
+          <!-- Card Calendário & Seletor de Data e Hora -->
+          <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-zinc-800/60">
+              <div>
+                <h3 class="text-sm font-bold text-white">Escolher Data e Horário</h3>
+                <p class="text-[11px] text-zinc-400 mt-0.5">Toque no calendário ou use os seletores abaixo</p>
+              </div>
+              <div class="flex items-center gap-2 text-[9px] text-zinc-400">
+                <span class="flex items-center gap-1"><i class="w-1.5 h-1.5 rounded-full border border-emerald-400"></i>Vagas</span>
+                <span class="flex items-center gap-1"><i class="w-1.5 h-1.5 rounded-full bg-red-600"></i>Selecionado</span>
+              </div>
+            </div>
+
+            <!-- Mini Calendário Interativo da Experimental -->
+            <div id="guestCalendar" class="student-calendar"></div>
+
+            <!-- Seletor de Data e Seletor de Horário (Visíveis) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <div>
+                <label for="guestDate" class="block text-[11px] font-semibold text-zinc-400 mb-1.5">1. Selecionar Data</label>
+                <select id="guestDate" required class="w-full px-3 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-red-500 transition-all">
+                  <option value="">Carregando datas...</option>
+                </select>
+              </div>
+              <div>
+                <label for="guestTime" class="block text-[11px] font-semibold text-zinc-400 mb-1.5">2. Selecionar Horário</label>
+                <select id="guestTime" required class="w-full px-3 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-xs text-zinc-200 focus:outline-none focus:border-red-500 transition-all">
+                  <option value="">Escolha primeiro a data</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Próximas Aulas Disponíveis -->
+          <div class="bg-zinc-900/90 border border-zinc-800/80 rounded-3xl p-5 sm:p-6 shadow-xl">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-zinc-800/60">
+              <div>
+                <h3 class="text-sm font-bold text-white">Próximas Aulas</h3>
+                <p class="text-[11px] text-zinc-400 mt-0.5">Toque para selecionar diretamente</p>
+              </div>
+              <span class="text-[10px] font-semibold text-zinc-500 uppercase">Com vagas</span>
+            </div>
+
+            <div id="guestClassesList" class="space-y-2"></div>
+          </div>
+
         </div>
 
       </div>
@@ -393,6 +435,6 @@
     <a href="/autorizar" class="hover:text-zinc-300 transition-colors">Acesso ao Painel</a>
   </footer>
 
-  <script src="student-fast.js?v=20260917-v2"></script>
+  <script src="student-fast.js?v=20260918-v1"></script>
 </body>
 </html>

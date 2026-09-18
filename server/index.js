@@ -112,6 +112,25 @@ function today() {
   }).format(new Date());
 }
 
+function nowTimeSP() {
+  return new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).format(new Date());
+}
+
+function isClassPast(dateStr, timeStr) {
+  const todayStr = today();
+  if (!dateStr) return false;
+  if (dateStr < todayStr) return true;
+  if (dateStr === todayStr && timeStr) {
+    return String(timeStr).slice(0, 5) <= nowTimeSP();
+  }
+  return false;
+}
+
 function addDaysIso(dateIso, days = 0) {
   const date = new Date(`${dateIso}T12:00:00Z`);
   date.setUTCDate(date.getUTCDate() + Number(days || 0));
@@ -358,8 +377,8 @@ app.get('/api/public/classes', (_req, res) => {
     FROM aulas a
     WHERE a.status != 'Cancelada' AND a.data >= ?
     ORDER BY a.data, a.horario
-    LIMIT 40
-  `, [today()]).map((item) => ({
+    LIMIT 60
+  `, [today()]).filter((item) => !isClassPast(item.data, item.horario)).slice(0, 40).map((item) => ({
     id: item.id,
     data: item.data,
     horario: item.horario,
@@ -376,10 +395,16 @@ app.post('/api/public/bookings', (req, res) => {
   try {
     const classItem = row('SELECT * FROM aulas WHERE id=?', [req.body.aula_id]);
     if (!classItem) throw new Error('Aula nao encontrada');
-    if (classItem.status === 'Cancelada') throw new Error('Aula cancelada');
-    if (String(classItem.data || '') < today()) throw new Error('Essa aula ja passou');
+    if (classItem.status === 'Cancelada' || isClassPast(classItem.data, classItem.horario)) {
+      throw new Error('Essa aula ja passou ou nao esta disponivel');
+    }
     const phone = phoneDigits(req.body.telefone || '');
     if (phone.length < 8) throw new Error('Informe pelo menos 8 numeros do WhatsApp');
+    const existingStudent = findStudentByPhone(phone);
+    if (existingStudent) {
+      const alreadyConfirmed = row("SELECT id FROM aula_alunos WHERE aula_id=? AND aluno_id=? AND confirmado='sim'", [classItem.id, existingStudent.id]);
+      if (alreadyConfirmed) throw new Error('Você já está confirmado nesta aula');
+    }
     const duplicate = row(`
       SELECT id FROM agendamentos
       WHERE aula_id=? AND status IN ('Pendente', 'Aprovado') AND ${phoneSql()} LIKE ?
@@ -523,7 +548,7 @@ app.get('/api/public/student-classes', (req, res) => {
         )
       ORDER BY a.data, a.horario, a.turma
       LIMIT 60
-    `, [start, periodEnd, student.id]);
+    `, [start, periodEnd, student.id]).filter((item) => !isClassPast(item.data, item.horario));
 
     const phone = phoneDigits(informedPhone);
     const requests = phone.length >= 8 ? rows(`
@@ -532,8 +557,12 @@ app.get('/api/public/student-classes', (req, res) => {
       WHERE ag.status IN ('Pendente', 'Aprovado')
       AND REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(COALESCE(ag.telefone, ''), '(', ''), ')', ''), '-', ''), ' ', ''), '+', '') LIKE ?
       AND a.data BETWEEN ? AND ?
+      AND NOT EXISTS (
+        SELECT 1 FROM aula_alunos aa
+        WHERE aa.aula_id=ag.aula_id AND aa.aluno_id=? AND aa.confirmado='sim'
+      )
       ORDER BY a.data, a.horario
-    `, [`%${phone.slice(-8)}`, start, periodEnd]) : [];
+    `, [`%${phone.slice(-8)}`, start, periodEnd, student.id]) : [];
 
     const todayDate = today();
     const planDueDate = student.pago_ate || dueDateForMonth(student, currentMonth());
@@ -577,8 +606,8 @@ app.post('/api/public/student-confirm', (req, res) => {
     if (!student) throw new Error('Aluno nao encontrado para esse WhatsApp');
     const classId = Number(req.body.aula_id || req.body.class_id || 0);
     const classItem = row('SELECT * FROM aulas WHERE id=?', [classId]);
-    if (!classItem || classItem.status === 'Cancelada' || String(classItem.data || '') < today()) {
-      throw new Error('Essa aula nao esta mais disponivel para confirmacao');
+    if (!classItem || classItem.status === 'Cancelada' || isClassPast(classItem.data, classItem.horario)) {
+      throw new Error('Essa aula ja começou ou nao esta mais disponivel para confirmacao');
     }
 
     const responseValue = String(req.body.confirmado ?? req.body.confirmation ?? '').toLowerCase();
@@ -637,6 +666,12 @@ app.post('/api/public/student-confirm', (req, res) => {
         classId,
         student.id
       ]);
+    }
+
+    if (confirmValue === 'sim') {
+      run("UPDATE agendamentos SET status='Aprovado', respondido_em=? WHERE aula_id=? AND " + phoneSql() + " LIKE ?", [today(), classId, `%${phoneDigits(student.telefone).slice(-8)}`]);
+    } else if (removeResponse) {
+      run("UPDATE agendamentos SET status='Cancelado', respondido_em=? WHERE aula_id=? AND " + phoneSql() + " LIKE ?", [today(), classId, `%${phoneDigits(student.telefone).slice(-8)}`]);
     }
 
     logAction(removeResponse ? 'Resposta do aluno removida' : 'Confirmacao aluno', removeResponse

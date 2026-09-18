@@ -38,6 +38,9 @@ const guestDate = document.getElementById('guestDate');
 const guestTime = document.getElementById('guestTime');
 const guestButton = document.getElementById('guestSubmitButton');
 const guestStatus = document.getElementById('guestStatus');
+const guestCalendar = document.getElementById('guestCalendar');
+const guestSelectedNotice = document.getElementById('guestSelectedNotice');
+const guestSelectedText = document.getElementById('guestSelectedText');
 
 let currentPhone = '';
 let agendaData = { items: [], available: [], requests: [] };
@@ -124,6 +127,49 @@ function openSlots(item) {
   return Math.max(0, Number(item.capacidade || 8) - Number(item.inscritos || 0));
 }
 
+function nowSP() {
+  const now = new Date();
+  const dateStr = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }).format(now);
+  const timeStr = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).format(now);
+  return { dateStr, timeStr };
+}
+
+function getClassTimeState(dateStr, timeStr, durationMinutes = 60) {
+  if (!dateStr) return 'future';
+  const { dateStr: todayStr, timeStr: nowTime } = nowSP();
+  if (dateStr < todayStr) return 'past';
+  if (dateStr > todayStr) return 'future';
+
+  const [startH, startM] = String(timeStr || '18:30').split(':').map(Number);
+  const startMinutes = (startH || 0) * 60 + (startM || 0);
+  const endMinutes = startMinutes + durationMinutes;
+
+  const [nowH, nowM] = nowTime.split(':').map(Number);
+  const currentMinutes = (nowH || 0) * 60 + (nowM || 0);
+
+  if (currentMinutes < startMinutes) return 'future';
+  if (currentMinutes >= startMinutes && currentMinutes < endMinutes) return 'ongoing';
+  return 'past';
+}
+
+function isPastClass(dateStr, timeStr) {
+  return getClassTimeState(dateStr, timeStr) === 'past';
+}
+
+function isOngoingClass(dateStr, timeStr) {
+  return getClassTimeState(dateStr, timeStr) === 'ongoing';
+}
+
 async function responseData(response, fallback) {
   const data = await response.json().catch(() => ({}));
   if (!response.ok || data.ok === false) throw new Error(data.error || fallback);
@@ -133,6 +179,45 @@ async function responseData(response, fallback) {
 function responseMarkup(item) {
   const answer = String(item.confirmado || '').toLowerCase();
   const teacherApproved = item.confirmado_professor === 'sim';
+  const timeState = getClassTimeState(item.data, item.horario);
+
+  if (timeState === 'ongoing') {
+    if (answer === 'sim') {
+      return `
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          <span class="px-3 py-2 sm:py-1.5 rounded-xl bg-amber-500/15 text-amber-400 text-xs font-medium border border-amber-500/30 flex items-center gap-1.5 min-h-[38px]">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+            Aula em andamento
+          </span>
+        </div>`;
+    }
+    return `
+      <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+        <span class="px-3 py-2 sm:py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-500 text-xs font-medium min-h-[38px] flex items-center">
+          Aula em andamento
+        </span>
+      </div>`;
+  }
+
+  if (timeState === 'past') {
+    if (answer === 'sim') {
+      const wasPresent = Number(item.presente) === 1;
+      return `
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+          <span class="px-3 py-2 sm:py-1.5 rounded-xl bg-zinc-800 text-emerald-400 text-xs font-medium border border-zinc-700 flex items-center gap-1.5 min-h-[38px]">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            ${wasPresent ? 'Presença confirmada' : 'Aula realizada'}
+          </span>
+        </div>`;
+    }
+    return `
+      <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+        <span class="px-3 py-2 sm:py-1.5 rounded-xl bg-zinc-900/60 border border-zinc-800/60 text-zinc-600 text-xs font-medium min-h-[38px] flex items-center">
+          Encerrada
+        </span>
+      </div>`;
+  }
+
   if (answer === 'sim') {
     return `
       <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
@@ -246,6 +331,8 @@ function monthKeys(start, end) {
   return result;
 }
 
+let selectedCalendarDate = '';
+
 function renderCalendar() {
   const scheduledDates = new Set((agendaData.items || []).map((item) => item.data));
   const availableDates = new Set(availableItems().map((item) => item.data));
@@ -259,8 +346,8 @@ function renderCalendar() {
 
   calendar.innerHTML = monthKeys(start, end).map((key) => {
     const [year, month] = key.split('-').map(Number);
-    const firstDay = new Date(Date.UTC(year, month - 1, 1));
-    const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    const firstDay = new Date(Date.UTC(year, month - 1, 1, 12, 0, 0));
+    const lastDay = new Date(Date.UTC(year, month, 0, 12, 0, 0)).getUTCDate();
     const offset = (firstDay.getUTCDay() + 6) % 7;
     const cells = Array.from({ length: offset }, () => '<span class="calendar-day blank" aria-hidden="true"></span>');
     for (let day = 1; day <= lastDay; day += 1) {
@@ -269,7 +356,7 @@ function renderCalendar() {
       const available = availableDates.has(iso);
       const requested = requestedDates.has(iso);
       const inPeriod = iso >= start && iso <= end;
-      const selected = dateFilter.value === iso;
+      const selected = selectedCalendarDate === iso || dateFilter.value === iso;
       const classes = ['calendar-day', scheduled ? 'has-scheduled' : '', available ? 'has-available' : '', requested ? 'has-request' : '', selected ? 'is-selected' : '', !inPeriod ? 'out-period' : ''].filter(Boolean).join(' ');
       const labelParts = [formatDateLong(iso)];
       if (scheduled) labelParts.push('sua aula');
@@ -279,7 +366,7 @@ function renderCalendar() {
         ? `<button type="button" class="${classes}" data-calendar-date="${iso}" aria-label="${escapeHTML(labelParts.join(', '))}"><span>${day}</span><i></i></button>`
         : `<span class="${classes}" aria-hidden="true"><span>${day}</span></span>`);
     }
-    const title = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(firstDay);
+    const title = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric', timeZone: 'America/Sao_Paulo' }).format(firstDay);
     return `
       <section class="calendar-month">
         <h3>${escapeHTML(title)}</h3>
@@ -345,9 +432,49 @@ function renderWeeklySchedule() {
     const spotsLeft = Math.max(0, Number(cls.capacidade || 8) - Number(cls.inscritos || 0));
     const isFull = spotsLeft <= 0 && !isStudentConfirmed;
     const isPlanExpired = Boolean(agendaData.student?.plano_vencido);
+    const timeState = getClassTimeState(cls.data, cls.horario);
 
     let actionButtonMarkup = '';
-    if (isStudentConfirmed) {
+    if (timeState === 'ongoing') {
+      if (isStudentConfirmed) {
+        actionButtonMarkup = `
+          <div class="weekly-class-action flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+            <span class="px-3 py-2 sm:py-1.5 rounded-xl bg-amber-500/15 text-amber-400 text-xs font-medium border border-amber-500/30 flex items-center gap-1.5 min-h-[38px]">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+              Aula em andamento
+            </span>
+          </div>
+        `;
+      } else {
+        actionButtonMarkup = `
+          <div class="weekly-class-action w-full sm:w-auto">
+            <span class="w-full sm:w-auto px-3.5 py-2.5 sm:py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-500 text-xs font-medium flex items-center justify-center min-h-[40px]">
+              Aula em andamento
+            </span>
+          </div>
+        `;
+      }
+    } else if (timeState === 'past') {
+      if (isStudentConfirmed) {
+        const wasPresent = Number(cls.presente) === 1;
+        actionButtonMarkup = `
+          <div class="weekly-class-action flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+            <span class="px-3 py-2 sm:py-1.5 rounded-xl bg-zinc-800 text-emerald-400 text-xs font-medium border border-zinc-700 flex items-center gap-1.5 min-h-[38px]">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              ${wasPresent ? 'Presença confirmada' : 'Aula realizada'}
+            </span>
+          </div>
+        `;
+      } else {
+        actionButtonMarkup = `
+          <div class="weekly-class-action w-full sm:w-auto">
+            <span class="w-full sm:w-auto px-3 py-2 sm:py-1.5 rounded-xl bg-zinc-900/60 border border-zinc-800/60 text-zinc-600 text-xs font-medium flex items-center justify-center min-h-[38px]">
+              Encerrada
+            </span>
+          </div>
+        `;
+      }
+    } else if (isStudentConfirmed) {
       actionButtonMarkup = `
         <div class="weekly-class-action flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
           <span class="px-3 py-2 sm:py-1.5 rounded-xl bg-zinc-800 text-emerald-400 text-xs font-medium border border-zinc-700 flex items-center gap-1.5 min-h-[38px]">
@@ -390,7 +517,7 @@ function renderWeeklySchedule() {
     }
 
     return `
-      <article class="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border ${isStudentConfirmed ? 'border-zinc-700 bg-zinc-900/40' : 'border-zinc-800 hover:border-zinc-700'} transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <article class="p-3.5 sm:p-4 rounded-2xl bg-zinc-950/60 border ${isStudentConfirmed ? 'border-zinc-700 bg-zinc-900/40' : 'border-zinc-800 hover:border-zinc-700'} transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3" data-weekly-date="${escapeHTML(cls.data)}">
         <div class="flex items-center gap-3.5">
           <div class="text-center min-w-[42px] sm:min-w-[48px]">
             <span class="block text-[10px] font-semibold text-zinc-500 uppercase">${escapeHTML(dateOptionLabel(cls.data))}</span>
@@ -720,75 +847,200 @@ async function requestClass(classId, button) {
   }
 }
 
-function selectCalendarDate(value) {
-  if (availableItems().some((item) => item.data === value)) {
-    dateFilter.value = value;
-    setupAvailableTimes();
-    renderCalendar();
-    document.getElementById('availableTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
+async function selectCalendarDate(value) {
+  selectedCalendarDate = value;
+  renderCalendar();
+
+  if (dateFilter) {
+    const dates = Array.from(dateFilter.options).map((opt) => opt.value);
+    if (dates.includes(value)) {
+      dateFilter.value = value;
+      setupAvailableTimes();
+    }
+  }
+
+  const weeklyItem = weeklyList ? weeklyList.querySelector(`[data-weekly-date="${CSS.escape(value)}"]`) : null;
+  if (weeklyItem) {
+    weeklyItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    weeklyItem.classList.add('ring-2', 'ring-red-500', 'bg-red-950/20');
+    setTimeout(() => {
+      weeklyItem.classList.remove('ring-2', 'ring-red-500', 'bg-red-950/20');
+    }, 2000);
+    showStatus(`Visualizando aula de ${formatDate(value)} na grade semanal.`, 'success', 2500);
     return;
   }
-  const scheduled = upcomingList.querySelector(`[data-scheduled-date="${CSS.escape(value)}"]`);
+
+  const scheduled = upcomingList ? upcomingList.querySelector(`[data-scheduled-date="${CSS.escape(value)}"]`) : null;
   if (scheduled) {
     scheduled.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    scheduled.classList.add('is-highlighted');
-    window.setTimeout(() => scheduled.classList.remove('is-highlighted'), 1300);
+    scheduled.classList.add('ring-2', 'ring-red-500', 'bg-red-950/20');
+    setTimeout(() => {
+      scheduled.classList.remove('ring-2', 'ring-red-500', 'bg-red-950/20');
+    }, 2000);
+    showStatus(`Sua aula confirmada em ${formatDate(value)}.`, 'success', 2500);
+    return;
   }
+
+  const semana = agendaData.semana || {};
+  if (value && (!semana.inicio || value < semana.inicio || value > semana.fim)) {
+    showStatus(`Carregando semana de ${formatDate(value)}...`, '');
+    try {
+      const response = await fetch(`/api/public/student-classes?telefone=${encodeURIComponent(currentPhone)}&semana=${value}`, { cache: 'no-store' });
+      agendaData = await responseData(response, 'Não foi possível carregar a semana selecionada.');
+      renderDashboard();
+      renderCalendar();
+      const loadedItem = weeklyList ? weeklyList.querySelector(`[data-weekly-date="${CSS.escape(value)}"]`) : null;
+      if (loadedItem) {
+        loadedItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        loadedItem.classList.add('ring-2', 'ring-red-500', 'bg-red-950/20');
+        setTimeout(() => {
+          loadedItem.classList.remove('ring-2', 'ring-red-500', 'bg-red-950/20');
+        }, 2000);
+      }
+      showStatus(`Semana de ${formatDate(agendaData.semana.inicio)} a ${formatDate(agendaData.semana.fim)} carregada.`, 'success', 3000);
+      return;
+    } catch (err) {
+      showStatus(err.message, 'error');
+    }
+  }
+
+  if (availableItems().some((item) => item.data === value)) {
+    const title = document.getElementById('availableTitle');
+    title?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    showStatus(`Aulas disponíveis em ${formatDate(value)}.`, 'success', 2500);
+    return;
+  }
+
+  showStatus(`Nenhuma aula agendada para ${formatDate(value)}.`, '', 2500);
+}
+
+function updateGuestNotice() {
+  if (!guestSelectedNotice || !guestSelectedText) return;
+  const classId = guestTime ? guestTime.value : '';
+  if (classId) {
+    const cls = guestClasses.find((c) => String(c.id) === String(classId));
+    if (cls) {
+      guestSelectedNotice.className = 'p-3.5 rounded-2xl bg-red-950/40 border border-red-900/50 text-red-200 text-xs font-medium mb-4 flex items-center gap-2.5';
+      guestSelectedText.innerHTML = `Aula selecionada: <strong>${escapeHTML(formatDateLong(cls.data))} às ${escapeHTML(cls.horario)} (${escapeHTML(cls.turma || 'Turma')})</strong>`;
+      return;
+    }
+  }
+  if (guestDate && guestDate.value) {
+    guestSelectedNotice.className = 'p-3.5 rounded-2xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-300 mb-4 flex items-center gap-2.5';
+    guestSelectedText.innerHTML = `Data selecionada: <strong>${escapeHTML(formatDateLong(guestDate.value))}</strong>. Escolha o horário abaixo.`;
+    return;
+  }
+  guestSelectedNotice.className = 'p-3.5 rounded-2xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-400 mb-4 flex items-center gap-2.5';
+  guestSelectedText.textContent = 'Selecione uma data e horário ao lado.';
+}
+
+function renderGuestCalendar() {
+  if (!guestCalendar) return;
+  const availableDates = new Set(guestClasses.filter((item) => openSlots(item) > 0).map((item) => item.data));
+  const dates = [...new Set(guestClasses.map((item) => item.data))].sort();
+  if (!dates.length) {
+    guestCalendar.innerHTML = '<p class="text-xs text-zinc-500 text-center py-4">Nenhuma data disponível no momento.</p>';
+    return;
+  }
+  const start = dates[0];
+  const end = dates[dates.length - 1];
+
+  guestCalendar.innerHTML = monthKeys(start, end).map((key) => {
+    const [year, month] = key.split('-').map(Number);
+    const firstDay = new Date(Date.UTC(year, month - 1, 1, 12, 0, 0));
+    const lastDay = new Date(Date.UTC(year, month, 0, 12, 0, 0)).getUTCDate();
+    const offset = (firstDay.getUTCDay() + 6) % 7;
+    const cells = Array.from({ length: offset }, () => '<span class="calendar-day blank" aria-hidden="true"></span>');
+    for (let day = 1; day <= lastDay; day += 1) {
+      const iso = `${key}-${String(day).padStart(2, '0')}`;
+      const hasSpots = availableDates.has(iso);
+      const isSelected = guestDate && guestDate.value === iso;
+      const classes = ['calendar-day', hasSpots ? 'has-available' : '', isSelected ? 'is-selected' : ''].filter(Boolean).join(' ');
+      cells.push(hasSpots
+        ? `<button type="button" class="${classes}" data-guest-date="${iso}" aria-label="${escapeHTML(formatDateLong(iso))}"><span>${day}</span><i></i></button>`
+        : `<span class="${classes} opacity-25" aria-hidden="true"><span>${day}</span></span>`);
+    }
+    const title = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric', timeZone: 'America/Sao_Paulo' }).format(firstDay);
+    return `
+      <section class="calendar-month">
+        <h3>${escapeHTML(title)}</h3>
+        <div class="calendar-weekdays" aria-hidden="true"><span>Seg</span><span>Ter</span><span>Qua</span><span>Qui</span><span>Sex</span><span>Sáb</span><span>Dom</span></div>
+        <div class="calendar-grid">${cells.join('')}</div>
+      </section>`;
+  }).join('');
 }
 
 async function loadGuestClasses() {
   setStatus(guestStatus, 'Carregando todas as aulas disponíveis...');
-  guestDate.disabled = true;
+  if (guestDate) guestDate.disabled = true;
   try {
     const response = await fetch('/api/public/classes', { cache: 'no-store' });
     const data = await responseData(response, 'Não foi possível carregar os horários.');
-    // Sempre mantem TODAS as aulas futuras cadastradas
     guestClasses = data.items || [];
     setupGuestDates();
     guestClassesLoaded = true;
     const availableCount = guestClasses.filter((item) => openSlots(item) > 0).length;
     setStatus(guestStatus, availableCount
-      ? 'Escolha uma data e selecione o horário desejado.'
+      ? 'Escolha uma data no calendário ou selecione o horário desejado.'
       : 'Todas as aulas cadastradas no momento estão lotadas.');
     renderGuestClassList();
+    renderGuestCalendar();
+    updateGuestNotice();
   } catch (error) {
     setStatus(guestStatus, error.message, 'error');
   } finally {
-    guestDate.disabled = false;
+    if (guestDate) guestDate.disabled = false;
   }
 }
 
 function setupGuestDates() {
-  const dates = [...new Set(guestClasses.map((item) => item.data))];
+  if (!guestDate) return;
+  const dates = [...new Set(guestClasses.map((item) => item.data))].sort();
+  const prevDate = guestDate.value;
   guestDate.innerHTML = '<option value="">Selecione a data</option>' + dates.map((date) => {
     const forDate = guestClasses.filter((item) => item.data === date);
     const hasSpots = forDate.some((item) => openSlots(item) > 0);
     return `<option value="${escapeHTML(date)}">${escapeHTML(formatDateLong(date))}${hasSpots ? '' : ' (Lotada)'}</option>`;
   }).join('');
+  if (dates.includes(prevDate)) guestDate.value = prevDate;
   setupGuestTimes();
+  renderGuestCalendar();
 }
 
 function setupGuestTimes() {
+  if (!guestTime || !guestDate) return;
   const items = guestClasses.filter((item) => item.data === guestDate.value);
   if (!guestDate.value) {
     guestTime.innerHTML = '<option value="">Escolha primeiro a data</option>';
     guestTime.disabled = true;
     renderGuestClassList();
+    renderGuestCalendar();
+    updateGuestNotice();
     return;
   }
 
+  const prevTime = guestTime.value;
   guestTime.innerHTML = '<option value="">Selecione o horário</option>' + items.map((item) => {
     const slots = openSlots(item);
     const available = slots > 0;
     if (available) {
       return `<option value="${escapeHTML(item.id)}">${escapeHTML(item.horario)} · ${escapeHTML(item.turma || 'Turma')} · ${slots} ${slots === 1 ? 'vaga livre' : 'vagas livres'}</option>`;
     } else {
-      return `<option value="${escapeHTML(item.id)}" disabled style="color: var(--muted); opacity: 0.5;">${escapeHTML(item.horario)} · ${escapeHTML(item.turma || 'Turma')} · (Lotada / Indisponível)</option>`;
+      return `<option value="${escapeHTML(item.id)}" disabled style="color: var(--muted); opacity: 0.5;">${escapeHTML(item.horario)} · ${escapeHTML(item.turma || 'Turma')} · (Lotada)</option>`;
     }
   }).join('');
 
+  const availableItems = items.filter((item) => openSlots(item) > 0);
+  if (availableItems.some((item) => String(item.id) === String(prevTime))) {
+    guestTime.value = prevTime;
+  } else if (availableItems.length === 1) {
+    guestTime.value = String(availableItems[0].id);
+  }
+
   guestTime.disabled = !items.length;
   renderGuestClassList();
+  renderGuestCalendar();
+  updateGuestNotice();
 }
 
 function renderGuestClassList() {
@@ -942,7 +1194,33 @@ phoneInput.addEventListener('input', () => { phoneInput.value = formatPhone(phon
 guestPhone.addEventListener('input', () => { guestPhone.value = formatPhone(guestPhone.value); });
 dateFilter.addEventListener('change', () => { setupAvailableTimes(); renderCalendar(); });
 timeFilter.addEventListener('change', renderAvailable);
-guestDate.addEventListener('change', setupGuestTimes);
+
+if (guestDate) {
+  guestDate.addEventListener('change', () => {
+    setupGuestTimes();
+    renderGuestCalendar();
+    updateGuestNotice();
+  });
+}
+
+if (guestTime) {
+  guestTime.addEventListener('change', () => {
+    renderGuestClassList();
+    updateGuestNotice();
+  });
+}
+
+if (guestCalendar) {
+  guestCalendar.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-guest-date]');
+    if (!button) return;
+    const date = button.dataset.guestDate;
+    guestDate.value = date;
+    setupGuestTimes();
+    renderGuestCalendar();
+    updateGuestNotice();
+  });
+}
 
 if (guestModeButton) {
   guestModeButton.addEventListener('click', () => switchMode(guestPanel.hidden));
@@ -953,7 +1231,6 @@ const tabGuest = document.getElementById('tabGuestPortal');
 if (tabStudent) tabStudent.addEventListener('click', () => switchMode(false));
 if (tabGuest) tabGuest.addEventListener('click', () => switchMode(true));
 
-
 const guestListContainer = document.getElementById('guestClassesList');
 if (guestListContainer) {
   guestListContainer.addEventListener('click', (event) => {
@@ -961,20 +1238,15 @@ if (guestListContainer) {
     if (!card) return;
     const classId = card.dataset.pickGuest;
     const date = card.dataset.pickDate;
-    const title = card.dataset.pickTitle;
 
-    guestDate.innerHTML = '<option value="' + date + '" selected>' + date + '</option>';
     guestDate.value = date;
-    guestTime.innerHTML = '<option value="' + classId + '" selected>' + classId + '</option>';
+    setupGuestTimes();
     guestTime.value = classId;
 
-    const notice = document.getElementById('guestSelectedNotice');
-    if (notice) {
-      notice.className = 'p-3 rounded-2xl bg-red-950/40 border border-red-900/40 text-red-200 text-xs font-medium mb-4 flex items-center gap-2';
-      notice.innerHTML = '<svg class="w-4 h-4 text-red-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span>Aula: <strong>' + escapeHTML(title) + '</strong></span>';
-    }
-
     renderGuestClassList();
+    renderGuestCalendar();
+    updateGuestNotice();
+
     if (window.innerWidth < 1024) {
       const formCard = document.getElementById('guestBookingForm');
       formCard?.scrollIntoView({ behavior: 'smooth', block: 'center' });
