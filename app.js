@@ -1886,7 +1886,7 @@ function classRow(item) {
           </div>
           <span class="pill ${operationTone}" style="font-size:11px;">${escapeHTML(item.status || 'Marcada')}</span>
         </div>
-        <p class="meta" style="margin:2px 0 6px;">${escapeHTML(item.professor || 'Professor não informado')} • ${enrolled.length}/${item.capacidade || 8} atletas • ${confirmation.yes} confirmados${present ? ` • ${present} presenças` : ''}</p>
+        <p class="meta" style="margin:2px 0 6px;">${enrolled.length}/${item.capacidade || 8} atletas • ${confirmation.yes} confirmados${present ? ` • ${present} presenças` : ''}</p>
         ${enrolled.length || extras.length ? `
           <div class="roster-list class-roster" style="margin-top:8px;">
             ${enrolled.map((student) => rosterPerson(student, item.data, Boolean(item.presencas?.[student.aluno_id || student.id] || student.presente))).join('')}
@@ -2127,7 +2127,7 @@ function reportClassLine(item, showPresence = false, studentId = '') {
     <article class="row-card compact-row">
       <div>
         <h3>${formatDate(item.data)} ${escapeHTML(item.horario)} - ${escapeHTML(item.turma || 'Turma')}</h3>
-        <p class="meta">${escapeHTML(item.professor || 'Professor nao informado')} - ${escapeHTML(classType(item))}</p>
+        <p class="meta">${escapeHTML(classType(item))}</p>
       </div>
       <div class="pill-row">
         <span class="pill ${confirmClass}">${confirmText}</span>
@@ -2143,7 +2143,7 @@ function openClass(id = '') {
   document.getElementById('classDate').value = item.data || todayISO();
   document.getElementById('classTime').value = item.horario || '18:30';
   document.getElementById('classGroup').value = item.turma || '';
-  document.getElementById('classCoach').value = item.professor || '';
+  if (document.getElementById('classCoach')) document.getElementById('classCoach').value = item.professor || 'Lucão';
   document.getElementById('classType').value = classType(item);
   document.getElementById('classCapacity').value = item.capacidade || 8;
   document.getElementById('classStatus').value = item.status || 'Marcada';
@@ -2452,7 +2452,7 @@ async function copyStudentCharge(studentId) {
 function classShareText(item) {
   const enrolled = classStudents(item);
   const names = enrolled.length ? enrolled.map((student, index) => `${index + 1}. ${student.nome}`).join('\n') : 'Sem alunos previstos.';
-  return `Aula Team Lucão\n${formatDate(item.data)} às ${item.horario} - ${item.turma || 'Turma'} (${classType(item)})\nProfessor: ${item.professor || 'não informado'}\n\nPrevistos:\n${names}`;
+  return `Aula Team Lucão\n${formatDate(item.data)} às ${item.horario} - ${item.turma || 'Turma'} (${classType(item)})\n\nPrevistos:\n${names}`;
 }
 
 function classGroupMessageText(item, template = 'confirm') {
@@ -2581,7 +2581,6 @@ function classRosterText(item) {
   return [
     'Lista da aula - Team Lucão',
     `${formatDate(item.data)} as ${item.horario} - ${item.turma || 'Turma'} (${classType(item)})`,
-    `Professor: ${item.professor || 'nao informado'}`,
     '',
     'Previstos:',
     lines.length ? lines.join('\n') : 'Sem alunos previstos.',

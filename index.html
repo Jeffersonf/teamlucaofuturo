@@ -806,7 +806,7 @@
                 Observações & Restrições
               </span>
             </div>
-            <label>Anotações do Professor
+            <label>Observações do Aluno
               <input id="studentNote" placeholder="Restrições físicas, histórico, objetivos..." />
             </label>
           </div>
@@ -899,13 +899,14 @@
           <div class="modal-header-info">
             <span class="modal-badge">Grade de Treinos</span>
             <h2 id="classModalTitle">Aula</h2>
-            <p class="modal-subtitle">Configure data, horário oficial, turma, professor e lista de alunos.</p>
+            <p class="modal-subtitle">Configure data, horário oficial, turma e lista de alunos da Arena.</p>
           </div>
           <button class="modal-close-btn close" type="button" aria-label="Fechar aula" data-close="classModal">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
           </button>
         </div>
         <div class="modal-body">
+          <input type="hidden" id="classCoach" value="Lucão" />
           <div class="form-row">
             <label>Data do Treino
               <input id="classDate" type="date" required />
@@ -928,11 +929,6 @@
             <label>Turma
               <input id="classGroup" placeholder="Ex: Iniciantes, Intermediário, Misto" />
             </label>
-            <label>Professor
-              <input id="classCoach" placeholder="Lucão" />
-            </label>
-          </div>
-          <div class="form-row">
             <label>Tipo de Treino
               <select id="classType">
                 <option value="Regular">Regular</option>
@@ -942,11 +938,11 @@
                 <option value="Evento">Evento</option>
               </select>
             </label>
+          </div>
+          <div class="form-row">
             <label>Capacidade Máxima
               <input id="classCapacity" type="number" min="1" step="1" placeholder="8" />
             </label>
-          </div>
-          <div class="form-row">
             <label>Status
               <select id="classStatus">
                 <option value="Marcada">Marcada</option>
@@ -955,13 +951,13 @@
                 <option value="Cancelada">Cancelada</option>
               </select>
             </label>
-            <label>Recorrência
-              <select id="classRecurrence">
-                <option value="weekly">Semanal</option>
-                <option value="once">Apenas esta aula</option>
-              </select>
-            </label>
           </div>
+          <label>Recorrência
+            <select id="classRecurrence">
+              <option value="weekly">Semanal</option>
+              <option value="once">Apenas esta aula</option>
+            </select>
+          </label>
           <label class="native-class-select">Alunos da aula
             <select id="classStudents" multiple></select>
           </label>
@@ -1014,19 +1010,12 @@
               <input id="scheduleWeeks" type="number" min="1" max="12" step="1" value="4" required />
             </label>
           </div>
+          <input type="hidden" id="scheduleCoach" value="Lucão" />
           <div class="form-row">
             <label>Turma padrão
               <input id="scheduleGroup" value="Turma Arena" placeholder="Ex: Iniciantes" />
             </label>
-            <label>Professor
-              <input id="scheduleCoach" value="Lucão" placeholder="Nome do professor" />
-            </label>
-          </div>
-          <div class="form-row">
-            <label>Capacidade
-              <input id="scheduleCapacity" type="number" min="1" max="30" value="8" required />
-            </label>
-            <label>Tipo
+            <label>Tipo de Treino
               <select id="scheduleType">
                 <option value="Regular">Regular</option>
                 <option value="Experimental">Experimental</option>
@@ -1035,6 +1024,9 @@
               </select>
             </label>
           </div>
+          <label>Capacidade por aula
+            <input id="scheduleCapacity" type="number" min="1" max="30" value="8" required />
+          </label>
           <fieldset class="schedule-slots-field">
             <legend>Horários que serão criados</legend>
             <div class="schedule-slots" id="scheduleSlots"></div>

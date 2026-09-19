@@ -83,7 +83,6 @@ export function renderClassesTodayPlanner(ctx) {
           </div>
           <div class="class-main">
             <strong>${ctx.escapeHTML(item.turma || 'Turma')}</strong>
-            <span>${ctx.escapeHTML(item.professor || 'Professor não informado')}</span>
             <div class="pill-row">
               <span class="pill ${operationTone}">${ctx.escapeHTML(operationLabel)}</span>
               <span class="pill">${enrolled.length}/${capacity} previstos</span>

@@ -328,7 +328,7 @@ export function openStudentReport(ctx, id) {
                 <div class="athlete-item-row">
                   <div class="athlete-item-main">
                     <strong>${ctx.formatDate(item.data)} às ${ctx.escapeHTML(item.horario)}</strong>
-                    <small>${ctx.escapeHTML(item.turma || 'Turma Arena')} • Prof. ${ctx.escapeHTML(item.professor || 'Lucão')}</small>
+                    <small>${ctx.escapeHTML(item.turma || 'Turma Arena')}</small>
                   </div>
                   <span class="pill ok">Confirmado</span>
                 </div>

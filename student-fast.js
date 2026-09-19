@@ -259,7 +259,6 @@ function renderUpcoming() {
         <div>
           <div class="flex items-center gap-2 flex-wrap">
             <h4 class="text-xs sm:text-sm font-semibold text-zinc-200">${escapeHTML(item.turma || 'Turma')}</h4>
-            ${item.professor ? `<span class="text-[10px] text-zinc-500">· Prof. ${escapeHTML(item.professor)}</span>` : ''}
           </div>
           <p class="text-[11px] text-zinc-500 mt-0.5">${escapeHTML(formatDateLong(item.data))}</p>
         </div>
@@ -527,7 +526,6 @@ function renderWeeklySchedule() {
           <div>
             <div class="flex items-center gap-2 flex-wrap">
               <h4 class="text-xs sm:text-sm font-semibold text-zinc-200">${escapeHTML(cls.turma || 'Turma Geral')}</h4>
-              ${cls.professor ? `<span class="text-[10px] text-zinc-500">· Prof. ${escapeHTML(cls.professor)}</span>` : ''}
             </div>
             <p class="text-[11px] text-zinc-500 mt-0.5 flex items-center gap-1.5">
               <span class="w-1.5 h-1.5 rounded-full ${isFull ? 'bg-zinc-600' : 'bg-emerald-500'}"></span>
@@ -1090,7 +1088,6 @@ function renderGuestClassList() {
           <div>
             <div class="flex items-center gap-2">
               <h4 class="text-xs font-semibold text-zinc-200">${escapeHTML(item.turma || 'Turma Geral')}</h4>
-              ${item.professor ? `<span class="text-[10px] text-zinc-500">· ${escapeHTML(item.professor)}</span>` : ''}
             </div>
             <p class="text-[10px] text-zinc-500 mt-0.5 flex items-center gap-1">
               <span class="w-1.5 h-1.5 rounded-full ${available ? 'bg-emerald-500' : 'bg-zinc-600'}"></span>
