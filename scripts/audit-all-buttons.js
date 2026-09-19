@@ -20,7 +20,7 @@ async function auditAllButtons() {
   server.stdout.on('data', (d) => process.stdout.write(d));
   server.stderr.on('data', (d) => process.stderr.write(d));
 
-  await new Promise((r) => setTimeout(r, 2000));
+  await new Promise((r) => setTimeout(r, 4000));
 
   const browser = await chromium.launch({ channel: 'msedge', headless: true });
 

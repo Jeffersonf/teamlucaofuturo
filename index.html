@@ -162,6 +162,10 @@
             <span class="bc-sep">/</span>
             <strong id="topbarTitle">Painel do dia</strong>
           </div>
+          <div class="topbar-live-badge">
+            <span class="live-dot-pulse"></span>
+            <span>Operação Ao Vivo</span>
+          </div>
           <p class="eyebrow" id="topbarEyebrow" data-config-text="dashboardEyebrow" style="display:none;">operação de hoje</p>
         </div>
         <div class="mobile-top-brand">
@@ -194,37 +198,40 @@
         <div class="focus-strip" id="focusStrip"></div>
         <div class="kpi-grid" id="kpiGrid"></div>
         <div class="quick-actions" id="quickActions"></div>
-        <div class="two-col">
-          <section class="panel">
+        <div class="two-col dashboard-grid">
+          <section class="panel dashboard-classes-panel">
             <div class="panel-head">
               <div>
                 <span>hoje</span>
-                <h2>Aulas do dia</h2>
+                <h2>Grade do dia</h2>
               </div>
               <button class="soft-btn" type="button" data-open-class>+ Aula</button>
             </div>
             <div class="list" id="todayClasses"></div>
           </section>
-          <section class="panel">
-            <div class="panel-head">
-              <div>
-                <span>atenção</span>
-                <h2>Pendências</h2>
+          <div class="dashboard-side-col">
+            <section class="panel dashboard-pending-panel">
+              <div class="panel-head">
+                <div>
+                  <span>atenção</span>
+                  <h2>Cobranças Pendentes</h2>
+                </div>
+                <button class="soft-btn" type="button" data-action="payments">Ver todas</button>
               </div>
-            </div>
-            <div class="list" id="pendingList"></div>
-          </section>
-        </div>
-        <section class="panel action-panel">
-          <div class="panel-head">
-            <div>
-              <span>histórico</span>
-              <h2>Últimas ações</h2>
-            </div>
-            <button class="soft-btn" type="button" data-action="actions">Ver central</button>
+              <div class="list" id="pendingList"></div>
+            </section>
+            <section class="panel action-panel dashboard-action-panel">
+              <div class="panel-head">
+                <div>
+                  <span>tempo real</span>
+                  <h2>Atividade recente</h2>
+                </div>
+                <button class="soft-btn" type="button" data-action="actions">Ver central</button>
+              </div>
+              <div class="action-feed compact-feed" id="dashboardActions"></div>
+            </section>
           </div>
-          <div class="action-feed compact-feed" id="dashboardActions"></div>
-        </section>
+        </div>
       </section>
 
       <section class="page" id="page-actions">

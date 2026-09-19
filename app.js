@@ -2681,7 +2681,34 @@ function handleQuickAction(action) {
   if (action === 'quick-class') openClass();
 }
 
+async function toggleQuickAttendance(classId, studentId) {
+  const item = classById(classId);
+  if (!item) return;
+  item.presencas = item.presencas || {};
+  item.presencas[studentId] = !item.presencas[studentId];
+  const student = studentById(studentId);
+  if (!apiMode) recordAction('Professor', 'Presença rápida', `${student?.nome || 'Aluno'} foi ${item.presencas[studentId] ? 'marcado presente' : 'desmarcado'} na aula ${item.horario} - ${item.turma || 'Turma'}.`);
+  touchState();
+  renderDashboard(getAppContext());
+  toast(`${student?.nome || 'Aluno'} ${item.presencas[studentId] ? 'marcado presente' : 'desmarcado'}`);
+  try {
+    if (apiMode) {
+      await api(`/api/classes/${classId}/attendance`, { method: 'PUT', body: JSON.stringify({ attendance: item.presencas }) });
+      await loadData();
+    } else {
+      saveAndRender();
+    }
+  } catch (err) {
+    toast(`Erro ao salvar presença: ${err.message}`);
+  }
+}
+
 function handleFocusAction(action) {
+  if (action.startsWith('quick-checkin:')) {
+    const [, classId, studentId] = action.split(':');
+    toggleQuickAttendance(classId, studentId);
+    return;
+  }
   if (action === 'next-class') {
     openNextClass();
     return;
