@@ -73,7 +73,7 @@ export function renderFocusStrip(ctx) {
           ${ctx.escapeHTML(next.turma || 'Turma')}
         </h2>
         <p class="meta hero-subtitle">
-          ${nextPresent} presenças confirmadas de ${nextStudents.length} atletas convocados.
+          ${nextPresent === 1 ? '1 presença confirmada' : `${nextPresent} presenças confirmadas`} de ${nextStudents.length === 1 ? '1 atleta convocado' : `${nextStudents.length} atletas convocados`}.
         </p>
 
         <!-- Quick 1-Click Check-in Chips -->
@@ -205,7 +205,7 @@ export function renderKpis(ctx) {
           <div class="kpi-progress-fill emerald" style="width: ${collectionRate}%;"></div>
         </div>
         <div class="finance-kpi-footer" style="margin-top:6px;">
-          <span class="meta">${activeStudents.length} alunos ativos</span>
+          <span class="meta">${activeStudents.length === 1 ? '1 aluno ativo' : `${activeStudents.length} alunos ativos`}</span>
         </div>
       </div>
     </div>

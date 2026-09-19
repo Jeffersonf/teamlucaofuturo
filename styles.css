@@ -927,7 +927,7 @@ textarea::placeholder {
 
 .panel-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
@@ -1315,6 +1315,7 @@ textarea::placeholder {
 }
 
 /* Pending Student Card */
+#pendingList .pending-student-card,
 .pending-student-card {
   display: flex;
   align-items: center;
@@ -3510,6 +3511,32 @@ label {
     margin-top: 2px !important;
   }
 
+  .hero-status-row {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    align-items: center !important;
+    gap: 6px 8px !important;
+    width: 100% !important;
+  }
+
+  .live-status-pill {
+    grid-column: 1 / 2;
+    grid-row: 1;
+    justify-self: start;
+  }
+
+  .hero-capacity-pill {
+    grid-column: 2 / 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .hero-meta-item {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+  }
+
   .day-command-actions,
   .report-hero .actions {
     display: grid !important;
@@ -3579,6 +3606,7 @@ label {
     justify-content: center !important;
   }
 
+  #pendingList .pending-student-card,
   .pending-student-card {
     display: flex !important;
     flex-direction: column !important;
@@ -3587,6 +3615,7 @@ label {
     padding: 12px !important;
   }
 
+  #pendingList .pending-student-main,
   .pending-student-main {
     display: flex !important;
     align-items: center !important;
@@ -3594,6 +3623,7 @@ label {
     width: 100% !important;
   }
 
+  #pendingList .pending-student-actions,
   .pending-student-actions {
     display: flex !important;
     align-items: center !important;
@@ -3828,14 +3858,18 @@ label {
     align-items: center !important;
     gap: 8px !important;
     width: 100% !important;
+    margin-top: 8px !important;
   }
   .class-row .actions > .mini-btn:not(.icon-btn) {
     flex: 1 1 0 !important;
     min-width: 0 !important;
   }
+  .class-row .actions > details.action-dropdown,
   .class-row .actions > .action-dropdown {
-    flex: 0 0 auto !important;
-    width: auto !important;
+    flex: 0 0 32px !important;
+    width: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
   }
   .student-booking-board { min-width: 0; }
 }
