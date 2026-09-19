@@ -1361,7 +1361,7 @@ async function readBody(request) {
 
 function assetRequest(request, env) {
   const url = new URL(request.url);
-  const routes = env.PAGES_MODE === '1' ? {} : { '/': '/index.html', '/aluno': '/aluno.html', '/autorizar': '/autorizar.html' };
+  const routes = env.PAGES_MODE === '1' ? { '/favicon.ico': '/assets/team-lucao-logo.png' } : { '/': '/index.html', '/aluno': '/aluno.html', '/autorizar': '/autorizar.html', '/favicon.ico': '/assets/team-lucao-logo.png' };
   if (routes[url.pathname]) url.pathname = routes[url.pathname];
   return new Request(url, request);
 }

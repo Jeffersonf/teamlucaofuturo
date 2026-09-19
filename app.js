@@ -1174,6 +1174,7 @@ function getAppContext() {
     isPaid,
     isPaidForMonth,
     dueDay,
+    dueDateForMonth,
     paymentUrgency,
     paymentPriority,
     sortedPaymentStudents,

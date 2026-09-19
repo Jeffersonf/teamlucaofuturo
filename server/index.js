@@ -38,6 +38,7 @@ const BACKUP_RETENTION = Math.max(1, Number(process.env.BACKUP_RETENTION || 30))
 
 app.use(cors());
 app.use(express.json({ limit: '8mb' }));
+app.get('/favicon.ico', (_req, res) => res.redirect('/assets/team-lucao-logo.png'));
 app.use(express.static(ROOT_DIR));
 
 function jsonError(res, err, fallback = 400) {
