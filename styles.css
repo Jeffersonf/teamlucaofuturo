@@ -1109,6 +1109,11 @@ textarea::placeholder {
   gap: 16px;
 }
 
+.tnum {
+  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums;
+}
+
 @media (max-width: 980px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
@@ -1123,6 +1128,7 @@ textarea::placeholder {
   position: relative;
   overflow: hidden;
   border-radius: 18px;
+  padding: 18px 20px;
 }
 
 .day-command.next-class-panel::before {
@@ -1135,19 +1141,82 @@ textarea::placeholder {
   background: linear-gradient(90deg, #dc2626, #ef4444, transparent);
 }
 
+.hero-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.live-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(220, 38, 38, 0.12);
+  border: 1px solid rgba(220, 38, 38, 0.28);
+  color: #f87171;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hero-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.hero-capacity-pill {
+  font-size: 10.5px;
+  padding: 2px 8px;
+  font-weight: 700;
+}
+
+.hero-title {
+  font-size: clamp(18px, 2vw, 22px);
+  font-weight: 750;
+  color: #ffffff;
+  margin: 0 0 4px;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
 .quick-checkin-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 7px;
-  margin-top: 10px;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.quick-checkin-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #71717a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-right: 2px;
 }
 
 .quick-checkin-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: 5px;
+  padding: 4px 8px;
   border-radius: 8px;
   background: #18181b;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -1157,6 +1226,13 @@ textarea::placeholder {
   cursor: pointer;
   transition: all 0.15s ease;
   user-select: none;
+  max-width: 140px;
+}
+
+.quick-checkin-chip .chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .quick-checkin-chip:hover {
@@ -1172,17 +1248,18 @@ textarea::placeholder {
 }
 
 .quick-checkin-chip .dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: #f59e0b;
+  flex-shrink: 0;
 }
 
 .quick-checkin-chip.present .dot {
   background: #10b981;
 }
 
-/* Bento KPI Grid Enhanced */
+/* Bento KPI Grid Enhanced - 100% Simétrico */
 .kpi-card-enhanced {
   display: flex;
   flex-direction: column;
@@ -1190,9 +1267,10 @@ textarea::placeholder {
   gap: 8px;
   background: #111114;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 16px;
-  transition: all 0.15s ease;
+  border-radius: 14px;
+  padding: 14px;
+  min-height: 116px;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .kpi-card-enhanced:hover {
@@ -1200,9 +1278,18 @@ textarea::placeholder {
   border-color: rgba(255, 255, 255, 0.14);
 }
 
+.kpi-card-value {
+  font-size: clamp(20px, 2vw, 24px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: #ffffff;
+  margin-top: 4px;
+}
+
 .kpi-progress-bar {
   width: 100%;
-  height: 5px;
+  height: 4px;
   background: #1c1c21;
   border-radius: 9999px;
   overflow: hidden;
@@ -1220,34 +1307,78 @@ textarea::placeholder {
   background: #10b981;
 }
 
-.kpi-avatar-stack {
+.finance-kpi-footer {
   display: flex;
   align-items: center;
-  margin-top: 4px;
+  justify-content: space-between;
+  min-height: 18px;
 }
 
-.kpi-avatar-stack .stack-item {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #27272a;
-  border: 2px solid #111114;
+/* Pending Student Card */
+.pending-student-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+}
+
+.pending-student-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.pending-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #ef4444;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 8.5px;
   font-weight: 700;
-  color: #e4e4e7;
-  margin-left: -5px;
+  font-size: 11px;
+  flex-shrink: 0;
 }
 
-.kpi-avatar-stack .stack-item:first-child {
-  margin-left: 0;
+.pending-student-info {
+  min-width: 0;
+  flex: 1;
 }
 
-.kpi-avatar-stack .stack-more {
-  background: rgba(220, 38, 38, 0.2);
-  color: #ef4444;
+.pending-student-info .link-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.pending-student-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.pending-amount {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.pending-buttons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* Timeline Feed in Dashboard */
@@ -1295,7 +1426,6 @@ textarea::placeholder {
 .timeline-time {
   font-size: 10.5px;
   color: #71717a;
-  font-family: var(--font-mono, monospace);
   margin-top: 2px;
 }
 
@@ -3389,8 +3519,10 @@ label {
     min-width: 0 !important;
   }
 
-  .day-command-actions > button:first-child {
+  .day-command-actions > button:first-child,
+  .day-command-actions > .hero-primary-btn {
     grid-column: 1 / -1 !important;
+    min-height: 40px !important;
   }
 
   .student-list-head { display: none; }
@@ -3412,12 +3544,63 @@ label {
   }
 
   .actions {
-    justify-content: flex-start;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
   }
 
-  .actions > *,
-  .confirm-choice > * {
-    flex: 1 1 auto;
+  .actions > button:not(.icon-btn),
+  .actions > a:not(.icon-btn):not(.pill) {
+    flex: 1 1 auto !important;
+    min-width: 70px !important;
+  }
+
+  .actions > .icon-btn,
+  .actions > details.action-dropdown,
+  .actions > .action-dropdown,
+  .mini-btn.icon-btn {
+    flex: 0 0 32px !important;
+    width: 32px !important;
+    min-width: 32px !important;
+    max-width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+  }
+
+  details.action-dropdown summary {
+    width: 32px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .pending-student-card {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    padding: 12px !important;
+  }
+
+  .pending-student-main {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    width: 100% !important;
+  }
+
+  .pending-student-actions {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    padding-top: 8px !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
   }
 
   .class-calendar {

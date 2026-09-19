@@ -28,19 +28,19 @@ export function renderFocusStrip(ctx) {
     target.innerHTML = `
       <section class="day-command next-class-panel">
         <div class="day-command-main">
-          <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-            <span class="eyebrow" style="color:#71717a; font-weight:700; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; display:flex; align-items:center; gap:5px;">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              Grade do Dia
+          <div class="hero-status-row">
+            <span class="live-status-pill" style="color:#71717a; border-color:rgba(255,255,255,0.1); background:rgba(255,255,255,0.05);">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>Grade do Dia</span>
             </span>
           </div>
-          <h2 style="font-size:20px; font-weight:700; color:#ffffff; margin:0 0 4px; letter-spacing:-0.02em;">Sem aula marcada para agora</h2>
-          <p class="meta" style="margin:0; font-size:13px; color:#a1a1aa;">Crie uma nova aula para iniciar a grade de treinos de hoje.</p>
+          <h2 class="hero-title">Sem aula marcada para agora</h2>
+          <p class="meta hero-subtitle">Crie uma nova aula para iniciar a grade de treinos de hoje.</p>
         </div>
         <div class="day-command-actions">
-          <button class="primary-btn" type="button" data-open-class>+ Criar Aula</button>
-          ${pendingBookings.length ? `<button class="soft-btn" type="button" data-focus-action="bookings">Ver pedidos (${pendingBookings.length})</button>` : ''}
-          ${lead ? `<button class="soft-btn" type="button" data-focus-action="wait:${lead.id}">Fila de espera</button>` : ''}
+          <button class="primary-btn hero-primary-btn" type="button" data-open-class>+ Criar Aula</button>
+          ${pendingBookings.length ? `<button class="soft-btn hero-secondary-btn" type="button" data-focus-action="bookings">Ver pedidos (${pendingBookings.length})</button>` : ''}
+          ${lead ? `<button class="soft-btn hero-secondary-btn" type="button" data-focus-action="wait:${lead.id}">Fila de espera</button>` : ''}
         </div>
       </section>
     `;
@@ -55,31 +55,31 @@ export function renderFocusStrip(ctx) {
   target.innerHTML = `
     <section class="day-command next-class-panel">
       <div class="day-command-main">
-        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px;">
-          <span class="eyebrow" style="color:#f87171; font-weight:700; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; display:flex; align-items:center; gap:6px;">
+        <div class="hero-status-row">
+          <span class="live-status-pill">
             <span class="live-dot-pulse"></span>
-            Em Andamento • ${ctx.escapeHTML(next.horario)}
+            <span>Em Andamento • ${ctx.escapeHTML(next.horario)}</span>
           </span>
-          <span class="meta" style="display:inline-flex; align-items:center; gap:4px; font-size:12px; color:#a1a1aa;">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            Quadra 1 (Areia Principal)
+          <span class="hero-meta-item">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>Quadra 1 (Areia Principal)</span>
           </span>
-          <span class="pill ${isFull ? 'ok' : 'neutral'}" style="font-size:10.5px; padding:2px 8px; font-weight:700;">
+          <span class="pill ${isFull ? 'ok' : 'neutral'} hero-capacity-pill">
             ${nextStudents.length}/${capacity} ${isFull ? 'Lotada' : 'Atletas'}
           </span>
         </div>
 
-        <h2 style="font-size:22px; font-weight:750; color:#ffffff; margin:0 0 4px; letter-spacing:-0.025em;">
+        <h2 class="hero-title">
           ${ctx.escapeHTML(next.turma || 'Turma')}
         </h2>
-        <p class="meta" style="margin:0 0 8px; font-size:13px; color:#a1a1aa;">
+        <p class="meta hero-subtitle">
           ${nextPresent} presenças confirmadas de ${nextStudents.length} atletas convocados.
         </p>
 
         <!-- Quick 1-Click Check-in Chips -->
         ${nextStudents.length ? `
           <div class="quick-checkin-row">
-            <span style="font-size:11px; font-weight:700; color:#71717a; text-transform:uppercase; letter-spacing:0.04em;">Check-in rápido:</span>
+            <span class="quick-checkin-label">Check-in rápido:</span>
             ${nextStudents.map((student) => {
               const sId = student.aluno_id || student.id;
               const isPres = Boolean(next.presencas?.[sId] || next.presencas?.[String(sId)] || student.presente);
@@ -89,7 +89,7 @@ export function renderFocusStrip(ctx) {
                   ${isPres
                     ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`
                     : `<span class="dot"></span>`}
-                  <span>${ctx.escapeHTML(shortName)}</span>
+                  <span class="chip-name">${ctx.escapeHTML(shortName)}</span>
                 </button>
               `;
             }).join('')}
@@ -98,23 +98,23 @@ export function renderFocusStrip(ctx) {
       </div>
 
       <div class="day-command-actions">
-        <button class="primary-btn" type="button" data-focus-action="next-class" style="display:flex; align-items:center; justify-content:center; gap:6px;">
+        <button class="primary-btn hero-primary-btn" type="button" data-focus-action="next-class">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
           <span>Lista de Chamada</span>
         </button>
-        <button class="soft-btn" type="button" data-open-group-message="${next.id}" style="display:flex; align-items:center; justify-content:center; gap:6px;">
+        <button class="soft-btn hero-secondary-btn" type="button" data-open-group-message="${next.id}">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
           <span>Avisar no Grupo</span>
         </button>
-        ${pendingBookings.length ? `<button class="soft-btn" type="button" data-focus-action="bookings">Ver pedidos (${pendingBookings.length})</button>` : ''}
-        ${lead ? `<button class="soft-btn" type="button" data-focus-action="wait:${lead.id}">Fila de espera</button>` : ''}
+        ${pendingBookings.length ? `<button class="soft-btn hero-secondary-btn" type="button" data-focus-action="bookings">Ver pedidos (${pendingBookings.length})</button>` : ''}
+        ${lead ? `<button class="soft-btn hero-secondary-btn" type="button" data-focus-action="wait:${lead.id}">Fila de espera</button>` : ''}
       </div>
     </section>
   `;
 }
 
 /**
- * Renderiza os KPIs operacionais no padrão Bento Grid SaaS
+ * Renderiza os KPIs operacionais no padrão Bento Grid SaaS 100% Simétrico
  */
 export function renderKpis(ctx) {
   const target = document.getElementById('kpiGrid');
@@ -139,16 +139,9 @@ export function renderKpis(ctx) {
   const paidTotal = activeStudents.filter((s) => s.pagamento_status === 'paid').reduce((sum, s) => sum + Number(s.mensalidade || 0), 0);
   const collectionRate = monthlyTotal ? Math.round((paidTotal / monthlyTotal) * 100) : 100;
 
-  // Alunos confirmados para avatar stack
-  const confirmedStudents = [];
-  todayClasses.forEach((c) => {
-    ctx.classStudents(c).forEach((s) => {
-      const id = s.aluno_id || s.id;
-      if ((c.presencas?.[id] || s.presente) && !confirmedStudents.some((cs) => cs.id === id)) {
-        confirmedStudents.push(s);
-      }
-    });
-  });
+  // Formatação limpa de moeda
+  const formattedRevenue = ctx.money.format(paidTotal || monthlyTotal).replace(/\s+/g, ' ');
+  const formattedPending = ctx.money.format(pendingValue).replace(/\s+/g, ' ');
 
   target.innerHTML = `
     <!-- KPI 1: Ocupação do Dia -->
@@ -160,8 +153,8 @@ export function renderKpis(ctx) {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
           </div>
         </div>
-        <div class="kpi-card-value" style="font-family:var(--font-mono, monospace);">${occupancyRate}%</div>
-        <p class="meta" style="margin:2px 0 0; font-size:11.5px;">${expectedToday} de ${totalCapacity} vagas preenchidas</p>
+        <div class="kpi-card-value tnum">${occupancyRate}%</div>
+        <p class="meta" style="margin:2px 0 0; font-size:11.5px;">${expectedToday} de ${totalCapacity} vagas</p>
       </div>
       <div>
         <div class="kpi-progress-bar">
@@ -182,17 +175,15 @@ export function renderKpis(ctx) {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
           </div>
         </div>
-        <div class="kpi-card-value" style="font-family:var(--font-mono, monospace);">${presentToday} / ${expectedToday || 0}</div>
-        <p class="meta" style="margin:2px 0 0; font-size:11.5px;">${attendanceRate}% taxa de comparecimento</p>
+        <div class="kpi-card-value tnum">${presentToday} / ${expectedToday || 0}</div>
+        <p class="meta" style="margin:2px 0 0; font-size:11.5px;">${attendanceRate}% comparecimento</p>
       </div>
       <div>
-        <div class="kpi-avatar-stack">
-          ${confirmedStudents.slice(0, 4).map((s) => {
-            const initials = s.nome ? s.nome.split(' ').filter(Boolean).map((n) => n[0]).slice(0, 2).join('').toUpperCase() : 'AL';
-            return `<div class="stack-item" title="${ctx.escapeHTML(s.nome)}">${initials}</div>`;
-          }).join('')}
-          ${confirmedStudents.length > 4 ? `<div class="stack-item stack-more">+${confirmedStudents.length - 4}</div>` : ''}
-          <span class="meta" style="margin:0 0 0 8px; font-size:11px;">${expectedToday - presentToday} aguardando</span>
+        <div class="kpi-progress-bar">
+          <div class="kpi-progress-fill emerald" style="width: ${attendanceRate}%;"></div>
+        </div>
+        <div class="finance-kpi-footer" style="margin-top:6px;">
+          <span class="meta">${Math.max(0, expectedToday - presentToday)} aguardando</span>
         </div>
       </div>
     </div>
@@ -206,7 +197,7 @@ export function renderKpis(ctx) {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 6v2m0 8v2"/></svg>
           </div>
         </div>
-        <div class="kpi-card-value" style="font-family:var(--font-mono, monospace);">${ctx.money.format(paidTotal || monthlyTotal)}</div>
+        <div class="kpi-card-value tnum">${formattedRevenue}</div>
         <p class="meta" style="margin:2px 0 0; font-size:11.5px;">${collectionRate}% liquidado no mês</p>
       </div>
       <div>
@@ -228,15 +219,21 @@ export function renderKpis(ctx) {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
           </div>
         </div>
-        <div class="kpi-card-value" style="font-family:var(--font-mono, monospace); ${pendingStudents.length ? 'color:#ef4444;' : ''}">
-          ${ctx.money.format(pendingValue)}
+        <div class="kpi-card-value tnum" style="${pendingStudents.length ? 'color:#ef4444;' : ''}">
+          ${formattedPending}
         </div>
         <p class="meta" style="margin:2px 0 0; font-size:11.5px;">${pendingStudents.length} ${pendingStudents.length === 1 ? 'aluno pendente' : 'alunos pendentes'}</p>
       </div>
       <div>
-        <button class="soft-btn" type="button" data-action="payments" style="width:100%; min-height:30px; font-size:11px; padding:4px 8px; justify-content:center; border-color:rgba(239,68,68,0.3); color:#fca5a5;">
-          Cobrar Pendências
-        </button>
+        <div class="kpi-progress-bar">
+          <div class="kpi-progress-fill" style="background:#ef4444; width: ${pendingStudents.length ? Math.min(100, Math.round((pendingStudents.length / (activeStudents.length || 1)) * 100)) : 0}%;"></div>
+        </div>
+        <div class="finance-kpi-footer" style="margin-top:6px;">
+          <span class="meta">${pendingStudents.length ? 'Requer atenção' : 'Tudo em dia'}</span>
+          <button type="button" data-action="payments" style="background:transparent; border:none; padding:0; font-size:11px; font-weight:600; color:#ef4444; cursor:pointer; display:inline-flex; align-items:center; gap:2px;">
+            Cobrar →
+          </button>
+        </div>
       </div>
     </div>
   `;
@@ -272,38 +269,37 @@ export function renderPending(ctx) {
   target.innerHTML = students.length ? `
     ${visible.map((student) => {
       const initials = student.nome ? student.nome.split(' ').filter(Boolean).map((n) => n[0]).slice(0, 2).join('').toUpperCase() : 'AL';
+      const formattedValue = ctx.money.format(Number(student.mensalidade || 0)).replace(/\s+/g, ' ');
       return `
-        <article class="row-card">
-          <div style="display:flex; align-items:center; gap:12px; min-width:0;">
-            <div style="width:34px; height:34px; border-radius:9px; background:rgba(239,68,68,0.14); border:1px solid rgba(239,68,68,0.28); color:#ef4444; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; flex-shrink:0;">
-              ${initials}
-            </div>
-            <div style="min-width:0; flex:1;">
-              <button class="link-title compact-title" type="button" data-report-student="${student.id}" style="font-weight:600; font-size:13px; color:#ffffff;">
+        <article class="row-card pending-student-card">
+          <div class="pending-student-main">
+            <div class="pending-avatar">${initials}</div>
+            <div class="pending-student-info">
+              <button class="link-title compact-title" type="button" data-report-student="${student.id}">
                 ${ctx.escapeHTML(student.nome)}
               </button>
-              <p class="meta" style="font-size:11px; margin:2px 0 0; color:#a1a1aa;">
-                ${ctx.escapeHTML(student.plano_nome || 'Sem plano')} • Vencimento dia ${student.vencimento_dia || '10'}
+              <p class="meta">
+                ${ctx.escapeHTML(student.plano_nome || 'Sem plano')} • Venc. dia ${student.vencimento_dia || '10'}
               </p>
             </div>
           </div>
-          <div class="actions" style="display:flex; align-items:center; gap:8px;">
-            <strong style="font-family:var(--font-mono, monospace); font-size:13px; color:#ffffff; white-space:nowrap;">
-              ${ctx.money.format(Number(student.mensalidade || 0))}
-            </strong>
-            ${student.telefone ? `
-              <a class="mini-btn icon-btn" href="${ctx.whatsappUrl ? ctx.whatsappUrl(student.telefone, `Oi ${student.nome}, tudo bem? Notamos que sua mensalidade do Team Lucão está pendente. Segue a chave PIX para acerto: lucao@futevolei.com. Qualquer dúvida estamos à disposição!`) : '#'}" target="_blank" rel="noopener" title="Cobrar no WhatsApp" style="color:#34d399; border-color:rgba(52,211,153,0.3); background:rgba(52,211,153,0.08);">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-              </a>
-            ` : ''}
-            <button class="mini-btn icon-btn" type="button" data-pay="${student.id}" title="Dar Baixa" style="color:#ffffff;">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-            </button>
+          <div class="pending-student-actions">
+            <strong class="pending-amount tnum">${formattedValue}</strong>
+            <div class="pending-buttons">
+              ${student.telefone ? `
+                <a class="mini-btn icon-btn" href="${ctx.whatsappUrl ? ctx.whatsappUrl(student.telefone, `Oi ${student.nome}, tudo bem? Notamos que sua mensalidade do Team Lucão está pendente. Segue a chave PIX para acerto: lucao@futevolei.com. Qualquer dúvida estamos à disposição!`) : '#'}" target="_blank" rel="noopener" title="Cobrar no WhatsApp" style="color:#34d399; border-color:rgba(52,211,153,0.3); background:rgba(52,211,153,0.08);">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                </a>
+              ` : ''}
+              <button class="mini-btn icon-btn" type="button" data-pay="${student.id}" title="Dar Baixa" style="color:#ffffff;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              </button>
+            </div>
           </div>
         </article>
       `;
     }).join('')}
-    ${students.length > visible.length ? `<button class="soft-btn dashboard-more-btn" type="button" data-action="payments" style="width:100%; justify-content:center; font-size:12px;">Ver todas as ${students.length} pendências</button>` : ''}
+    ${students.length > visible.length ? `<button class="soft-btn dashboard-more-btn" type="button" data-action="payments" style="width:100%; justify-content:center; font-size:12px; margin-top:4px;">Ver todas as ${students.length} pendências</button>` : ''}
   ` : ctx.empty('Sem pendências financeiras no momento.');
 }
 
